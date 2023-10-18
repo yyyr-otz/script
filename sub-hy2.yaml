@@ -78,11 +78,11 @@ dns: #dns设置
       - 0.0.0.0/32
 # 配置规则参考文档： https://github.com/Dreamacro/clash/wiki/configuration
 # 设置代理提供者(远程订阅地址+本地订阅文件)
-proxy-providers: #订阅节点
-  chromego:  #不套WARP 含hy2
-    type: http  # http文件
-    path: ./合并/chromgo.yaml
-    url: "https://mareep.netlify.app/sub/merged_proxies_new.yaml"
+proxy-providers:
+  chromego:
+    type: http
+    path: ./合并/chromego.yaml
+    url: https://mareep.netlify.app/sub/merged_proxies_new.yaml
     interval: 3600
     #filter:'HK'#筛选关键词
     health-check:
@@ -115,7 +115,7 @@ proxies:
   - {"name":"美国6","type":"vless","server":"18.144.172.165","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
   - {"name":"韩国7","type":"vless","server":"dx.superjj.cc","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
 
-proxy-groups: #分组策略
+proxy-groups:
   - name: 🚀 节点选择
     type: select
     proxies:
