@@ -14052,7 +14052,7 @@ rules:
 # Xunlei 迅雷
 # YYeTs 人人影视
 # TeamViewer
-# Public Direct CDN 公共直连
+# Public Direct CDN 公共直连 CDN直连 cloudflare
   - DOMAIN-SUFFIX,ajax.aspnetcdn.com,🚀 手动切换
   - DOMAIN-SUFFIX,ajax.cloudflare.com,🚀 手动切换
   - DOMAIN-SUFFIX,cdnjs.cloudflare.com,🚀 手动切换
