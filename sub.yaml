@@ -112,7 +112,7 @@ proxies:
   - {"name":"1.CMCC","type":"vless","server":"warp1cmcc.n7p8ri7j.workers.dev","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
 
 proxy-groups: #分组策略
- - name: 🚀 节点选择
+  - name: 🚀 节点选择
     type: select
     proxies:
       - ♻️🍄 chromego
