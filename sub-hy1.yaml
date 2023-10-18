@@ -78,9 +78,9 @@ dns: #dns设置
       - 0.0.0.0/32
 # 配置规则参考文档： https://github.com/Dreamacro/clash/wiki/configuration
 # 设置代理提供者(远程订阅地址+本地订阅文件)
-proxy-providers: #订阅节点
-  chromego:  #不套WARP 不含hy2
-    type: http  # http文件
+proxy-providers:
+  chromego:
+    type: http
     path: ./合并/chromgo.yaml
     url: https://mareep.netlify.app/sub/merged_proxies.yaml
     interval: 3600
