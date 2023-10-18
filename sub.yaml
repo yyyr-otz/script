@@ -107,8 +107,13 @@ proxy-providers: #订阅节点
       #interval: 300
   
 proxies:
-  - {"name":"1.HK","type":"vless","server":"wrap1hk.n7p8ri7j.workers.dev","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"1.CMCC","type":"vless","server":"warp1cmcc.n7p8ri7j.workers.dev","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"新加坡1","type":"vless","server":"3.0.20.51","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
+  - {"name":"香港2","type":"vless","server":"hk1.superjj.cc","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
+  - {"name":"香港3","type":"vless","server":"hkt.superjj.cc","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
+  - {"name":"日本4","type":"vless","server":"52.195.5.182","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
+  - {"name":"日本5","type":"vless","server":"43.206.105.182","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
+  - {"name":"美国6","type":"vless","server":"18.144.172.165","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
+  - {"name":"韩国7","type":"vless","server":"dx.superjj.cc","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
 
 proxy-groups: #分组策略
   - name: 🚀 节点选择
@@ -126,8 +131,13 @@ proxy-groups: #分组策略
   - name: 🚀 手动切换
     type: select
     proxies:
-      - 1.HK
-      - 1.CMCC
+      - 新加坡1
+      - 香港2
+      - 香港3
+      - 日本4
+      - 日本5
+      - 美国6
+      - 韩国7
     use: 
       - chromego
       - CDN优选
@@ -170,27 +180,45 @@ proxy-groups: #分组策略
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
-    use: 
-      - chromego
-      - CDN优选
-
+    #use: 
+    proxies:
+      - 新加坡1
+      - 香港2
+      - 香港3
+      - 日本4
+      - 日本5
+      - 美国6
+      - 韩国7
+    
   - name: 🔮 负载均衡
     type: load-balance
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
-    use: 
-      - chromego
-      - CDN优选
-
+    #use: 
+    proxies:
+      - 新加坡1
+      - 香港2
+      - 香港3
+      - 日本4
+      - 日本5
+      - 美国6
+      - 韩国7
+      
   - name: 🔯 故障转移
     type: fallback
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
-    use: 
-      - chromego
-      - CDN优选
+    #use: 
+    proxies:
+      - 新加坡1
+      - 香港2
+      - 香港3
+      - 日本4
+      - 日本5
+      - 美国6
+      - 韩国7
       
   - name: 💬 OpenAi
     type: select
