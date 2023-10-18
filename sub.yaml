@@ -79,10 +79,10 @@ dns: #dns设置
 # 配置规则参考文档： https://github.com/Dreamacro/clash/wiki/configuration
 # 设置代理提供者(远程订阅地址+本地订阅文件)
 proxy-providers: #订阅节点
-  chromego:
+  chromego:  #不套WARP 含hy2
     type: http  # http文件
     path: ./合并/chromgo.yaml
-    url: "https://mareep.netlify.app/sub/merged_proxies_new.yaml" #不套WARP 含hy2
+    url: "https://mareep.netlify.app/sub/merged_proxies_new.yaml"
     interval: 3600
     #filter:'HK'#筛选关键词
     health-check:
