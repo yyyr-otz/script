@@ -1,4 +1,3 @@
-
 mixed-port: 7890
 allow-lan: true
 log-level: info
@@ -121,7 +120,7 @@ proxy-groups: #分组策略
       - 🔮🔝 CDN优选
       - ♻️ 自动选择
       - 🔮 负载均衡
-     # - 🔯 故障转移
+      - 🔯 故障转移
       - DIRECT
 
   - name: 🚀 手动切换
@@ -171,27 +170,27 @@ proxy-groups: #分组策略
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
-    proxies:
-      - 1.HK
-      - 1.CMCC
+    use: 
+      - chromego
+      - CDN优选
 
   - name: 🔮 负载均衡
     type: load-balance
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
-    proxies:
-      - 1.HK
-      - 1.CMCC
+    use: 
+      - chromego
+      - CDN优选
 
-  #- name: 🔯 故障转移
-   # type: fallback
-   # url: http://www.gstatic.com/generate_204
-   # interval: 300
-   # tolerance: 50
-   # proxies:
-   #   - 1.HK
-   #   - 1.CMCC
+  - name: 🔯 故障转移
+    type: fallback
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    use: 
+      - chromego
+      - CDN优选
       
   - name: 💬 OpenAi
     type: select
