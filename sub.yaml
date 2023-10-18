@@ -184,25 +184,15 @@ proxy-groups: #分组策略
       - 1.HK
       - 1.CMCC
 
-  - name: 🔯 故障转移
-    type: fallback
-    url: http://www.gstatic.com/generate_204
-    interval: 300
-    tolerance: 50
-    proxies:
-      - 1.HK
-      - 1.CMCC
-
-  - name: 📲 电报消息
-    type: select
-    proxies:
-      - ♻️🍄 chromego
-      - 🚦🔝 CDN优选
-      - 🚀 节点选择
-      - ♻️ 自动选择
-      - 🚀 手动切换
-      - DIRECT
-
+  #- name: 🔯 故障转移
+   # type: fallback
+   # url: http://www.gstatic.com/generate_204
+   # interval: 300
+   # tolerance: 50
+   # proxies:
+   #   - 1.HK
+   #   - 1.CMCC
+      
   - name: 💬 OpenAi
     type: select
     proxies:
@@ -211,15 +201,36 @@ proxy-groups: #分组策略
       - 🚀 手动切换
       - DIRECT
 
+  - name: 📲 电报消息
+    type: select
+    proxies:
+      - ♻️🍄 chromego
+      - 🚦🔝 CDN优选
+      - 🔮🔝 CDN优选
+      - 🚀 节点选择
+      - ♻️ 自动选择
+      - 🚀 手动切换
+      - DIRECT
+      
   - name: 📹 油管视频
     type: select
     proxies:
       - ♻️🍄 chromego
       - 🚦🔝 CDN优选
+      - 🔮🔝 CDN优选
       - 🚀 节点选择
       - ♻️ 自动选择
       - 🚀 手动切换
       - DIRECT
+      
+  - name: 🌍 国外媒体
+    type: select
+    proxies:
+      - ♻️🍄 chromego
+      - 🚦🔝 CDN优选
+      - 🔮🔝 CDN优选
+      - 🚀 节点选择
+      - ♻️ 自动选择
 
   - name: 📺 哔哩哔哩
     type: select
@@ -228,14 +239,6 @@ proxy-groups: #分组策略
       - 🚀 节点选择
       - 🚀 手动切换
       - DIRECT
-
-  - name: 🌍 国外媒体
-    type: select
-    proxies:
-      - ♻️🍄 chromego
-      - 🚦🔝 CDN优选
-      - 🚀 节点选择
-      - ♻️ 自动选择
 
   - name: 🌏 国内媒体
     type: select
