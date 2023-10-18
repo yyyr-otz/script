@@ -210,23 +210,10 @@ proxy-groups: #分组策略
   - name: 📹 油管视频
     type: select
     proxies:
+      - ♻️🍄 chromego
+      - ♻️🔝 CDN优选
       - 🚀 节点选择
       - ♻️ 自动选择
-      - 🚀 手动切换
-      - DIRECT
-
-  - name: 🎥 奈飞视频
-    type: select
-    proxies:
-      - 🚀 节点选择
-      - ♻️ 自动选择
-      - 🚀 手动切换
-      - DIRECT
-
-  - name: 📺 巴哈姆特
-    type: select
-    proxies:
-      - 🚀 节点选择
       - 🚀 手动切换
       - DIRECT
 
@@ -241,6 +228,8 @@ proxy-groups: #分组策略
   - name: 🌍 国外媒体
     type: select
     proxies:
+      - ♻️🍄 chromego
+      - ♻️🔝 CDN优选
       - 🚀 节点选择
       - ♻️ 自动选择
 
@@ -248,33 +237,6 @@ proxy-groups: #分组策略
     type: select
     proxies:
       - DIRECT
-      - 🚀 手动切换
-
-  - name: 📢 谷歌FCM
-    type: select
-    proxies:
-      - DIRECT
-      - 🚀 手动切换
-
-  - name: Ⓜ️ 微软云盘
-    type: select
-    proxies:
-      - DIRECT
-      - 🚀 节点选择
-      - 🚀 手动切换
-
-  - name: Ⓜ️ 微软服务
-    type: select
-    proxies:
-      - DIRECT
-      - 🚀 节点选择
-      - 🚀 手动切换
-
-  - name: 🍎 苹果服务
-    type: select
-    proxies:
-      - DIRECT
-      - 🚀 节点选择
       - 🚀 手动切换
 
   - name: 🎮 游戏平台
@@ -303,7 +265,6 @@ proxy-groups: #分组策略
     proxies:
       - REJECT
       - DIRECT
-
 
   - name: 🐟 漏网之鱼
     type: select
