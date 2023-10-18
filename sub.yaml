@@ -117,7 +117,7 @@ proxy-groups: #分组策略
     proxies:
       - ♻️🍄 chromego
       - 🔮🍄 chromego
-      - ♻️🔝 CDN优选
+      - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - ♻️ 自动选择
       - 🔮 负载均衡
@@ -148,8 +148,10 @@ proxy-groups: #分组策略
     tolerance: 50
     use:
       - chromego
-  - name: ♻️🔝 CDN优选
-    type: url-test
+      
+  - name: 🚦🔝 CDN优选
+  # type: url-test
+    type: select
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
@@ -195,7 +197,7 @@ proxy-groups: #分组策略
     type: select
     proxies:
       - ♻️🍄 chromego
-      - ♻️🔝 CDN优选
+      - 🚦🔝 CDN优选
       - 🚀 节点选择
       - ♻️ 自动选择
       - 🚀 手动切换
@@ -213,7 +215,7 @@ proxy-groups: #分组策略
     type: select
     proxies:
       - ♻️🍄 chromego
-      - ♻️🔝 CDN优选
+      - 🚦🔝 CDN优选
       - 🚀 节点选择
       - ♻️ 自动选择
       - 🚀 手动切换
@@ -231,7 +233,7 @@ proxy-groups: #分组策略
     type: select
     proxies:
       - ♻️🍄 chromego
-      - ♻️🔝 CDN优选
+      - 🚦🔝 CDN优选
       - 🚀 节点选择
       - ♻️ 自动选择
 
