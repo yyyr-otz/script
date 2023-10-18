@@ -1,16 +1,9 @@
-####################################
-# 创建者：v2rayse.com
-# 客户端：{@client}
-# 创建时间：{@date}
-# 使用模版：{@template}
-# 节点数量：{@count}
-# 节点类型：{@type}
-####################################
+
 mixed-port: 7890
 allow-lan: true
 log-level: info
 external-controller: 0.0.0.0:9090
-dns:
+dns: #dns设置
   enabled: true
   listen: 0.0.0.0:1053
   ipv6: true
@@ -84,12 +77,15 @@ dns:
     ipcidr:
       - 240.0.0.0/4
       - 0.0.0.0/32
-proxy-providers:
+# 配置规则参考文档： https://github.com/Dreamacro/clash/wiki/configuration
+# 设置代理提供者(远程订阅地址+本地订阅文件)
+proxy-providers: #订阅节点
   chromego:
-    type: http
+    type: http  # http文件
     path: ./合并/chromgo.yaml
-    url: https://mareep.netlify.app/sub/merged_proxies.yaml
+    url: "https://mareep.netlify.app/sub/merged_proxies.yaml"
     interval: 3600
+    #filter:'HK'#筛选关键词
     health-check:
       enable: true
       url: http://www.gstatic.com/generate_204
@@ -97,17 +93,46 @@ proxy-providers:
   CDN优选:
     type: http
     path: ./合并/CDN优选.yaml
-    url: https://oss.v2rayse.com/custom/IPyouxuan/IP-yx.yaml
+    url: https://ghproxy.com/https://raw.githubusercontent.com/yyyr-otz/ymal/main/CDN.yaml
     interval: 3600
     health-check:
       enable: true
       url: http://www.gstatic.com/generate_204
       interval: 300
-
-proxies: #代理节点
+  #bar:
+    #type: file  # 本地文件
+    #path: ./profiles/proxies/bar.yaml
+    #health-check:
+      #enable: true
+      #url: http://www.gstatic.com/generate_204
+      #interval: 300
+  
+proxies:
   - {"name":"1.HK","type":"vless","server":"wrap1hk.n7p8ri7j.workers.dev","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"1.CMCC","type":"vless","server":"warp1cmcc.n7p8ri7j.workers.dev","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
 
-proxy-groups:
+proxy-groups: #分组策略
+ - name: 🚀 节点选择
+    type: select
+    proxies:
+      - ♻️🍄 chromego
+      - 🔮🍄 chromego
+      - ♻️🔝 CDN优选
+      - 🔮🔝 CDN优选
+      - ♻️ 自动选择
+      - 🔮 负载均衡
+      - 🔯 故障转移
+      - DIRECT
+
+  - name: 🚀 手动切换
+    type: select
+    proxies:
+      - 1.HK
+      - 1.CMCC
+    use: 
+      - chromego
+      - CDN优选
+
   - name: ♻️🍄 chromego
     type: url-test
     url: http://www.gstatic.com/generate_204
@@ -115,6 +140,7 @@ proxy-groups:
     tolerance: 50
     use:
       - chromego
+
   - name: 🔮🍄 chromego
     type: load-balance
     url: http://www.gstatic.com/generate_204
@@ -122,59 +148,49 @@ proxy-groups:
     tolerance: 50
     use:
       - chromego
- - name: ♻️🍄 CDN优选
+  - name: ♻️🔝 CDN优选
     type: url-test
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
     use:
       - CDN优选
-  - name: 🔮🍄 CDN优选
+
+  - name: 🔮🔝 CDN优选
     type: load-balance
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
     use:
-      - chromego
       - CDN优选
-  - name: 🚀 节点选择
-    type: select
-    proxies:
-      - ♻️🍄 chromego
-      - 🔮🍄 chromego
-      - ♻️🍄 CDN优选
-      - 🔮🍄 CDN优选
-      - ♻️ 自动选择
-      - 🔮 负载均衡
-      - 🔯 故障转移
-      - DIRECT
-  - name: 🚀 手动切换
-    type: select
-    proxies:
-      - .*
-    use:
-      - CDN优选
+
   - name: ♻️ 自动选择
     type: url-test
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
     proxies:
-      - .*
+      - 1.HK
+      - 1.CMCC
+
   - name: 🔮 负载均衡
     type: load-balance
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
     proxies:
-      - .*
+      - 1.HK
+      - 1.CMCC
+
   - name: 🔯 故障转移
     type: fallback
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
     proxies:
-      - .*
+      - 1.HK
+      - 1.CMCC
+
   - name: 📲 电报消息
     type: select
     proxies:
@@ -182,6 +198,7 @@ proxy-groups:
       - ♻️ 自动选择
       - 🚀 手动切换
       - DIRECT
+
   - name: 💬 OpenAi
     type: select
     proxies:
@@ -189,6 +206,7 @@ proxy-groups:
       - ♻️ 自动选择
       - 🚀 手动切换
       - DIRECT
+
   - name: 📹 油管视频
     type: select
     proxies:
@@ -196,6 +214,7 @@ proxy-groups:
       - ♻️ 自动选择
       - 🚀 手动切换
       - DIRECT
+
   - name: 🎥 奈飞视频
     type: select
     proxies:
@@ -203,12 +222,14 @@ proxy-groups:
       - ♻️ 自动选择
       - 🚀 手动切换
       - DIRECT
+
   - name: 📺 巴哈姆特
     type: select
     proxies:
       - 🚀 节点选择
       - 🚀 手动切换
       - DIRECT
+
   - name: 📺 哔哩哔哩
     type: select
     proxies:
@@ -216,62 +237,79 @@ proxy-groups:
       - 🚀 节点选择
       - 🚀 手动切换
       - DIRECT
+
   - name: 🌍 国外媒体
     type: select
     proxies:
       - 🚀 节点选择
       - ♻️ 自动选择
+
   - name: 🌏 国内媒体
     type: select
     proxies:
       - DIRECT
       - 🚀 手动切换
+
   - name: 📢 谷歌FCM
     type: select
     proxies:
       - DIRECT
       - 🚀 手动切换
+
   - name: Ⓜ️ 微软云盘
     type: select
     proxies:
       - DIRECT
       - 🚀 节点选择
       - 🚀 手动切换
+
   - name: Ⓜ️ 微软服务
     type: select
     proxies:
       - DIRECT
       - 🚀 节点选择
       - 🚀 手动切换
+
   - name: 🍎 苹果服务
     type: select
     proxies:
       - DIRECT
       - 🚀 节点选择
       - 🚀 手动切换
+
   - name: 🎮 游戏平台
     type: select
     proxies:
       - DIRECT
       - 🚀 节点选择
       - 🚀 手动切换
+
   - name: 🎶 网易音乐
     type: select
     proxies:
       - DIRECT
       - 🚀 节点选择
       - ♻️ 自动选择
+
   - name: 🎯 全球直连
     type: select
     proxies:
       - DIRECT
       - 🚀 节点选择
       - ♻️ 自动选择
+
   - name: 🛑 广告拦截
     type: select
     proxies:
       - REJECT
       - DIRECT
+
+  - name: 🍃 应用净化
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+
   - name: 🐟 漏网之鱼
     type: select
     proxies:
@@ -280,6 +318,99 @@ proxy-groups:
       - DIRECT
       - 🚀 手动切换
 
+rule-providers: #订阅规则
+  reject:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/reject.txt"
+    path: ./ruleset/reject.yaml
+    interval: 86400
+
+  icloud:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/icloud.txt"
+    path: ./ruleset/icloud.yaml
+    interval: 86400
+
+  apple:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/apple.txt"
+    path: ./ruleset/apple.yaml
+    interval: 86400
+
+  google:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/google.txt"
+    path: ./ruleset/google.yaml
+    interval: 86400
+
+  proxy:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/proxy.txt"
+    path: ./ruleset/proxy.yaml
+    interval: 86400
+
+  direct:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/direct.txt"
+    path: ./ruleset/direct.yaml
+    interval: 86400
+
+  private:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/private.txt"
+    path: ./ruleset/private.yaml
+    interval: 86400
+
+  gfw:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/gfw.txt"
+    path: ./ruleset/gfw.yaml
+    interval: 86400
+
+  greatfire:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/greatfire.txt"
+    path: ./ruleset/greatfire.yaml
+    interval: 86400
+
+  tld-not-cn:
+    type: http
+    behavior: domain
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/tld-not-cn.txt"
+    path: ./ruleset/tld-not-cn.yaml
+    interval: 86400
+
+  telegramcidr:
+    type: http
+    behavior: ipcidr
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/telegramcidr.txt"
+    path: ./ruleset/telegramcidr.yaml
+    interval: 86400
+
+  cncidr:
+    type: http
+    behavior: ipcidr
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/cncidr.txt"
+    path: ./ruleset/cncidr.yaml
+    interval: 86400
+
+  lancidr:
+    type: http
+    behavior: ipcidr
+    url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/lancidr.txt"
+    path: ./ruleset/lancidr.yaml
+    interval: 86400
+
+rules:
 # 本地/局域网地址
 # 参考：https://en.wikipedia.org/wiki/Reserved_IP_addresses
 # ACL4SSR标志 如没有，代表不是用ACL4SSR规则
