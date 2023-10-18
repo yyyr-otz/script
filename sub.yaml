@@ -315,6 +315,25 @@ rules:
   - DOMAIN-SUFFIX,zte.home,🎯 全球直连
   - DOMAIN-SUFFIX,tplogin.cn,🎯 全球直连
   - DOMAIN-SUFFIX,wifi.cmcc,🎯 全球直连
+# 内容：YouTube
+# 数量：17条
+#   - USER-AGENT,*youtube*,📹 油管视频
+#   - USER-AGENT,YouTube*,📹 油管视频
+#   - USER-AGENT,com.google.ios.youtube*,📹 油管视频
+  - DOMAIN-KEYWORD,youtube,📹 油管视频
+  - DOMAIN,youtubei.googleapis.com,📹 油管视频
+  - DOMAIN,yt3.ggpht.com,📹 油管视频
+  - DOMAIN-SUFFIX,googlevideo.com,📹 油管视频
+  - DOMAIN-SUFFIX,gvt2.com,📹 油管视频
+  - DOMAIN-SUFFIX,withyoutube.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtu.be,📹 油管视频
+  - DOMAIN-SUFFIX,youtube-nocookie.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtube.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtubeeducation.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtubegaming.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtubekids.com,📹 油管视频
+  - DOMAIN-SUFFIX,yt.be,📹 油管视频
+  - DOMAIN-SUFFIX,ytimg.com,📹 油管视频
 # 本碎片只包含常见广告关键字、广告联盟。无副作用，放心使用
 # 广告关键词
 # 广告联盟-国内****************
