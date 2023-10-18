@@ -82,7 +82,7 @@ proxy-providers: #订阅节点
   chromego:
     type: http  # http文件
     path: ./合并/chromgo.yaml
-    url: "https://mareep.netlify.app/sub/merged_proxies.yaml"
+    url: "https://mareep.netlify.app/sub/merged_proxies_new.yaml" #不套WARP 含hy2
     interval: 3600
     #filter:'HK'#筛选关键词
     health-check:
