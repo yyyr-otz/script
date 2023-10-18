@@ -1348,7 +1348,7 @@ rules:
   - DOMAIN-SUFFIX,olevodtv.com,🌍 国外媒体
   - DOMAIN-KEYWORD,openai,🌍 国外媒体
   - DOMAIN-SUFFIX,auth0.com,🌍 国外媒体
-  - DOMAIN-SUFFIX,challenges.cloudflare.com,🌍 国外媒体
+  - DOMAIN-SUFFIX,challenges.cloudflare.com,🚀 手动切换
   - DOMAIN-SUFFIX,client-api.arkoselabs.com,🌍 国外媒体
   - DOMAIN-SUFFIX,events.statsigapi.net,🌍 国外媒体
   - DOMAIN-SUFFIX,featuregates.org,🌍 国外媒体
@@ -2478,7 +2478,8 @@ rules:
   - DOMAIN-SUFFIX,clipfish.de,🚀 节点选择
   - DOMAIN-SUFFIX,cloakpoint.com,🚀 节点选择
   - DOMAIN-SUFFIX,cloudcone.com,🚀 节点选择
-  - DOMAIN-SUFFIX,cloudflare-ipfs.com,🚀 节点选择
+  - DOMAIN-SUFFIX,cloudflare.com,🚀 手动切换
+  - DOMAIN-SUFFIX,cloudflare-ipfs.com,🚀 手动切换
   - DOMAIN-SUFFIX,cloudfront.net,🚀 节点选择
   - DOMAIN-SUFFIX,cloudfunctions.net,🚀 节点选择
   - DOMAIN-SUFFIX,club1069.com,🚀 节点选择
@@ -14052,10 +14053,10 @@ rules:
 # YYeTs 人人影视
 # TeamViewer
 # Public Direct CDN 公共直连
-#DOMAIN-SUFFIX,ajax.aspnetcdn.com
-#DOMAIN-SUFFIX,ajax.cloudflare.com
-#DOMAIN-SUFFIX,cdnjs.cloudflare.com
-#DOMAIN-SUFFIX,code.jquery.com
+  - DOMAIN-SUFFIX,ajax.aspnetcdn.com,🚀 手动切换
+  - DOMAIN-SUFFIX,ajax.cloudflare.com,🚀 手动切换
+  - DOMAIN-SUFFIX,cdnjs.cloudflare.com,🚀 手动切换
+  - DOMAIN-SUFFIX,code.jquery.com,🚀 手动切换
 # China DNS
 # AccelerateDirectSites
   - DOMAIN-SUFFIX,13th.tech,🎯 全球直连
