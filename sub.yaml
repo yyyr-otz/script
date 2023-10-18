@@ -194,6 +194,8 @@ proxy-groups: #分组策略
   - name: 📲 电报消息
     type: select
     proxies:
+      - ♻️🍄 chromego
+      - ♻️🔝 CDN优选
       - 🚀 节点选择
       - ♻️ 自动选择
       - 🚀 手动切换
