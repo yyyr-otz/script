@@ -1,3 +1,20 @@
+######### 锚点 start #######
+# proxy 相关
+pr: &pr {type: select, proxies: [默认,香港,台湾,日本,新加坡,美国,其它地区,全部节点,自动选择,DIRECT]}
+
+#这里是订阅更新和延迟测试相关的
+p: &p {type: http, interval: 3600, health-check: {enable: true, url: https://www.gstatic.com/generate_204, interval: 300}}
+
+use: &use
+  type: select
+  use:
+  - chromego
+  - CDN优选
+  - 备用机场
+
+######### 锚点 end #######
+
+
 mixed-port: 7890
 allow-lan: true
 log-level: info
@@ -80,24 +97,18 @@ dns: #dns设置
 # 设置代理提供者(远程订阅地址+本地订阅文件)
 proxy-providers:
   chromego:
-    type: http
-    path: ./合并/chromego.yaml
+    <<: *p
     url: https://mareep.netlify.app/sub/merged_proxies.yaml
-    interval: 3600
-    #filter:'HK'#筛选关键词
-    health-check:
-      enable: true
-      url: http://www.gstatic.com/generate_204
-      interval: 300
+  # filter:'HK'#筛选关键词
+  
   CDN优选:
-    type: http
-    path: ./合并/CDN优选.yaml
+    <<: *p
     url: https://ghproxy.com/https://raw.githubusercontent.com/yyyr-otz/ymal/main/CDN.yaml
-    interval: 3600
-    health-check:
-      enable: true
-      url: http://www.gstatic.com/generate_204
-      interval: 300
+
+  备用机场1:
+    <<: *p
+    url: https://v1.chaojiji.one/api/v1/client/subscribe?token=f75c61bae0c119479766fcf36c64461c
+    
   #bar:
     #type: file  # 本地文件
     #path: ./profiles/proxies/bar.yaml
@@ -105,42 +116,58 @@ proxy-providers:
       #enable: true
       #url: http://www.gstatic.com/generate_204
       #interval: 300
-  
-proxies:
-  - {"name":"新加坡1","type":"vless","server":"3.0.20.51","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
-  - {"name":"香港2","type":"vless","server":"hk1.superjj.cc","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
-  - {"name":"香港3","type":"vless","server":"hkt.superjj.cc","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
-  - {"name":"日本4","type":"vless","server":"52.195.5.182","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
-  - {"name":"日本5","type":"vless","server":"43.206.105.182","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
-  - {"name":"美国6","type":"vless","server":"18.144.172.165","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
-  - {"name":"韩国7","type":"vless","server":"dx.superjj.cc","port":443,"udp":true,"uuid":"5ca44de7-b5d8-4e94-ae71-0040694ca57a","tls":true,"servername":"m.media-amazon.com","flow":"xtls-rprx-vision","network":"tcp","reality-opts":{"public-key":"XK2z6ZWjDVKlCmDHYvvH9u9ImXVTscfbe9tFyZN0skM","short-id":"036d4f8e"},"client-fingerprint":"chrome"}
 
+proxies:
+  - name: WARP链式节点
+    type: wireguard
+    server: engage.cloudflareclient.com
+    port: 2408
+    ip: 172.16.0.2
+    ipv6: 2606:4700:110:8a23:1efc:91f0:e183:62a8
+    private-key: uJTvkiXjK0LMyD0UNnepH9YF4CqpqaUJNT4tJc2eF0Q=
+    public-key: bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=
+    udp: true
+    reserved: [0,0,0]
+    remote-dns-resolve: true  
+    dns: [ 1.1.1.1, 8.8.8.8 ]
+    dialer-proxy: "🚨 前置节点"
+    
 proxy-groups:
-  - name: 🚀 节点选择
+
+  - name: 🚨 前置节点
     type: select
     proxies:
       - ♻️🍄 chromego
       - 🔮🍄 chromego
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
-      - ♻️ 自动选择
-      - 🔮 负载均衡
-      - 🔯 故障转移
+      - ⚓ 备用机场
+      - DIRECT
+  
+  - name: 🚀 节点选择
+    type: select
+    proxies:
+      - WARP链式节点
+      - ⚓ 备用机场
+      - ♻️🍄 chromego
+      - 🔮🍄 chromego
+      - 🚦🔝 CDN优选
+      - 🔮🔝 CDN优选
       - DIRECT
 
   - name: 🚀 手动切换
     type: select
-    proxies:
-      - 新加坡1
-      - 香港2
-      - 香港3
-      - 日本4
-      - 日本5
-      - 美国6
-      - 韩国7
+   # proxies:
     use: 
       - chromego
       - CDN优选
+      - 备用机场1
+
+  - name: ⚓ 备用机场
+    type: select
+   # proxies:
+    use: 
+      - 备用机场1
 
   - name: ♻️🍄 chromego
     type: url-test
@@ -175,52 +202,6 @@ proxy-groups:
     use:
       - CDN优选
 
-  - name: ♻️ 自动选择
-    type: url-test
-    url: http://www.gstatic.com/generate_204
-    interval: 300
-    tolerance: 50
-    #use: 
-    proxies:
-      - 新加坡1
-      - 香港2
-      - 香港3
-      - 日本4
-      - 日本5
-      - 美国6
-      - 韩国7
-    
-  - name: 🔮 负载均衡
-    type: load-balance
-    url: http://www.gstatic.com/generate_204
-    interval: 300
-    tolerance: 50
-    #use: 
-    proxies:
-      - 新加坡1
-      - 香港2
-      - 香港3
-      - 日本4
-      - 日本5
-      - 美国6
-      - 韩国7
-      
-  - name: 🔯 故障转移
-    type: fallback
-    url: http://www.gstatic.com/generate_204
-    interval: 300
-    tolerance: 50
-    #use: 
-    proxies:
-      - 新加坡1
-      - 香港2
-      - 香港3
-      - 日本4
-      - 日本5
-      - 美国6
-      - 韩国7
-      
-
   - name: 📲 电报消息
     type: select
     proxies:
@@ -228,7 +209,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
       - DIRECT
       - 🎯 全球直连
@@ -240,7 +220,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
       - DIRECT
       - 🎯 全球直连
@@ -252,7 +231,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
       - DIRECT
       - 🎯 全球直连
@@ -264,7 +242,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
       - DIRECT
       - 🎯 全球直连
@@ -276,7 +253,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
       - DIRECT
       - 🎯 全球直连
@@ -290,7 +266,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
 
   - name: 🌍 国外媒体
@@ -300,7 +275,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
       - DIRECT
       - 🎯 全球直连
@@ -314,7 +288,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
       
   - name: 📢 谷歌FCM
@@ -326,7 +299,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
       
   - name: Ⓜ️ 微软云盘
@@ -338,7 +310,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
       
   - name: Ⓜ️ 微软服务
@@ -350,7 +321,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
       
   - name: 🍎 苹果服务
@@ -362,7 +332,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
       
   - name: 🎮 游戏平台
@@ -374,7 +343,6 @@ proxy-groups:
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
-      - ♻️ 自动选择
       - 🚀 手动切换
       
   - name: 🎶 网易音乐
@@ -383,14 +351,12 @@ proxy-groups:
       - DIRECT
       - 🎯 全球直连
       - 🚀 节点选择
-      - ♻️ 自动选择
       
   - name: 🎯 全球直连
     type: select
     proxies:
       - DIRECT
       - 🚀 节点选择
-      - ♻️ 自动选择
       
   - name: 🛑 广告拦截
     type: select
@@ -410,7 +376,6 @@ proxy-groups:
     type: select
     proxies:
       - 🚀 节点选择
-      - ♻️ 自动选择
       - DIRECT
       - 🎯 全球直连
       - 🚀 手动切换
