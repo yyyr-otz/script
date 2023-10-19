@@ -1422,28 +1422,28 @@ rules:
   - DOMAIN-SUFFIX,viu.com,🌍 国外媒体
   - DOMAIN-SUFFIX,viu.now.com,🌍 国外媒体
   - DOMAIN-SUFFIX,viu.tv,🌍 国外媒体
-#   - USER-AGENT,*youtube*,🌍 国外媒体
-#   - USER-AGENT,YouTube*,🌍 国外媒体
-#   - USER-AGENT,com.google.ios.youtube*,🌍 国外媒体
-  - DOMAIN-KEYWORD,youtube,🌍 国外媒体
-  - DOMAIN,youtubei.googleapis.com,🌍 国外媒体
-  - DOMAIN,yt3.ggpht.com,🌍 国外媒体
-  - DOMAIN-SUFFIX,googlevideo.com,🌍 国外媒体
-  - DOMAIN-SUFFIX,gvt2.com,🌍 国外媒体
-  - DOMAIN-SUFFIX,withyoutube.com,🌍 国外媒体
-  - DOMAIN-SUFFIX,youtu.be,🌍 国外媒体
-  - DOMAIN-SUFFIX,youtube-nocookie.com,🌍 国外媒体
-  - DOMAIN-SUFFIX,youtube.com,🌍 国外媒体
-  - DOMAIN-SUFFIX,youtubeeducation.com,🌍 国外媒体
-  - DOMAIN-SUFFIX,youtubegaming.com,🌍 国外媒体
-  - DOMAIN-SUFFIX,youtubekids.com,🌍 国外媒体
-  - DOMAIN-SUFFIX,yt.be,🌍 国外媒体
-  - DOMAIN-SUFFIX,ytimg.com,🌍 国外媒体
-#   - USER-AGENT,*YouTubeMusic*,🌍 国外媒体
-#   - USER-AGENT,*com.google.ios.youtubemusic*,🌍 国外媒体
-#   - USER-AGENT,YouTubeMusic*,🌍 国外媒体
-#   - USER-AGENT,com.google.ios.youtubemusic*,🌍 国外媒体
-  - DOMAIN,music.youtube.com,🌍 国外媒体
+#   - USER-AGENT,*youtube*,📹 油管视频
+#   - USER-AGENT,YouTube*,📹 油管视频
+#   - USER-AGENT,com.google.ios.youtube*,📹 油管视频
+  - DOMAIN-KEYWORD,youtube,📹 油管视频
+  - DOMAIN,youtubei.googleapis.com,📹 油管视频
+  - DOMAIN,yt3.ggpht.com,📹 油管视频
+  - DOMAIN-SUFFIX,googlevideo.com,📹 油管视频
+  - DOMAIN-SUFFIX,gvt2.com,📹 油管视频
+  - DOMAIN-SUFFIX,withyoutube.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtu.be,📹 油管视频
+  - DOMAIN-SUFFIX,youtube-nocookie.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtube.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtubeeducation.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtubegaming.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtubekids.com,📹 油管视频
+  - DOMAIN-SUFFIX,yt.be,📹 油管视频
+  - DOMAIN-SUFFIX,ytimg.com,📹 油管视频
+#   - USER-AGENT,*YouTubeMusic*,📹 油管视频
+#   - USER-AGENT,*com.google.ios.youtubemusic*,📹 油管视频
+#   - USER-AGENT,YouTubeMusic*,📹 油管视频
+#   - USER-AGENT,com.google.ios.youtubemusic*,📹 油管视频
+  - DOMAIN,music.youtube.com,📹 油管视频
 # 代理列表
 # MyList && Other
 # 国外域名
@@ -2748,7 +2748,7 @@ rules:
   - DOMAIN-SUFFIX,dlive.tv,🚀 节点选择
   - DOMAIN-SUFFIX,dlsite.com,🚀 节点选择
   - DOMAIN-SUFFIX,dlsite.jp,🚀 节点选择
-  - DOMAIN-SUFFIX,dlyoutube.com,🚀 节点选择
+  - DOMAIN-SUFFIX,dlyoutube.com,📹 油管视频
   - DOMAIN-SUFFIX,dm530.net,🚀 节点选择
   - DOMAIN-SUFFIX,dmc.nico,🚀 节点选择
   - DOMAIN-SUFFIX,dmcdn.net,🚀 节点选择
@@ -3162,8 +3162,8 @@ rules:
   - DOMAIN-SUFFIX,financetwitter.com,🚀 节点选择
   - DOMAIN-SUFFIX,finchvpn.com,🚀 节点选择
   - DOMAIN-SUFFIX,findmespot.com,🚀 节点选择
-  - DOMAIN-SUFFIX,findyoutube.com,🚀 节点选择
-  - DOMAIN-SUFFIX,findyoutube.net,🚀 节点选择
+  - DOMAIN-SUFFIX,findyoutube.com,📹 油管视频
+  - DOMAIN-SUFFIX,findyoutube.net,📹 油管视频
   - DOMAIN-SUFFIX,fingerdaily.com,🚀 节点选择
   - DOMAIN-SUFFIX,finler.net,🚀 节点选择
   - DOMAIN-SUFFIX,firearmsworld.net,🚀 节点选择
@@ -3282,7 +3282,7 @@ rules:
   - DOMAIN-SUFFIX,freewww.info,🚀 节点选择
   - DOMAIN-SUFFIX,freexinwen.com,🚀 节点选择
   - DOMAIN-SUFFIX,freeyellow.com,🚀 节点选择
-  - DOMAIN-SUFFIX,freeyoutubeproxy.net,🚀 节点选择
+  - DOMAIN-SUFFIX,freeyoutubeproxy.net,📹 油管视频
   - DOMAIN-SUFFIX,frienddy.com,🚀 节点选择
   - DOMAIN-SUFFIX,friendfeed-media.com,🚀 节点选择
   - DOMAIN-SUFFIX,friendfeed.com,🚀 节点选择
@@ -4577,7 +4577,7 @@ rules:
   - DOMAIN-SUFFIX,liquidvpn.com,🚀 节点选择
   - DOMAIN-SUFFIX,list-manage.com,🚀 节点选择
   - DOMAIN-SUFFIX,listennotes.com,🚀 节点选择
-  - DOMAIN-SUFFIX,listentoyoutube.com,🚀 节点选择
+  - DOMAIN-SUFFIX,listentoyoutube.com,📹 油管视频
   - DOMAIN-SUFFIX,listorious.com,🚀 节点选择
   - DOMAIN-SUFFIX,lithium.com,🚀 节点选择
   - DOMAIN-SUFFIX,liu-xiaobo.org,🚀 节点选择
@@ -5244,7 +5244,7 @@ rules:
   - DOMAIN-SUFFIX,onion.city,🚀 节点选择
   - DOMAIN-SUFFIX,onion.ly,🚀 节点选择
   - DOMAIN-SUFFIX,onlinecha.com,🚀 节点选择
-  - DOMAIN-SUFFIX,onlineyoutube.com,🚀 节点选择
+  - DOMAIN-SUFFIX,onlineyoutube.com,📹 油管视频
   - DOMAIN-SUFFIX,onlygayvideo.com,🚀 节点选择
   - DOMAIN-SUFFIX,onlytweets.com,🚀 节点选择
   - DOMAIN-SUFFIX,onmoon.com,🚀 节点选择
@@ -7128,7 +7128,7 @@ rules:
   - DOMAIN-SUFFIX,wisevid.com,🚀 节点选择
   - DOMAIN-SUFFIX,wistia.com,🚀 节点选择
   - DOMAIN-SUFFIX,withgoogle.com,🚀 节点选择
-  - DOMAIN-SUFFIX,withyoutube.com,🚀 节点选择
+  - DOMAIN-SUFFIX,withyoutube.com,📹 油管视频
   - DOMAIN-SUFFIX,witnessleeteaching.com,🚀 节点选择
   - DOMAIN-SUFFIX,witopia.net,🚀 节点选择
   - DOMAIN-SUFFIX,wizcrafts.net,🚀 节点选择
