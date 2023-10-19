@@ -109,7 +109,7 @@ proxy-providers:
 
   备用机场1:
     <<: *p
-    path: ./proxy_providers/备用机场.yaml
+    path: ./proxy_providers/备用机场1.yaml
     url: https://v1.chaojiji.one/api/v1/client/subscribe?token=f75c61bae0c119479766fcf36c64461c
 
   #bar:
