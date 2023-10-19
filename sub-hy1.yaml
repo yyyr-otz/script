@@ -14,21 +14,207 @@ use: &use
 
 ######### 锚点 end #######
 
+# port: 7890 # HTTP(S) 代理服务器端口
+# socks-port: 7891 # SOCKS5 代理端口
+mixed-port: 10801 #HTTP(S) 和 SOCKS 代理混合端口
+allow-lan: true # 允许局域网连接
+#bind-address: "*" # 绑定 IP 地址，仅作用于 allow-lan 为 true，'*'表示所有地址
+#authentication: # http,socks入口的验证用户名，密码
+#  - "username:password"
+#skip-auth-prefixes: # 设置跳过验证的IP段
+  - 127.0.0.1/8
+  - ::1/128
+  
+#  find-process-mode has 3 values:always, strict, off
+#  - always, 开启，强制匹配所有进程
+#  - strict, 默认，由 clash 判断是否开启
+#  - off, 不匹配进程，推荐在路由器上使用此模式
+find-process-mode: strict
+ipv6: true # 开启 IPv6 总开关，关闭阻断所有 IPv6 链接和屏蔽 DNS 请求 AAAA 记录
+mode: rule
+#自定义 geodata url
+geodata-mode: true 
+geodata-loader: memconservative
+geox-url:
+  geoip: "https://ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geoip.dat"
+  geosite: "https://ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geosite.dat"
+  mmdb: "https://ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geoip.metadb"
+log-level: info # 日志等级 silent/error/warning/info/debug
+#tls:
+#  certificate: string # 证书 PEM 格式，或者 证书的路径
+#  private-key: string # 证书对应的私钥 PEM 格式，或者私钥路径
+#  custom-certifactes:
+#    - |
+#      -----BEGIN CERTIFICATE-----
+#      format/pem...
+#      -----END CERTIFICATE-----
+#
+#external-controller: 0.0.0.0:9093 # RESTful API 监听地址
+#external-controller-tls: 0.0.0.0:9443 # RESTful API HTTPS 监听地址，需要配置 tls 部分配置文件
+## secret: "123456" # `Authorization:Bearer ${secret}`
+#
+## tcp-concurrent: true # TCP 并发连接所有 IP, 将使用最快握手的 TCP
+#
+# 配置 WEB UI 目录，使用 http://{{external-controller}}/ui 访问
+external-ui: /path/to/ui/folder/
+external-ui-name: xd
+external-ui-url: "https://ghproxy.com/https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
 
-mixed-port: 7890
-allow-lan: true
-log-level: info
-external-controller: 0.0.0.0:9090
+external-controller: 127.0.0.1:9090
+
+# interface-name: en0 # 设置出口网卡名称
+
+# 全局 TLS 指纹，优先低于 proxy 内的 client-fingerprint
+# 可选： "chrome","firefox","safari","ios","random","none" options.
+# Utls is currently support TLS transport in TCP/grpc/WS/HTTP for VLESS/Vmess and trojan.
+#global-client-fingerprint: chrome
+
+#  TCP keep alive interval 控制 Clash 发出 TCP Keep Alive 包的间隔，减少移动设备耗电问题的临时措施
+keep-alive-interval: 20
+# 在 Clash 官方中，profile 应为扩展配置，但在 Clash.meta, 仅作为缓存项使用
+profile:
+  store-selected: true
+  # 储存 API 对策略组的选择，以供下次启动时使用
+  store-fake-ip: true
+  # 储存 fakeip 映射表，域名再次发生连接时，使用原有映射地址
+
+unified-delay: true #更换延迟计算方式,去除握手等额外延迟
+
+# Tun 配置
+tun:
+  enable: false
+  stack: system # gvisor / lwip
+  dns-hijack:
+  - any:53
+  - tcp://any:53 # 需要劫持的 DNS
+  # device: utun0
+  # mtu: 9000
+  # strict-route: true
+  # inet4-route-address:
+  # - 0.0.0.0/1
+  # - 128.0.0.0/1
+  # inet6-route-address:
+  # - "::/1"
+  # - "8000::/1"
+  # endpoint-independent_nat: false
+  # include-uid:
+  # - 0
+  # include-uid-range:
+  # - 1000-99999
+  # exclude-uid:
+  #- 1000
+  # exclude-uid-range:
+  # - 1000-99999
+  # include-android-user:
+  # - 0
+  # - 10
+  # include-package:
+  # - com.android.chrome
+  # exclude-package:
+  # - com.android.captiveportallogin
+  # auto-detect-interface: true # 自动识别出口网卡
+  # auto-route: true # 配置路由表
+  # mtu: 9000 # 最大传输单元
+  # strict-route: true # 严格将所有连接路由到tun来防止泄漏，但你的设备将无法其他设备被访问
+  inet4-route-address: # 启用 auto_route 时使用自定义路由而不是默认路由
+    - 0.0.0.0/1
+    - 128.0.0.0/1
+  inet6-route-address: # 启用 auto_route 时使用自定义路由而不是默认路由
+    - "::/1"
+    - "8000::/1"
+  # endpoint-independent-nat: false # 启用独立于端点的 NAT
+  # include-uid: # UID 规则仅在 Linux 下被支持，并且需要 auto_route
+  # - 0
+  # include-uid-range: # 限制被路由的的用户范围
+  # - 1000-99999
+  # exclude-uid: # 排除路由的的用户
+  #- 1000
+  # exclude-uid-range: # 排除路由的的用户范围
+  # - 1000-99999
+
+  # Android 用户和应用规则仅在 Android 下被支持
+  # 并且需要 auto-route
+
+  # include-android-user: # 限制被路由的 Android 用户
+  # - 0
+  # - 10
+  # include-package: # 限制被路由的 Android 应用包名
+  # - com.android.chrome
+  # exclude-package: # 排除被路由的 Android 应用包名
+  # - com.android.captiveportallogin
+
+  
+# 嗅探域名 可选配置
+sniffer:                           #【Meta专属】sniffer域名嗅探器
+  enable: false                    # 嗅探器开关       
+                                   # 开启后对 redir-host 类型识别的流量进行强制嗅探
+                                   # 包含 Tun、Redir 和 TProxy 或 DNS 为 redir-host
+  # force-dns-mapping: false
+  # parse-pure-ip: false           # 对所有未获取到域名的流量进行强制嗅探
+
+  override-destination: false      # 是否使用嗅探结果作为实际访问,默认 true
+                                   # 全局配置,优先级低于 sniffer.sniff 实际配置
+  sniff: # TLS 默认如果不配置 ports 默认嗅探 443
+    QUIC:
+      ports: [ 443 ]
+    TLS:
+      ports: [443, 2053, 2083, 2087, 2096, 8443]
+    HTTP: # 需要嗅探的端口, 默认嗅探 80
+      ports: [80, 8080-8880, 2052, 2082, 2086, 2095]
+      override-destination: true # 可覆盖 sniffer.override-destination
+  force-domain:
+    - +.v2ex.com
+  # 白名单,跳过嗅探结果
+  sniffing:
+    - tls
+    - http
+  # 强制对此域名进行嗅探
+#  skip-domain: #已废弃
+#    - Mijia Cloud
+#ebpf配置
+ebpf:
+  auto-redir: # redirect 模式，仅支持 TCP
+    - eth0
+  redirect-to-tun: # UDP+TCP 使用该功能请勿启用 auto-route
+    - eth0
+    
+#### 隧道 ####
+tunnels: # one line config
+  - tcp/udp,127.0.0.1:6553,114.114.114.114:53,proxy
+  - tcp,127.0.0.1:6666,rds.mysql.com:3306,vpn
+  # full yaml config
+  - network: [tcp, udp]
+    address: 127.0.0.1:7777
+    target: target.com
+    proxy: proxy
+
+# 类似于 /etc/hosts, 仅支持配置单个 IP
+hosts:
+# '*.clash.dev': 127.0.0.1
+# '.dev': 127.0.0.1
+# 'alpha.clash.dev': '::1'
+# test.com: [1.1.1.1, 2.2.2.2]
+# clash.lan: clash # clash 为特别字段，将加入本地所有网卡的地址
+# baidu.com: google.com # 只允许配置一个别名
+
 dns: #dns设置
   enabled: true
+  prefer-h3: true # 开启 DoH 支持 HTTP/3，将并发尝试
   listen: 0.0.0.0:1053
   ipv6: true
   default-nameserver:
     - 223.5.5.5
     - 114.114.114.114
+    - 8.8.8.8
+    - tls://1.12.12.12:853
+    - tls://223.5.5.5:853
+    - system
   enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
-  fake-ip-filter:
+  fake-ip-range: 198.18.0.1/16 # fake-ip 段设置
+  # DNS主要域名配置
+  # 支持 UDP，TCP，DoT，DoH，DoQ
+  # 这部分为主要 DNS 配置，影响所有直连，确保使用对大陆解析精准的 DNS
+  fake-ip-filter: #fakeip过滤 不会发生
     - '*.lan'
     - '*.linksys.com'
     - '*.linksyssmartwifi.com'
@@ -86,13 +272,58 @@ dns: #dns设置
     - stun.*.*.*
     - '*.mcdn.bilivideo.cn'
   nameserver:
+    - 114.114.114.114 # default value
+    - 8.8.8.8 # default value
+    - tls://223.5.5.5:853 # DNS over TLS
+    - https://doh.pub/dns-query # DNS over HTTPS
+    - https://dns.alidns.com/dns-query#h3=true # 强制 HTTP/3，与 perfer-h3 无关，强制开启 DoH 的 HTTP/3 支持，若不支持将无法使用
+    - https://mozilla.cloudflare-dns.com/dns-query#DNS&h3=true # 指定策略组和使用 HTTP/3
+    - dhcp://en0 # dns from dhcp
+    - quic://dns.adguard.com:784 # DNS over QUIC
+    # - '8.8.8.8#en0' # 兼容指定DNS出口网卡
+    
+  # 当配置 fallback 时，会查询 nameserver 中返回的 IP 是否为 CN，非必要配置
+  # 当不是 CN，则使用 fallback 中的 DNS 查询结果
+  # 确保配置 fallback 时能够正常查询
+  fallback:
+    - tls://8.8.4.4
+    - tls://1.1.1.1
+  #   - 'tcp://1.1.1.1#ProxyGroupName' # 指定 DNS 过代理查询，ProxyGroupName 为策略组名或节点名，过代理配置优先于配置出口网卡，当找不到策略组或节点名则设置为出口网卡
+
+  # 专用于节点域名解析的 DNS 服务器，非必要配置项
+  # 配置服务器若查询失败将使用 nameserver，非并发查询
+  proxy-server-nameserver:
     - https://doh.pub/dns-query
-    - https://dns.alidns.com/dns-query
+# 配置 fallback 使用条件
   fallback-filter:
-    geoip: false
+    geoip: true # 配置是否使用 geoip
+    geoip-code: CN # 当 nameserver 域名的 IP 查询 geoip 库为 CN 时，不使用 fallback 中的 DNS 查询结果
+    geosite:
+      - gfw
+#   如果不匹配 ipcidr 则使用 nameservers 中的结果
     ipcidr:
       - 240.0.0.0/4
       - 0.0.0.0/32
+    domain:
+      - '+.google.com'
+      - '+.facebook.com'
+      - '+.youtube.com'
+  # 配置查询域名使用的 DNS 服务器
+
+  nameserver-policy:
+    'www.baidu.com': '114.114.114.114'
+    '+.internal.crop.com': '10.0.0.1'
+    'geosite:cn': https://doh.pub/dns-query
+    "geosite:cn,private,apple":
+      - https://doh.pub/dns-query
+      - https://dns.alidns.com/dns-query
+    "geosite:category-ads-all": rcode://success
+    "www.baidu.com,+.google.cn": [223.5.5.5, https://dns.alidns.com/dns-query]
+    ## global，dns 为 rule-providers 中的名为 global 和 dns 规则订阅，
+    ## 且 behavior 必须为 domain/classical，当为 classical 时仅会生效域名类规则
+    # "rule-set:global,dns": 8.8.8.8
+
+    
 # 配置规则参考文档： https://github.com/Dreamacro/clash/wiki/configuration
 # 设置代理提供者(远程订阅地址+本地订阅文件)
 proxy-providers:
@@ -130,10 +361,21 @@ proxies:
     private-key: uJTvkiXjK0LMyD0UNnepH9YF4CqpqaUJNT4tJc2eF0Q=
     public-key: bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=
     udp: true
-    reserved: [0,0,0]
-    remote-dns-resolve: true  
-    dns: [ 1.1.1.1, 8.8.8.8 ]
-    dialer-proxy: "🚨 前置节点"
+    reserved: [0,0,0] # 数组格式也是合法的
+    remote-dns-resolve: true # 强制dns远程解析
+    dns: [ 1.1.1.1, 8.8.8.8, https://dns.cloudflare.com/dns-query ]
+    dialer-proxy: "🚨 前置节点" # 一个出站代理的标识。当值不为空时，将使用指定的 proxy 发出连接
+
+    # 如果peers不为空，该段落中的allowed_ips不可为空；前面段落的server,port,ip,ipv6,public-key,pre-shared-key均会被忽略，但private-key会被保留且只能在顶层指定
+    # peers:
+    #   - server: 162.159.192.1
+    #     port: 2480
+    #     ip: 172.16.0.2
+    #     ipv6: fd01:5ca1:ab1e:80fa:ab85:6eea:213f:f4a5
+    #     public-key: Cr8hWlKvtDt7nrvf+f0brNQQzabAqrjfBvas9pmowjo=
+    #     # pre-shared-key: 31aIhAPwktDGpH4JDhA8GNvjFXEf/a6+UaQRyOAiyfM=
+    #     allowed_ips: ['0.0.0.0/0']
+    #     reserved: [209,98,59]
     
 proxy-groups:
 
