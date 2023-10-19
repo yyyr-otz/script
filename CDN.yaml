@@ -187,7 +187,7 @@ proxy-groups:
     type: select
     proxies:
       - 🚀 节点选择
-      - 🎯 全球直连
+      - DIRECT
       - ♻️ 自动选择
       - wrap1hk_1
       - wrap1hk_2
