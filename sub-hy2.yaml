@@ -1525,10 +1525,10 @@ rules:
   - DOMAIN-KEYWORD,porn,🚀 节点选择
   - DOMAIN-KEYWORD,sci-hub,🚀 节点选择
   - DOMAIN-KEYWORD,spotify,🚀 节点选择
-  - DOMAIN-KEYWORD,telegram,🚀 节点选择
+  - DOMAIN-KEYWORD,telegram,📲 电报消息
   - DOMAIN-KEYWORD,twitter,🚀 节点选择
   - DOMAIN-KEYWORD,whatsapp,🚀 节点选择
-  - DOMAIN-KEYWORD,youtube,🚀 节点选择
+  - DOMAIN-KEYWORD,youtube,📹 油管视频
   - DOMAIN-SUFFIX,gfwlist.start,🚀 节点选择
   - DOMAIN-SUFFIX,000webhost.com,🚀 节点选择
   - DOMAIN-SUFFIX,030buy.com,🚀 节点选择
@@ -1694,7 +1694,7 @@ rules:
   - DOMAIN-SUFFIX,aculo.us,🚀 节点选择
   - DOMAIN-SUFFIX,adcex.com,🚀 节点选择
   - DOMAIN-SUFFIX,addictedtocoffee.de,🚀 节点选择
-  - DOMAIN-SUFFIX,addyoutube.com,🚀 节点选择
+  - DOMAIN-SUFFIX,addyoutube.com,📹 油管视频
   - DOMAIN-SUFFIX,adelaidebbs.com,🚀 节点选择
   - DOMAIN-SUFFIX,admob.com,🚀 节点选择
   - DOMAIN-SUFFIX,adpl.org.hk,🚀 节点选择
@@ -2059,7 +2059,7 @@ rules:
   - DOMAIN-SUFFIX,biliworld.com,🚀 节点选择
   - DOMAIN-SUFFIX,billypan.com,🚀 节点选择
   - DOMAIN-SUFFIX,binance.com,🚀 节点选择
-  - DOMAIN-SUFFIX,bing.com,🚀 节点选择
+  - DOMAIN-SUFFIX,bing.com,🎯 全球直连
   - DOMAIN-SUFFIX,binux.me,🚀 节点选择
   - DOMAIN-SUFFIX,binwang.me,🚀 节点选择
   - DOMAIN-SUFFIX,bird.so,🚀 节点选择
@@ -7356,13 +7356,13 @@ rules:
   - DOMAIN-SUFFIX,youthforfreechina.org,🚀 节点选择
   - DOMAIN-SUFFIX,youthnetradio.org,🚀 节点选择
   - DOMAIN-SUFFIX,youthwant.com.tw,🚀 节点选择
-  - DOMAIN-SUFFIX,youtu.be,🚀 节点选择
-  - DOMAIN-SUFFIX,youtube-nocookie.com,🚀 节点选择
-  - DOMAIN-SUFFIX,youtube.com,🚀 节点选择
-  - DOMAIN-SUFFIX,youtubecn.com,🚀 节点选择
-  - DOMAIN-SUFFIX,youtubeeducation.com,🚀 节点选择
-  - DOMAIN-SUFFIX,youtubegaming.com,🚀 节点选择
-  - DOMAIN-SUFFIX,youtubekids.com,🚀 节点选择
+  - DOMAIN-SUFFIX,youtu.be,📹 油管视频
+  - DOMAIN-SUFFIX,youtube-nocookie.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtube.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtubecn.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtubeeducation.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtubegaming.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtubekids.com,📹 油管视频
   - DOMAIN-SUFFIX,youversion.com,🚀 节点选择
   - DOMAIN-SUFFIX,youwin.com,🚀 节点选择
   - DOMAIN-SUFFIX,youxu.info,🚀 节点选择
@@ -7548,8 +7548,8 @@ rules:
   - DOMAIN-SUFFIX,gvt3.com,🚀 节点选择
   - DOMAIN-SUFFIX,xn--ngstr-lra8j.com,🚀 节点选择
   - DOMAIN-SUFFIX,youtu.be,🚀 节点选择
-  - DOMAIN-SUFFIX,youtube-nocookie.com,🚀 节点选择
-  - DOMAIN-SUFFIX,youtube.com,🚀 节点选择
+  - DOMAIN-SUFFIX,youtube-nocookie.com,📹 油管视频
+  - DOMAIN-SUFFIX,youtube.com,📹 油管视频
   - DOMAIN-SUFFIX,yt.be,🚀 节点选择
   - DOMAIN-SUFFIX,ytimg.com,🚀 节点选择
   - IP-CIDR,74.125.0.0/16,🚀 节点选择,no-resolve
