@@ -99,15 +99,18 @@ proxy-providers:
   chromego:
     <<: *p
     url: https://mareep.netlify.app/sub/merged_proxies.yaml
+    path:
   # filter:'HK'#筛选关键词
   
   CDN优选:
     <<: *p
     url: https://ghproxy.com/https://raw.githubusercontent.com/yyyr-otz/ymal/main/CDN.yaml
+    path:
 
   备用机场1:
     <<: *p
     url: https://v1.chaojiji.one/api/v1/client/subscribe?token=f75c61bae0c119479766fcf36c64461c
+    path:
     
   #bar:
     #type: file  # 本地文件
