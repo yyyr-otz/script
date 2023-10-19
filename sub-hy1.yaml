@@ -8,7 +8,7 @@ p: &p {type: http, interval: 3600, health-check: {enable: true, url: https://www
 use: &use
   type: select
   use:
-  - chromego
+  - 翻墙包
   - CDN优选
   - 备用机场
 
@@ -96,22 +96,22 @@ dns: #dns设置
 # 配置规则参考文档： https://github.com/Dreamacro/clash/wiki/configuration
 # 设置代理提供者(远程订阅地址+本地订阅文件)
 proxy-providers:
-  chromego:
+  翻墙包:
     <<: *p
+    path: ./proxy_providers/翻墙包.yaml
     url: https://mareep.netlify.app/sub/merged_proxies.yaml
-    path:
   # filter:'HK'#筛选关键词
   
   CDN优选:
     <<: *p
+    path: ./proxy_providers/CDN优选.yaml
     url: https://ghproxy.com/https://raw.githubusercontent.com/yyyr-otz/ymal/main/CDN.yaml
-    path:
 
   备用机场1:
     <<: *p
+    path: ./proxy_providers/备用机场.yaml
     url: https://v1.chaojiji.one/api/v1/client/subscribe?token=f75c61bae0c119479766fcf36c64461c
-    path:
-    
+
   #bar:
     #type: file  # 本地文件
     #path: ./profiles/proxies/bar.yaml
@@ -140,8 +140,8 @@ proxy-groups:
   - name: 🚨 前置节点
     type: select
     proxies:
-      - ♻️🍄 chromego
-      - 🔮🍄 chromego
+      - ♻️🍄 翻墙包
+      - 🔮🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - ⚓ 备用机场
@@ -152,8 +152,8 @@ proxy-groups:
     proxies:
       - WARP链式节点
       - ⚓ 备用机场
-      - ♻️🍄 chromego
-      - 🔮🍄 chromego
+      - ♻️🍄 翻墙包
+      - 🔮🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - DIRECT
@@ -162,7 +162,7 @@ proxy-groups:
     type: select
    # proxies:
     use: 
-      - chromego
+      - 翻墙包
       - CDN优选
       - 备用机场1
 
@@ -172,21 +172,21 @@ proxy-groups:
     use: 
       - 备用机场1
 
-  - name: ♻️🍄 chromego
+  - name: ♻️🍄 翻墙包
     type: url-test
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
     use:
-      - chromego
+      - 翻墙包
 
-  - name: 🔮🍄 chromego
+  - name: 🔮🍄 翻墙包
     type: load-balance
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
     use:
-      - chromego
+      - 翻墙包
       
   - name: 🚦🔝 CDN优选
   # type: url-test
@@ -208,7 +208,7 @@ proxy-groups:
   - name: 📲 电报消息
     type: select
     proxies:
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
@@ -219,7 +219,7 @@ proxy-groups:
   - name: 💬 OpenAi
     type: select
     proxies:
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
@@ -230,7 +230,7 @@ proxy-groups:
   - name: 📹 油管视频
     type: select
     proxies:
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
@@ -241,7 +241,7 @@ proxy-groups:
   - name: 🎥 奈飞视频
     type: select
     proxies:
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
@@ -252,7 +252,7 @@ proxy-groups:
   - name: 📺 巴哈姆特
     type: select
     proxies:
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
@@ -265,7 +265,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
@@ -274,7 +274,7 @@ proxy-groups:
   - name: 🌍 国外媒体
     type: select
     proxies:
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
@@ -287,7 +287,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
@@ -298,7 +298,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
@@ -309,7 +309,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
@@ -320,7 +320,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
@@ -331,7 +331,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
@@ -342,7 +342,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
-      - ♻️🍄 chromego
+      - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
       - 🚀 节点选择
