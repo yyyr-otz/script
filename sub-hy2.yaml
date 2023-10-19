@@ -258,6 +258,17 @@ proxy-groups:
       - 🔮🔝 CDN优选
       - 🚀 节点选择
       - ♻️ 自动选择
+      
+  - name: 🎦 奈飞视频
+    type: select
+    proxies:
+      - ♻️🍄 chromego
+      - 🚦🔝 CDN优选
+      - 🔮🔝 CDN优选
+      - 🚀 节点选择
+      - ♻️ 自动选择
+      - 🚀 手动切换
+      - DIRECT
 
   - name: 📺 哔哩哔哩
     type: select
