@@ -245,16 +245,6 @@ proxy-providers:
       #enable: true
       #url: http://www.gstatic.com/generate_204
       #interval: 300
-#### 隧道 ####
-#tunnels: # one line config
-##  - tcp/udp,127.0.0.1:6553,114.114.114.114:53,proxy
-##  - tcp,127.0.0.1:6666,rds.mysql.com:3306,vpn
-#  # full yaml config
-#  - network: [tcp, udp]
-#    address: 127.0.0.1:7777
-#    target: target.com
-#    proxy: proxy
-    
 
 proxies:
   - name: WARP链式节点
