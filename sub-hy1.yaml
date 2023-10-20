@@ -2,7 +2,7 @@
 # proxy 相关
 #pr: &pr {type: select, proxies: [默认,香港,台湾,日本,新加坡,美国,其它地区,全部节点,自动选择,DIRECT]}
 #这里是订阅更新和延迟测试相关的
-p: &p {type: http, interval: 3600, health-check: {enable: true, url: https://www.gstatic.com/generate_204, interval: 300}}
+p: &p {type: http, interval: 3600, health-check: {enable: true, url: https://www.google.com/generate_204, interval: 300}}
 #use: &use
 #  type: select
 #  use:
@@ -214,7 +214,7 @@ proxy-providers:
     interval: 7200
     health-check:
       enable: true
-      url: https://www.gstatic.com/generate_204
+      url: https://www.google.com/generate_204
       interval: 300
   CDN优选:
     type: http
@@ -223,7 +223,7 @@ proxy-providers:
     interval: 7200
     health-check:
       enable: true
-      url: https://www.gstatic.com/generate_204
+      url: https://www.google.com/generate_204
       interval: 300
 
   备用机场1:
@@ -233,7 +233,7 @@ proxy-providers:
     interval: 7200
     health-check:
       enable: true
-      url: https://www.gstatic.com/generate_204
+      url: https://www.google.com/generate_204
       interval: 300
 
   #bar:
@@ -241,7 +241,7 @@ proxy-providers:
     #path: ./profiles/proxies/bar.yaml
     #health-check:
       #enable: true
-      #url: http://www.gstatic.com/generate_204
+      #url: https://www.google.com/generate_204
       #interval: 300
 
 proxies:
@@ -309,7 +309,7 @@ proxy-groups:
 
   - name: ♻️🍄 翻墙包
     type: url-test
-    url: http://www.gstatic.com/generate_204
+    url: https://www.google.com/generate_204
     interval: 300
     tolerance: 50
     use:
@@ -317,16 +317,17 @@ proxy-groups:
 
   - name: 🔮🍄 翻墙包
     type: load-balance
-    url: http://www.gstatic.com/generate_204
+    url: https://www.google.com/generate_204
     interval: 300
-    tolerance: 50
+    strategy: consistent-hashing
+#    tolerance: 50
     use:
       - 翻墙包
       
   - name: 🚦🔝 CDN优选
   # type: url-test
     type: select
-    url: http://www.gstatic.com/generate_204
+    url: https://www.google.com/generate_204
     interval: 300
     tolerance: 50
     use:
@@ -334,9 +335,10 @@ proxy-groups:
 
   - name: 🔮🔝 CDN优选
     type: load-balance
-    url: http://www.gstatic.com/generate_204
+    url: https://www.google.com/generate_204
     interval: 300
-    tolerance: 50
+    strategy: consistent-hashing
+#    tolerance: 50
     use:
       - CDN优选
 
