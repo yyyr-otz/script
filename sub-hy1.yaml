@@ -247,7 +247,7 @@ proxy-providers:
 proxies:
   - name: WARP链式节点
     type: wireguard
-    server: [2606:4700:d0::1765:7e14:5097:e2b3]
+    server: 2606:4700:d0::1765:7e14:5097:e2b3
     port: 988
     ip: 172.16.0.2
     ipv6: 2606:4700:110:85c8:7f3e:ec65:682:bed8
