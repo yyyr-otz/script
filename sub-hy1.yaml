@@ -3,7 +3,7 @@
 #pr: &pr {type: select, proxies: [默认,香港,台湾,日本,新加坡,美国,其它地区,全部节点,自动选择,DIRECT]}
 
 #这里是订阅更新和延迟测试相关的
-p: &p {type: http, interval: 3600, health-check: {enable: true, url: https://www.gstatic.com/generate_204, interval: 300}}
+#p: &p {type: http, interval: 3600, health-check: {enable: true, url: https://www.gstatic.com/generate_204, interval: 300}}
 
 #use: &use
 #  type: select
@@ -328,20 +328,34 @@ dns: #dns设置
 # 设置代理提供者(远程订阅地址+本地订阅文件)
 proxy-providers:
   翻墙包:
-    <<: *p
+    type: http
     path: ./proxy_providers/翻墙包.yaml
     url: https://mareep.netlify.app/sub/merged_proxies.yaml
   # filter:'HK'#筛选关键词
-  
+    interval: 3600
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 300
   CDN优选:
-    <<: *p
+    type: http
     path: ./proxy_providers/CDN优选.yaml
     url: https://ghproxy.com/https://raw.githubusercontent.com/yyyr-otz/ymal/main/CDN.yaml
+    interval: 3600
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 300
 
   备用机场1:
-    <<: *p
+    type: http
     path: ./proxy_providers/备用机场1.yaml
     url: https://v1.chaojiji.one/api/v1/client/subscribe?token=f75c61bae0c119479766fcf36c64461c
+    interval: 3600
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 300
 
   #bar:
     #type: file  # 本地文件
