@@ -10,10 +10,10 @@ p: &p {type: http, interval: 3600, health-check: {enable: true, url: https://www
 #  - CDN优选
 #  - 备用机场
 ######### 锚点 end #######
-port: 7890 # HTTP(S) 代理服务器端口
-allow-lan: true # 允许局域网连接
+port: 7890
+allow-lan: true
 find-process-mode: strict
-ipv6: true # 开启 IPv6 总开关，关闭阻断所有 IPv6 链接和屏蔽 DNS 请求 AAAA 记录
+ipv6: true
 mode: rule
 geodata-mode: true 
 geodata-loader: memconservative
@@ -21,7 +21,7 @@ geox-url:
   geoip: "https://ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geoip.dat"
   geosite: "https://ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geosite.dat"
   mmdb: "https://ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geoip.metadb"
-log-level: info # 日志等级 silent/error/warning/info/debug
+log-level: info
 
 external-ui: /path/to/ui/folder/
 external-ui-name: xd
@@ -40,21 +40,21 @@ profile:
 unified-delay: true #更换延迟计算方式,去除握手等额外延迟
 
 # 嗅探域名 可选配置
-sniffer:                           #【Meta专属】sniffer域名嗅探器
-  enable: false                    # 嗅探器开关       
+sniffer:
+  enable: false
                                    # 开启后对 redir-host 类型识别的流量进行强制嗅探
                                    # 包含 Tun、Redir 和 TProxy 或 DNS 为 redir-host
   # force-dns-mapping: false
-  # parse-pure-ip: false           # 对所有未获取到域名的流量进行强制嗅探
+  # parse-pure-ip: false
 
-  override-destination: false      # 是否使用嗅探结果作为实际访问,默认 true
+  override-destination: false
                                    # 全局配置,优先级低于 sniffer.sniff 实际配置
-  sniff: # TLS 默认如果不配置 ports 默认嗅探 443
+  sniff:
     QUIC:
       ports: [ 443 ]
     TLS:
       ports: [443, 2053, 2083, 2087, 2096, 8443]
-    HTTP: # 需要嗅探的端口, 默认嗅探 80
+    HTTP:
       ports: [80, 8080-8880, 2052, 2082, 2086, 2095]
       override-destination: true # 可覆盖 sniffer.override-destination
   force-domain:
@@ -66,12 +66,6 @@ sniffer:                           #【Meta专属】sniffer域名嗅探器
   # 强制对此域名进行嗅探
 #  skip-domain: #已废弃
 #    - Mijia Cloud
-#ebpf配置
-ebpf:
-  auto-redir: # redirect 模式，仅支持 TCP
-    - eth0
-  redirect-to-tun: # UDP+TCP 使用该功能请勿启用 auto-route
-    - eth0
     
 #### 隧道 ####
 tunnels: # one line config
@@ -94,7 +88,7 @@ hosts:
 
 dns: #dns设置
   enabled: true
-  prefer-h3: true # 开启 DoH 支持 HTTP/3，将并发尝试
+  prefer-h3: true
   listen: 0.0.0.0:1053
   ipv6: true
   default-nameserver:
@@ -109,7 +103,7 @@ dns: #dns设置
   # DNS主要域名配置
   # 支持 UDP，TCP，DoT，DoH，DoQ
   # 这部分为主要 DNS 配置，影响所有直连，确保使用对大陆解析精准的 DNS
-  fake-ip-filter: #fakeip过滤 不会发生
+  fake-ip-filter:
     - '*.lan'
     - '*.linksys.com'
     - '*.linksyssmartwifi.com'
@@ -169,12 +163,12 @@ dns: #dns设置
   nameserver:
     - 114.114.114.114 # default value
     - 8.8.8.8 # default value
-    - tls://223.5.5.5:853 # DNS over TLS
-    - https://doh.pub/dns-query # DNS over HTTPS
-    - https://dns.alidns.com/dns-query#h3=true # 强制 HTTP/3，与 perfer-h3 无关，强制开启 DoH 的 HTTP/3 支持，若不支持将无法使用
-    - https://mozilla.cloudflare-dns.com/dns-query#DNS&h3=true # 指定策略组和使用 HTTP/3
-    - dhcp://en0 # dns from dhcp
-    - quic://dns.adguard.com:784 # DNS over QUIC
+    - tls://223.5.5.5:853
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query#h3=true
+    - https://mozilla.cloudflare-dns.com/dns-query#DNS&h3=true
+    - dhcp://en0
+    - quic://dns.adguard.com:784
     # - '8.8.8.8#en0' # 兼容指定DNS出口网卡
     
   # 当配置 fallback 时，会查询 nameserver 中返回的 IP 是否为 CN，非必要配置
@@ -191,8 +185,8 @@ dns: #dns设置
     - https://doh.pub/dns-query
 # 配置 fallback 使用条件
   fallback-filter:
-    geoip: true # 配置是否使用 geoip
-    geoip-code: CN # 当 nameserver 域名的 IP 查询 geoip 库为 CN 时，不使用 fallback 中的 DNS 查询结果
+    geoip: true
+    geoip-code: CN
     geosite:
       - gfw
 #   如果不匹配 ipcidr 则使用 nameservers 中的结果
@@ -270,10 +264,10 @@ proxies:
     private-key: uJTvkiXjK0LMyD0UNnepH9YF4CqpqaUJNT4tJc2eF0Q=
     public-key: bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=
     udp: true
-    reserved: [0,0,0] # 数组格式也是合法的
-    remote-dns-resolve: true # 强制dns远程解析
+    reserved: [0,0,0]
+    remote-dns-resolve: true
     dns: [ 1.1.1.1, 8.8.8.8, https://dns.cloudflare.com/dns-query ]
-    dialer-proxy: "🚨 前置节点" # 一个出站代理的标识。当值不为空时，将使用指定的 proxy 发出连接
+    dialer-proxy: "🚨 前置节点"
 
     # 如果peers不为空，该段落中的allowed_ips不可为空；前面段落的server,port,ip,ipv6,public-key,pre-shared-key均会被忽略，但private-key会被保留且只能在顶层指定
     # peers:
