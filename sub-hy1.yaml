@@ -11,6 +11,7 @@ p: &p {type: http, interval: 3600, health-check: {enable: true, url: https://www
 #  - 备用机场
 ######### 锚点 end #######
 port: 7890
+socks-port: 7891
 allow-lan: true
 find-process-mode: strict
 ipv6: true
@@ -66,16 +67,6 @@ sniffer:
   # 强制对此域名进行嗅探
 #  skip-domain: #已废弃
 #    - Mijia Cloud
-    
-#### 隧道 ####
-tunnels: # one line config
-  - tcp/udp,127.0.0.1:6553,114.114.114.114:53,proxy
-  - tcp,127.0.0.1:6666,rds.mysql.com:3306,vpn
-  # full yaml config
-  - network: [tcp, udp]
-    address: 127.0.0.1:7777
-    target: target.com
-    proxy: proxy
 
 # 类似于 /etc/hosts, 仅支持配置单个 IP
 hosts:
@@ -215,13 +206,14 @@ dns: #dns设置
     
 # 配置规则参考文档： https://github.com/Dreamacro/clash/wiki/configuration
 # 设置代理提供者(远程订阅地址+本地订阅文件)
+
 proxy-providers:
   翻墙包:
     type: http
     path: ./profiles/翻墙包.yaml
     url: https://mareep.netlify.app/sub/merged_proxies.yaml
   # filter:'HK'#筛选关键词
-    interval: 3600
+    interval: 7200
     health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
@@ -230,7 +222,7 @@ proxy-providers:
     type: http
     path: ./profiles/CDN优选.yaml
     url: https://ghproxy.com/https://raw.githubusercontent.com/yyyr-otz/ymal/main/CDN.yaml
-    interval: 3600
+    interval: 7200
     health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
@@ -240,7 +232,7 @@ proxy-providers:
     type: http
     path: ./profiles/备用机场1.yaml
     url: https://v1.chaojiji.one/api/v1/client/subscribe?token=f75c61bae0c119479766fcf36c64461c
-    interval: 3600
+    interval: 7200
     health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
@@ -253,6 +245,16 @@ proxy-providers:
       #enable: true
       #url: http://www.gstatic.com/generate_204
       #interval: 300
+#### 隧道 ####
+#tunnels: # one line config
+##  - tcp/udp,127.0.0.1:6553,114.114.114.114:53,proxy
+##  - tcp,127.0.0.1:6666,rds.mysql.com:3306,vpn
+#  # full yaml config
+#  - network: [tcp, udp]
+#    address: 127.0.0.1:7777
+#    target: target.com
+#    proxy: proxy
+    
 
 proxies:
   - name: WARP链式节点
