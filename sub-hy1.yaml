@@ -39,10 +39,10 @@ mode: rule
 #自定义 geodata url
 geodata-mode: true 
 geodata-loader: memconservative
-geox-url:
-  geoip: "https://ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geoip.dat"
-  geosite: "https://ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geosite.dat"
-  mmdb: "https://ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geoip.metadb"
+#geox-url:
+#  geoip: "https://ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geoip.dat"
+#  geosite: "https://ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geosite.dat"
+#  mmdb: "https://ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geoip.metadb"
 log-level: info # 日志等级 silent/error/warning/info/debug
 #tls:
 #  certificate: string # 证书 PEM 格式，或者 证书的路径
