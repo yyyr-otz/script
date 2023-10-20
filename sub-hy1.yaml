@@ -51,8 +51,6 @@ sniffer:
   override-destination: false
                                    # 全局配置,优先级低于 sniffer.sniff 实际配置
   sniff:
-    QUIC:
-      ports: [ 80 ]
     TLS:
       ports: [443, 2053, 2083, 2087, 2096, 8443]
     HTTP:
