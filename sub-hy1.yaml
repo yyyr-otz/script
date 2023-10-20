@@ -464,6 +464,7 @@ proxy-groups:
   - name: 📲 电报消息
     type: select
     proxies:
+      - WARP链式节点
       - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
@@ -475,6 +476,7 @@ proxy-groups:
   - name: 💬 OpenAi
     type: select
     proxies:
+      - WARP链式节点
       - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
@@ -486,6 +488,7 @@ proxy-groups:
   - name: 📹 油管视频
     type: select
     proxies:
+      - WARP链式节点
       - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
@@ -497,6 +500,7 @@ proxy-groups:
   - name: 🎥 奈飞视频
     type: select
     proxies:
+      - WARP链式节点
       - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
@@ -508,6 +512,7 @@ proxy-groups:
   - name: 📺 巴哈姆特
     type: select
     proxies:
+      - WARP链式节点
       - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
@@ -521,6 +526,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
+      - WARP链式节点
       - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
@@ -530,6 +536,7 @@ proxy-groups:
   - name: 🌍 国外媒体
     type: select
     proxies:
+      - WARP链式节点
       - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
@@ -554,6 +561,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
+      - WARP链式节点
       - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
@@ -565,6 +573,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
+      - WARP链式节点
       - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
@@ -576,6 +585,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
+      - WARP链式节点
       - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
@@ -587,6 +597,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
+      - WARP链式节点
       - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
@@ -598,6 +609,7 @@ proxy-groups:
     proxies:
       - DIRECT
       - 🎯 全球直连
+      - WARP链式节点
       - ♻️🍄 翻墙包
       - 🚦🔝 CDN优选
       - 🔮🔝 CDN优选
@@ -634,6 +646,7 @@ proxy-groups:
   - name: 🐟 漏网之鱼
     type: select
     proxies:
+      - WARP链式节点
       - 🚀 节点选择
       - DIRECT
       - 🎯 全球直连
