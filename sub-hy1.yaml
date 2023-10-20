@@ -333,7 +333,7 @@ dns: #dns设置
 proxy-providers:
   翻墙包:
     type: http
-    path: ./proxy_providers/翻墙包.yaml
+    path: ./profiles/翻墙包.yaml
     url: https://mareep.netlify.app/sub/merged_proxies.yaml
   # filter:'HK'#筛选关键词
     interval: 3600
@@ -343,7 +343,7 @@ proxy-providers:
       interval: 300
   CDN优选:
     type: http
-    path: ./proxy_providers/CDN优选.yaml
+    path: ./profiles/CDN优选.yaml
     url: https://ghproxy.com/https://raw.githubusercontent.com/yyyr-otz/ymal/main/CDN.yaml
     interval: 3600
     health-check:
@@ -353,7 +353,7 @@ proxy-providers:
 
   备用机场1:
     type: http
-    path: ./proxy_providers/备用机场1.yaml
+    path: ./profiles/备用机场1.yaml
     url: https://v1.chaojiji.one/api/v1/client/subscribe?token=f75c61bae0c119479766fcf36c64461c
     interval: 3600
     health-check:
