@@ -256,7 +256,7 @@ proxies:
     udp: true
     reserved: [239,166,148]
     remote-dns-resolve: true
-    dns: [ 1.1.1.1, 8.8.8.8, https://dns.cloudflare.com/dns-query, 2001:4860:4860:8888 ]
+    dns: [ 1.1.1.1, 8.8.8.8, https://dns.cloudflare.com/dns-query, [2001:4860:4860:8888] ]
     dialer-proxy: "🚨 前置节点"
 
     # 如果peers不为空，该段落中的allowed_ips不可为空；前面段落的server,port,ip,ipv6,public-key,pre-shared-key均会被忽略，但private-key会被保留且只能在顶层指定
