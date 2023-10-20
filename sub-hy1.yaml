@@ -247,16 +247,16 @@ proxy-providers:
 proxies:
   - name: WARP链式节点
     type: wireguard
-    server: engage.cloudflareclient.com
-    port: 2408
+    server: [2606:4700:d0::1765:7e14:5097:e2b3]
+    port: 988
     ip: 172.16.0.2
-    ipv6: 2606:4700:110:8a23:1efc:91f0:e183:62a8
-    private-key: uJTvkiXjK0LMyD0UNnepH9YF4CqpqaUJNT4tJc2eF0Q=
+    ipv6: 2606:4700:110:85c8:7f3e:ec65:682:bed8
+    private-key: oL/bcTOn/oFmNCoLfanL/i+NWZZFQs3OVdjm3NAfP3I=
     public-key: bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=
     udp: true
-    reserved: [0,0,0]
+    reserved: [239,166,148]
     remote-dns-resolve: true
-    dns: [ 1.1.1.1, 8.8.8.8, https://dns.cloudflare.com/dns-query ]
+    dns: [ 1.1.1.1, 8.8.8.8, https://dns.cloudflare.com/dns-query, 2001:4860:4860:8888 ]
     dialer-proxy: "🚨 前置节点"
 
     # 如果peers不为空，该段落中的allowed_ips不可为空；前面段落的server,port,ip,ipv6,public-key,pre-shared-key均会被忽略，但private-key会被保留且只能在顶层指定
