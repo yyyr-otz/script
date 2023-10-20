@@ -1,24 +1,19 @@
 ######### 锚点 start #######
 # proxy 相关
 #pr: &pr {type: select, proxies: [默认,香港,台湾,日本,新加坡,美国,其它地区,全部节点,自动选择,DIRECT]}
-
 #这里是订阅更新和延迟测试相关的
 #p: &p {type: http, interval: 3600, health-check: {enable: true, url: https://www.gstatic.com/generate_204, interval: 300}}
-
 #use: &use
 #  type: select
 #  use:
 #  - 翻墙包
 #  - CDN优选
 #  - 备用机场
-
 ######### 锚点 end #######
-
 port: 7890 # HTTP(S) 代理服务器端口
 # socks-port: 7891 # SOCKS5 代理端口
 #mixed-port: 10801 # HTTP(S) 和 SOCKS 代理混合端口
 # redir-port: 7892 # 透明代理端口，用于 Linux 和 MacOS
-
 # Transparent proxy server port for Linux (TProxy TCP and TProxy UDP)
 # tproxy-port: 7893
 allow-lan: true # 允许局域网连接
