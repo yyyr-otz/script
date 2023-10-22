@@ -1,9 +1,9 @@
 ####################################
 # 创建者：v2rayse.com
 # 客户端：Clash.Meta
-# 创建时间：2023-10-21 05:02:17
+# 创建时间：2023-10-22 17:05:12
 # 使用模版：纯节点
-# 节点数量：44
+# 节点数量：62
 # 节点类型：vless
 ####################################
 # !!当前配置文件请使用基于 Clash.Meta 内核程序
@@ -88,49 +88,67 @@ dns:
 
 proxies:
   - {"name":"_HK_1","type":"vless","server":"yx.piaosir.link","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_2","type":"vless","server":"cfip.gay","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_3","type":"vless","server":"64.110.86.224","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_4","type":"vless","server":"104.17.235.30","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_5","type":"vless","server":"104.18.37.236","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_6","type":"vless","server":"144.24.95.167","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_7","type":"vless","server":"8.219.200.145","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_8","type":"vless","server":"8.219.140.63","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_9","type":"vless","server":"168.138.219.189","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_10","type":"vless","server":"168.138.208.244","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_11","type":"vless","server":"150.230.7.144","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_12","type":"vless","server":"101.52.222.8","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_13","type":"vless","server":"s-b-s.sbs","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_14","type":"vless","server":"202.81.231.150","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_15","type":"vless","server":"104.18.78.15 ","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_16","type":"vless","server":"104.18.10.143","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_17","type":"vless","server":"104.18.14.110","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_18","type":"vless","server":"190.93.245.21","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_19","type":"vless","server":"104.18.11.23","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_20","type":"vless","server":"104.17.236.123","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_21","type":"vless","server":"162.159.34.157","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_HK_22","type":"vless","server":"104.18.22.35","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
   - {"name":"_US_1","type":"vless","server":"yx.piaosir.link","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_2","type":"vless","server":"cfip.gay","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_3","type":"vless","server":"64.110.86.224","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_4","type":"vless","server":"104.17.235.30","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_5","type":"vless","server":"104.18.37.236","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_6","type":"vless","server":"144.24.95.167","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_7","type":"vless","server":"8.219.200.145","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_8","type":"vless","server":"8.219.140.63","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_9","type":"vless","server":"168.138.219.189","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_10","type":"vless","server":"168.138.208.244","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_11","type":"vless","server":"150.230.7.144","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_12","type":"vless","server":"101.52.222.8","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_13","type":"vless","server":"s-b-s.sbs","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_14","type":"vless","server":"202.81.231.150","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_15","type":"vless","server":"104.18.78.15 ","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_16","type":"vless","server":"104.18.10.143","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_17","type":"vless","server":"104.18.14.110","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_18","type":"vless","server":"190.93.245.21","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_19","type":"vless","server":"104.18.11.23","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_20","type":"vless","server":"104.17.236.123","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_21","type":"vless","server":"162.159.34.157","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
-  - {"name":"_US_22","type":"vless","server":"104.18.22.35","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_2","type":"vless","server":"s-b-s.sbs","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_2","type":"vless","server":"s-b-s.sbs","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_3","type":"vless","server":"cfip.gay","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_3","type":"vless","server":"cfip.gay","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_4","type":"vless","server":"8.219.200.145","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_4","type":"vless","server":"8.219.200.145","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_5","type":"vless","server":"8.219.140.63","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_5","type":"vless","server":"8.219.140.63","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_6","type":"vless","server":"64.110.86.224","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_6","type":"vless","server":"64.110.86.224","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_7","type":"vless","server":"202.81.231.150","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_7","type":"vless","server":"202.81.231.150","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_8","type":"vless","server":"190.93.245.21","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_8","type":"vless","server":"190.93.245.21","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_9","type":"vless","server":"172.67.79.18","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_9","type":"vless","server":"172.67.79.18","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_10","type":"vless","server":"172.67.77.78","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_10","type":"vless","server":"172.67.77.78","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_11","type":"vless","server":"172.67.66.158","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_11","type":"vless","server":"172.67.66.158","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_12","type":"vless","server":"172.67.64.45","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_12","type":"vless","server":"172.67.64.45","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_13","type":"vless","server":"172.67.194.156","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_13","type":"vless","server":"172.67.194.156","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_14","type":"vless","server":"172.67.168.131","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_14","type":"vless","server":"172.67.168.131","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_15","type":"vless","server":"172.67.128.248","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_15","type":"vless","server":"172.67.128.248","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_16","type":"vless","server":"168.138.219.189","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_16","type":"vless","server":"168.138.219.189","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_17","type":"vless","server":"168.138.208.244","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_17","type":"vless","server":"168.138.208.244","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_18","type":"vless","server":"162.159.34.157","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_18","type":"vless","server":"162.159.34.157","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_19","type":"vless","server":"150.230.7.144","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_19","type":"vless","server":"150.230.7.144","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_20","type":"vless","server":"104.21.27.124","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_20","type":"vless","server":"104.21.27.124","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_21","type":"vless","server":"104.21.237.78","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_21","type":"vless","server":"104.21.237.78","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_22","type":"vless","server":"104.21.234.52","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_22","type":"vless","server":"104.21.234.52","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_23","type":"vless","server":"104.18.78.15","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_23","type":"vless","server":"104.18.78.15","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_24","type":"vless","server":"104.18.37.236","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_24","type":"vless","server":"104.18.37.236","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_25","type":"vless","server":"104.18.22.35","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_25","type":"vless","server":"104.18.22.35","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_26","type":"vless","server":"104.18.14.110","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_26","type":"vless","server":"104.18.14.110","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_27","type":"vless","server":"104.18.11.23","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_27","type":"vless","server":"104.18.11.23","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_28","type":"vless","server":"104.18.10.143","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_28","type":"vless","server":"104.18.10.143","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_29","type":"vless","server":"104.17.236.123","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_29","type":"vless","server":"104.17.236.123","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_30","type":"vless","server":"104.17.235.30","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_30","type":"vless","server":"104.17.235.30","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_HK_31","type":"vless","server":"101.52.222.8","port":80,"uuid":"1c19d7b3-542b-4bb5-96fc-1b996e085724","tls":false,"servername":"wrap1hk.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"wrap1hk.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
+  - {"name":"_US_31","type":"vless","server":"101.52.222.8","port":80,"uuid":"5723cef9-82a1-4b02-a038-9862374cb476","tls":false,"servername":"warp1cmcc.n7p8ri7j.workers.dev","network":"ws","ws-opts":{"path":"/?ed=2048","headers":{"host":"warp1cmcc.n7p8ri7j.workers.dev"}},"client-fingerprint":"randomized"}
 proxy-groups:
   - name: 🚀 节点选择
     type: select
@@ -138,49 +156,67 @@ proxy-groups:
       - ♻️ 自动选择
       - DIRECT
       - _HK_1
-      - _HK_2
-      - _HK_3
-      - _HK_4
-      - _HK_5
-      - _HK_6
-      - _HK_7
-      - _HK_8
-      - _HK_9
-      - _HK_10
-      - _HK_11
-      - _HK_12
-      - _HK_13
-      - _HK_14
-      - _HK_15
-      - _HK_16
-      - _HK_17
-      - _HK_18
-      - _HK_19
-      - _HK_20
-      - _HK_21
-      - _HK_22
       - _US_1
+      - _HK_2
       - _US_2
+      - _HK_3
       - _US_3
+      - _HK_4
       - _US_4
+      - _HK_5
       - _US_5
+      - _HK_6
       - _US_6
+      - _HK_7
       - _US_7
+      - _HK_8
       - _US_8
+      - _HK_9
       - _US_9
+      - _HK_10
       - _US_10
+      - _HK_11
       - _US_11
+      - _HK_12
       - _US_12
+      - _HK_13
       - _US_13
+      - _HK_14
       - _US_14
+      - _HK_15
       - _US_15
+      - _HK_16
       - _US_16
+      - _HK_17
       - _US_17
+      - _HK_18
       - _US_18
+      - _HK_19
       - _US_19
+      - _HK_20
       - _US_20
+      - _HK_21
       - _US_21
+      - _HK_22
       - _US_22
+      - _HK_23
+      - _US_23
+      - _HK_24
+      - _US_24
+      - _HK_25
+      - _US_25
+      - _HK_26
+      - _US_26
+      - _HK_27
+      - _US_27
+      - _HK_28
+      - _US_28
+      - _HK_29
+      - _US_29
+      - _HK_30
+      - _US_30
+      - _HK_31
+      - _US_31
   - name: ♻️ 自动选择
     type: url-test
     url: http://www.gstatic.com/generate_204
@@ -188,49 +224,67 @@ proxy-groups:
     tolerance: 50
     proxies:
       - _HK_1
-      - _HK_2
-      - _HK_3
-      - _HK_4
-      - _HK_5
-      - _HK_6
-      - _HK_7
-      - _HK_8
-      - _HK_9
-      - _HK_10
-      - _HK_11
-      - _HK_12
-      - _HK_13
-      - _HK_14
-      - _HK_15
-      - _HK_16
-      - _HK_17
-      - _HK_18
-      - _HK_19
-      - _HK_20
-      - _HK_21
-      - _HK_22
       - _US_1
+      - _HK_2
       - _US_2
+      - _HK_3
       - _US_3
+      - _HK_4
       - _US_4
+      - _HK_5
       - _US_5
+      - _HK_6
       - _US_6
+      - _HK_7
       - _US_7
+      - _HK_8
       - _US_8
+      - _HK_9
       - _US_9
+      - _HK_10
       - _US_10
+      - _HK_11
       - _US_11
+      - _HK_12
       - _US_12
+      - _HK_13
       - _US_13
+      - _HK_14
       - _US_14
+      - _HK_15
       - _US_15
+      - _HK_16
       - _US_16
+      - _HK_17
       - _US_17
+      - _HK_18
       - _US_18
+      - _HK_19
       - _US_19
+      - _HK_20
       - _US_20
+      - _HK_21
       - _US_21
+      - _HK_22
       - _US_22
+      - _HK_23
+      - _US_23
+      - _HK_24
+      - _US_24
+      - _HK_25
+      - _US_25
+      - _HK_26
+      - _US_26
+      - _HK_27
+      - _US_27
+      - _HK_28
+      - _US_28
+      - _HK_29
+      - _US_29
+      - _HK_30
+      - _US_30
+      - _HK_31
+      - _US_31
   - name: 🐟 漏网之鱼
     type: select
     proxies:
@@ -238,49 +292,67 @@ proxy-groups:
       - DIRECT
       - ♻️ 自动选择
       - _HK_1
-      - _HK_2
-      - _HK_3
-      - _HK_4
-      - _HK_5
-      - _HK_6
-      - _HK_7
-      - _HK_8
-      - _HK_9
-      - _HK_10
-      - _HK_11
-      - _HK_12
-      - _HK_13
-      - _HK_14
-      - _HK_15
-      - _HK_16
-      - _HK_17
-      - _HK_18
-      - _HK_19
-      - _HK_20
-      - _HK_21
-      - _HK_22
       - _US_1
+      - _HK_2
       - _US_2
+      - _HK_3
       - _US_3
+      - _HK_4
       - _US_4
+      - _HK_5
       - _US_5
+      - _HK_6
       - _US_6
+      - _HK_7
       - _US_7
+      - _HK_8
       - _US_8
+      - _HK_9
       - _US_9
+      - _HK_10
       - _US_10
+      - _HK_11
       - _US_11
+      - _HK_12
       - _US_12
+      - _HK_13
       - _US_13
+      - _HK_14
       - _US_14
+      - _HK_15
       - _US_15
+      - _HK_16
       - _US_16
+      - _HK_17
       - _US_17
+      - _HK_18
       - _US_18
+      - _HK_19
       - _US_19
+      - _HK_20
       - _US_20
+      - _HK_21
       - _US_21
+      - _HK_22
       - _US_22
+      - _HK_23
+      - _US_23
+      - _HK_24
+      - _US_24
+      - _HK_25
+      - _US_25
+      - _HK_26
+      - _US_26
+      - _HK_27
+      - _US_27
+      - _HK_28
+      - _US_28
+      - _HK_29
+      - _US_29
+      - _HK_30
+      - _US_30
+      - _HK_31
+      - _US_31
 
 rules:
 # 本地/局域网地址
