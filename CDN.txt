@@ -46,7 +46,6 @@ vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@a6.nttkk.com:80?encryption=none&sec
 vless://5723cef9-82a1-4b02-a038-9862374cb476@a6.nttkk.com:80?encryption=none&security=none&sni=warp1cmcc.n7p8ri7j.workers.dev&fp=randomized&type=ws&host=warp1cmcc.n7p8ri7j.workers.dev&path=%2F%3Fed%3D2048#_US
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@80.cf.bestl.de:80?encryption=none&security=none&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&host=wrap1hk.n7p8ri7j.workers.dev&path=%2F%3Fed%3D2048#_HK
 vless://5723cef9-82a1-4b02-a038-9862374cb476@80.cf.bestl.de:80?encryption=none&security=none&sni=warp1cmcc.n7p8ri7j.workers.dev&fp=randomized&type=ws&host=warp1cmcc.n7p8ri7j.workers.dev&path=%2F%3Fed%3D2048#_US
-vless://5723cef9-82a1-4b02-a038-9862374cb476@8.219.140.63:80?encryption=none&security=none&sni=warp1cmcc.n7p8ri7j.workers.dev&fp=randomized&type=ws&host=warp1cmcc.n7p8ri7j.workers.dev&path=%2F%3Fed%3D2048#_US
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@64.110.86.224:80?encryption=none&security=none&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&host=wrap1hk.n7p8ri7j.workers.dev&path=%2F%3Fed%3D2048#_HK
 vless://5723cef9-82a1-4b02-a038-9862374cb476@64.110.86.224:80?encryption=none&security=none&sni=warp1cmcc.n7p8ri7j.workers.dev&fp=randomized&type=ws&host=warp1cmcc.n7p8ri7j.workers.dev&path=%2F%3Fed%3D2048#_US
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@2606:4700:a9:f6:efed:d818:2b09:36dc:80?encryption=none&security=none&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&host=wrap1hk.n7p8ri7j.workers.dev&path=%2F%3Fed%3D2048#_HK
