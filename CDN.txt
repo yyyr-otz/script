@@ -12,8 +12,6 @@ vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@104.18.78.15:80?security=&sni=wrap1
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@104.21.234.52:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@104.21.237.78:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@104.21.27.124:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
-vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@104.21.45.184:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
-vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@104.21.52.57:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@104.26.10.245:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@104.26.10.76:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@104.26.11.188:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
@@ -63,13 +61,9 @@ vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@8.212.41.98:80?security=&sni=wrap1h
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@8.219.97.179:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@8.222.137.192:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@8.222.164.209:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
-vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@[2606:4700:3007:6af5:5eb5:47f9:5be2:eff3]:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
-vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@[2606:4700:3030:6a3d:dac3:bc64:2c0b:594c]:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@[2606:4700:3030:ba70:4542:be2e:6405:8f4b]:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@[2606:4700:3035:db:dac6:1f3e:6a:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
-vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@[2606:4700:a9::72bc:3cd6:c3b1]:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@[2606:4700:a9:f6:efed:d818:2b09:36dc]:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
-vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@[2a06:98c1:3103:84f5:3692:2785:511:dd46]:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@[2a06:98c1:3123:31:1174:1c3b:892f:9051]:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@b1.wuxianliulianng.xyz:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
 vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@b2.wuxianliulianng.xyz:80?security=&sni=wrap1hk.n7p8ri7j.workers.dev&fp=randomized&type=ws&path=/?ed%3D2048&host=wrap1hk.n7p8ri7j.workers.dev&encryption=none#_HK
