@@ -1,1 +1,1 @@
-socks5://127.0.0.1:1080#❤️
+vless://1c19d7b3-542b-4bb5-96fc-1b996e085724@[::]:0?security=&fp=edge&type=ws&path=/&host=baidu.com&encryption=none#❤️
