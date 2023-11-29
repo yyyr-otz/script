@@ -25,11 +25,7 @@ jobs:
     steps:
       - name: 迁出代码 
         uses: actions/checkout@v4
-      - name: 安装python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          cache: 'pip'
+
       - name: 设置时区
         run: sudo timedatectl set-timezone 'Asia/Shanghai'   
         
