@@ -1,0 +1,56 @@
+name: 更新节点
+run-name: ${{ github.actor }} 正在更新节点信息
+on:
+#  push:
+#    branches:
+#      - master
+#    paths:
+#      - 'script/**'
+  schedule:
+#    - cron: '0 0,4,8,12,16,20 * * *' # 北京时间4 8 12 16 20 24 每四个小时整点运行
+    - cron: '5 23 * * *' # 北京时间七点抓取节点
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  
+jobs:
+  clean_and_script:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.ACTIONS_SECRETS_TOKEN }}
+      REPO: ${{ secrets.REPO }}
+      DEBUG_MODE: 0
+    steps:
+      - name: 迁出代码 
+        uses: actions/checkout@v4
+      - name: 安装python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: 设置时区
+        run: sudo timedatectl set-timezone 'Asia/Shanghai'   
+        
+      - name: 下载节点
+        run: |
+          curl -o ./vless-github.txt https://raw.githubusercontent.com/yyyr-otz/tele-providers-collector/master/script/raw/protocols/vless.txt
+          curl -o ./vless-CDN-github.txt https://raw.githubusercontent.com/yyyr-otz/tele-providers-collector/master/script/raw/protocols/vless-CDN.txt
+          curl -o ./vless-codeup.txt https://codeup.aliyun.com/yyyr/yyyr-otz/tele-providers-collector/raw/master/script/raw/protocols/vless.txt
+          curl -o ./vless-CDN-codeup.txt https://codeup.aliyun.com/yyyr/yyyr-otz/tele-providers-collector/raw/master/script/raw/protocols/vless-CDN.txt
+        shell: bash
+        
+      - name: 对比仓库
+        run: |
+          git config --local user.email "932624033@qq.com"
+          git config --local user.name "yyyr-otz"
+          git add -A ./vless*
+          git diff-index --quiet HEAD || (git commit -a -m "🛒 从vless-sub更新节点 🕕 $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M %Z')" --allow-empty)
+#         # git commit -am "节点资源更新 $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M %Z')"
+          
+      - name: 推送更改
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.ACTIONS_SECRETS_TOKEN }}
+          branch: master
