@@ -355,7 +355,7 @@ rules:
   - GEOIP,CN,DIRECT
   - MATCH,Proxy
 EOF
-    url="hysteria://$hy_ym:$port?mport=$port,$firstport-$endport&protocol=$protocol&auth=$auth_pwd&peer=$domain&insecure=$true&upmbps=20&downmbps=100&alpn=h3#Misaka-Hysteria1"
+    url="hysteria://$hy_ym:$port?mport=$port,$firstport-$endport&protocol=$protocol&auth=$auth_pwd&peer=$domain&insecure=true&upmbps=20&downmbps=100&alpn=h3#Misaka-Hysteria1"
     echo $url > /root/hy/url.txt
 
     systemctl daemon-reload
