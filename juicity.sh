@@ -2,6 +2,7 @@
 
 export LANG=en_US.UTF-8
 
+DOMAINBING="www.bing.com"
 RED="\033[31m"
 GREEN="\033[32m"
 YELLOW="\033[33m"
@@ -114,7 +115,7 @@ instjuicity(){
         cert_path="/etc/s-box/cert.pem""
         key_path="/etc/s-box/private.key"
         if [[ -f /etc/s-box/cert.pem && -f /etc/s-box/private.key ]] && [[ -s /etc/s-box/cert.pem && -s /etc/s-box/private.key  ]]; then
-            domain=www.bing.com
+            domain=$DOMAINBING
             green "检测到原有域名：$domain 的证书，来源于cert_path:$cert_path,key_path:$key_path,正在应用"
         else
             WARPv4Status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
