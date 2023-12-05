@@ -112,11 +112,11 @@ instjuicity(){
         read -p "请输入证书的域名：" domain
         yellow "证书域名：$domain"
     else
-        cert_path="/etc/s-box/cert.pem""
-        key_path="/etc/s-box/private.key"
-        if [[ -f /etc/s-box/cert.pem && -f /etc/s-box/private.key ]] && [[ -s /etc/s-box/cert.pem && -s /etc/s-box/private.key  ]]; then
-            domain=$DOMAINBING
-            green "检测到原有域名：$domain 的证书，来源于cert_path:$cert_path,key_path:$key_path,正在应用"
+        cert_path="/root/cert.crt"
+        key_path="/root/private.key"
+        if [[ -f /root/cert.crt && -f /root/private.key ]] && [[ -s /root/cert.crt && -s /root/private.key ]] && [[ -f /root/ca.log ]]; then
+            domain=$(cat /root/ca.log)
+            green "检测到原有域名：$domain 的证书，正在应用"
         else
             WARPv4Status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
             WARPv6Status=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
