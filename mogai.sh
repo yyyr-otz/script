@@ -363,7 +363,7 @@ insport() {
         echo
         blue "根据Vmess-ws协议是否启用TLS，随机指定支持CDN优选IP的端口：$port_vm_ws"
     else
-        vlport && vmport && hy2port && tu5port
+        vlport && vmport && niveport && hy1port && hy2port && tu5port
     fi
     echo
     blue "各协议端口确认如下"
