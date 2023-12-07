@@ -33,7 +33,7 @@ user_uuids=()
 ss_passwords=() 
 stls_passwords=()
 short_ids=()
-
+#检查防火墙设置
 function check_firewall_configuration() {
     local os_name=$(uname -s)
     local firewall
@@ -227,9 +227,9 @@ function check_firewall_configuration() {
             ;;
     esac
 }
-
+# 生成singbox目录
 function create_sing_box_folders() {
-    local folders=("/usr/local/etc/sing-box" "/etc/ssl/private")
+    local folders=("/usr/local/etc/sing-box" "/root/ac")
     for folder in "${folders[@]}"; do
         if [[ ! -d "$folder" ]]; then
             mkdir -p "$folder"
@@ -237,9 +237,9 @@ function create_sing_box_folders() {
         fi
     done
 }
-
+# 生成juicity目录
 function create_juicity_folder() {
-    local folders=("/usr/local/etc/juicity" "/etc/ssl/private")
+    local folders=("/usr/local/etc/juicity" "/root/ac")
     for folder in "${folders[@]}"; do
         if [[ ! -d "$folder" ]]; then
             mkdir -p "$folder"
@@ -499,7 +499,7 @@ function install_Pre_release_sing_box() {
         return 1
     fi
 }
-
+# 安装juicity最新版本
 function install_latest_juicity() {
     local arch=$(uname -m)
     case $arch in
@@ -892,8 +892,8 @@ function get_local_ip() {
 }
 
 function get_ech_keys() {
-    local input_file="/etc/ssl/private/ech.tmp"
-    local output_file="/etc/ssl/private/ech.pem"
+    local input_file="/root/ac/ech.tmp"
+    local output_file="/root/ac/ech.pem"
     sing-box generate ech-keypair [--pq-signature-schemes-enabled] > "$input_file"
     IFS=$'\n' read -d '' -ra lines < "$input_file"
     exec 3>"$output_file"
@@ -1083,8 +1083,8 @@ function set_private_key_path() {
 }
 
 function apply_certificate() {
-    certificate_path="/etc/ssl/private/"$domain".crt"
-    private_key_path="/etc/ssl/private/"$domain".key"
+    certificate_path="/root/ac/"$domain".crt"
+    private_key_path="/root/ac/"$domain".key"
     local has_ipv4=false
     local ca_servers=("letsencrypt" "zerossl")
     local return_to_menu=false
@@ -1129,8 +1129,8 @@ function apply_certificate() {
 }
 
 function Apply_api_certificate() {
-    certificate_path="/etc/ssl/private/"$domain".crt"
-    private_key_path="/etc/ssl/private/"$domain".key"
+    certificate_path="/root/ac/"$domain".crt"
+    private_key_path="/root/ac/"$domain".key"
     local has_ipv4=false
     local ca_servers=("letsencrypt" "zerossl")
     if [[ -n "$ip_v4" ]]; then
@@ -1167,6 +1167,7 @@ function Apply_api_certificate() {
     fi
 }
 
+# 更新证书最终步骤
 function Reapply_certificates() {
     local tls_info_file="/usr/local/etc/sing-box/tls_info.json"
     local has_ipv4=false
@@ -1247,21 +1248,19 @@ function create_self_signed_cert() {
         read -p "请输入要用于自签名证书的域名（默认为 bing.com）: " user_domain
         domain_name=${user_domain:-"bing.com"}
         if curl --output /dev/null --silent --head --fail "$domain_name"; then
-            openssl req -x509 -nodes -newkey ec:<(openssl ecparam -name prime256v1) -keyout /etc/ssl/private/$domain_name.key -out /etc/ssl/private/$domain_name.crt -subj "/CN=$domain_name" -days 36500
-            chmod 777 /etc/ssl/private/$domain_name.key
-            chmod 777 /etc/ssl/private/$domain_name.crt
+            openssl req -x509 -nodes -newkey ec:<(openssl ecparam -name prime256v1) -keyout /root/ac/$domain_name.key -out /root/ac/$domain_name.crt -subj "/CN=$domain_name" -days 36500
+            chmod 777 /root/ac/$domain_name.key
+            chmod 777 /root/ac/$domain_name.crt
             break 
         else
             echo -e "${RED}无效的域名或域名不可用，请输入有效的域名！${NC}"
         fi
     done
-    certificate_path="/etc/ssl/private/$domain_name.crt"
-    private_key_path="/etc/ssl/private/$domain_name.key"
+    certificate_path="/root/ac/$domain_name.crt"
+    private_key_path="/root/ac/$domain_name.key"
 }
 function create_self_signed_cert_all_bing() {
-    while true; do
-        domain_name="bing.com"
-    done
+    domain_name="bing.com"
     certificate_path="/root/ac/cert.pem"
     private_key_path="/root/ac/private.key"
 }
@@ -1440,8 +1439,9 @@ function select_certificate_option() {
 2). 监听80端口申请证书（standalone模式）
 3). cloudflare API 申请证书（DNS API模式）
 4). 自定义证书路径
-5). 统统偷 bing.com 证书
-请选择[1-5]: " certificate_option
+5). 无视节点类型自签证书
+6). 统统偷 bing.com 证书
+请选择[1-6]: " certificate_option
         certificate_option=${certificate_option:-1}
         case $certificate_option in
             1)
@@ -1490,8 +1490,12 @@ function select_certificate_option() {
                 set_certificate_path
                 set_private_key_path
                 break
-                ;;       
+                ;;   
             5)
+                create_self_signed_cert
+                break
+                ;;   
+            6)
                 create_self_signed_cert_all_bing
                 break
                 ;;   
@@ -4421,7 +4425,7 @@ function display_trojan_config_info() {
     echo "" >> "$output_file"
     echo "配置信息已保存至 $output_file"
 }
-
+# 打印trojan节点信息
 function display_trojan_config_files() {
     local config_file="/usr/local/etc/sing-box/config.json"
     local clash_file="/usr/local/etc/sing-box/clash.yaml" 
@@ -4461,7 +4465,7 @@ function display_trojan_config_files() {
     echo "手机端配置文件已保存至$phone_client_file，请下载后使用！"
     echo "电脑端配置文件已保存至$win_client_file，请下载后使用！" 
 }
-
+# 打印shadowTLS节点信息
 function display_shadowtls_config_info() {
     local config_file="/usr/local/etc/sing-box/config.json"
     local output_file="/usr/local/etc/sing-box/output.txt"     
@@ -4494,7 +4498,7 @@ function display_shadowtls_config_info() {
     echo "" >> "$output_file"
     echo "配置信息已保存至 $output_file"      
 }
-
+# 查看shadowTLS节点信息
 function display_shadowtls_config_files() {
     local config_file="/usr/local/etc/sing-box/config.json"
     local clash_file="/usr/local/etc/sing-box/clash.yaml" 
@@ -4516,7 +4520,7 @@ function display_shadowtls_config_files() {
     echo "电脑端配置文件已保存至$win_client_file，请下载后使用！"
     echo "Clash配置文件已保存至 $clash_file ,请下载使用！"   
 }
-
+# 查看节点信息
 function view_saved_config() {
     local config_paths=(
         "/usr/local/etc/sing-box/output.txt"
@@ -4535,7 +4539,7 @@ function view_saved_config() {
         echo "未找到保存的配置信息文件！"
     fi
 }
-
+# 检查并重启服务
 function check_and_restart_services() {
     if [ -f "/etc/systemd/system/sing-box.service" ]; then
         systemctl restart sing-box.service
@@ -4546,7 +4550,7 @@ function check_and_restart_services() {
         systemctl status --no-pager juicity.service
     fi    
 }
-
+# 卸载singbox内核
 function uninstall_sing_box() {
     echo "开始卸载 sing-box..."
     systemctl stop sing-box
@@ -4557,7 +4561,7 @@ function uninstall_sing_box() {
     systemctl daemon-reload
     echo "sing-box 卸载完成。"
 }
-
+# 卸载juicity内核
 function uninstall_juicity() {
     echo "开始卸载 juicity..."
     systemctl stop juicity.service
@@ -4567,7 +4571,7 @@ function uninstall_juicity() {
     rm -rf /usr/local/bin/juicity-server
     echo "juicity 卸载完成。"
 }
-
+# 更新内核程序
 function update_proxy_tool() {
     if [ -e /usr/local/bin/juicity-server ]; then
         install_latest_juicity
@@ -4576,7 +4580,7 @@ function update_proxy_tool() {
         select_sing_box_install_option
     fi
 }
-
+# 卸载命令
 function uninstall() {
     local uninstall_sing_box=false
     local uninstall_juicity=false
@@ -4593,7 +4597,7 @@ function uninstall() {
         uninstall_juicity
     fi    
 }
-
+# 检查wireguard配置
 function check_wireguard_config() {
     local config_file="/usr/local/etc/sing-box/config.json"
     if grep -q "wireguard" "$config_file"; then
@@ -4601,21 +4605,21 @@ function check_wireguard_config() {
         exit 1
     fi
 }
-
+# 更新脚本，诶嘿，魔改
 function Update_Script() {
-    wget -O /root/singbox.sh https://raw.githubusercontent.com/TinrLin/script_installation/main/Install.sh
-    chmod +x /root/singbox.sh 
+    wget -O /root/qjt.sh https://raw.githubusercontent.com/yyyr-otz/ymal/master/qjt.sh
+    chmod +x /root/qjt.sh 
 }
-
+# 生成定时任务
 function add_cron_job() {
-    if command -v crontab > /dev/null && crontab -l | grep -q "singbox.sh"; then
+    if command -v crontab > /dev/null && crontab -l | grep -q "qjt.sh"; then
         echo "Cron job already exists."
     else
-        (crontab -l 2>/dev/null ; echo "0 2 * * 1 /bin/bash /root/singbox.sh >> /usr/local/etc/certificate.log 2>&1") | crontab -
+        (crontab -l 2>/dev/null ; echo "0 2 * * 1 /bin/bash /root/qjt.sh >> /usr/local/etc/certificate.log 2>&1") | crontab -
         echo "Cron job added successfully."
     fi
 }
-
+# 生成juicity节点
 function juicity_install() {
     configure_dns64
     enable_bbr
@@ -4631,7 +4635,7 @@ function juicity_install() {
     systemctl restart juicity.service
     display_juicity_config
 }
-
+# singbox任意门
 function Direct_install() {
     install_sing_box
     enable_bbr    
@@ -4650,7 +4654,7 @@ function Direct_install() {
     get_local_ip    
     display_Direct_config
 }
-
+# 生成ss节点
 function Shadowsocks_install() {
     install_sing_box
     enable_bbr
@@ -4670,7 +4674,7 @@ function Shadowsocks_install() {
     display_Shadowsocks_config_info
     display_Shadowsocks_config_files
 }
-
+# 生成socks5代理
 function socks_install() {
     install_sing_box
     enable_bbr    
@@ -4687,7 +4691,7 @@ function socks_install() {
     display_socks_config_info
     display_socks_config_files
 }
-
+# 生成naive节点
 function NaiveProxy_install() {
     install_sing_box
     enable_bbr
@@ -4703,7 +4707,7 @@ function NaiveProxy_install() {
     display_naive_config_info
     generate_naive_config_files
 }
-
+# 生成http代理
 function http_install() {
     install_sing_box
     enable_bbr
@@ -4719,7 +4723,7 @@ function http_install() {
     display_http_config_info
     display_http_config_files
 }
-
+# 生成tuic5节点
 function tuic_install() {
     install_sing_box
     enable_bbr
@@ -4736,7 +4740,7 @@ function tuic_install() {
     display_tuic_config_info
     display_tuic_config_files
 }
-
+# 生成hy1节点
 function Hysteria_install() {
     install_sing_box
     enable_bbr  
@@ -4752,7 +4756,7 @@ function Hysteria_install() {
     display_Hysteria_config_info
     display_Hysteria_config_files
 }
-
+# 生成shadowTLS节点
 function shadowtls_install() {
     install_sing_box
     enable_bbr
@@ -4769,7 +4773,7 @@ function shadowtls_install() {
     display_shadowtls_config_info
     display_shadowtls_config_files
 }
-
+# 生成reality节点
 function reality_install() {
     install_sing_box
     enable_bbr
@@ -4786,7 +4790,7 @@ function reality_install() {
     display_reality_config_info
     display_reality_config_files
 }
-
+# 生成hy2节点
 function Hysteria2_install() {
     install_sing_box
     enable_bbr  
@@ -4802,7 +4806,7 @@ function Hysteria2_install() {
     display_Hy2_config_info
     display_Hy2_config_files
 }
-
+# 生成trojan节点
 function trojan_install() {
     install_sing_box
     enable_bbr 
@@ -4818,7 +4822,7 @@ function trojan_install() {
     display_trojan_config_info
     display_trojan_config_files
 }
-
+# 生成vmess节点
 function vmess_install() {
     install_sing_box
     enable_bbr
@@ -4835,7 +4839,7 @@ function vmess_install() {
     display_vmess_config_info
     display_vmess_config_files
 }
-
+# 安装wireguard
 function wireguard_install() {
     check_wireguard_config
     check_config_file_existence
@@ -4849,14 +4853,14 @@ function wireguard_install() {
     update_outbound_file
     systemctl restart sing-box
 }
-
+# 选项18 更新证书
 function Update_certificate() {
     get_local_ip 
     extract_tls_info
     validate_tls_info
     Reapply_certificates
 } 
-
+# 主菜单
 function main_menu() {
 echo "╔════════════════════════════════════════════════════════════════════════╗"
 echo -e "║ ${CYAN}作者${NC}： Mr. xiao                                                        ║"
