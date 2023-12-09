@@ -5,8 +5,8 @@ VERSION='v1.1.1'
 
 # 各变量默认值
 GH_PROXY='https://mirror.ghproxy.com/'
-TEMP_DIR='/root/tmp/sing-box'
-WORK_DIR='/root/etc/sing-box'
+TEMP_DIR='/usr/local/tmp/sing-box'
+WORK_DIR='/usr/local/etc/sing-box'
 START_PORT_DEFAULT='8881'
 MIN_PORT=1000
 MAX_PORT=65520
