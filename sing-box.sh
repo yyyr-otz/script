@@ -5,8 +5,8 @@ VERSION='v1.1.1'
 
 # 各变量默认值
 GH_PROXY='https://mirror.ghproxy.com/'
-TEMP_DIR='/usr/local/tmp/sing-box'
-WORK_DIR='/usr/local/etc/sing-box'
+TEMP_DIR='/tmp/sing-box'
+WORK_DIR='/etc/sing-box'
 START_PORT_DEFAULT='8881'
 MIN_PORT=1000
 MAX_PORT=65520
@@ -257,8 +257,8 @@ check_install() {
   STATUS=$(text 26) && [ -s /etc/systemd/system/sing-box.service ] && STATUS=$(text 27) && [ "$(systemctl is-active sing-box)" = 'active' ] && STATUS=$(text 28)
   if [[ $STATUS = "$(text 26)" ]] && [ ! -s $WORK_DIR/sing-box ]; then
     {
-    local ONLINE=$(wget --no-check-certificate -qO- "https://api.github.com/repos/SagerNet/sing-box/releases" | awk -F '["v]' '/tag_name.*alpha/{print $5; exit}')
-    ONLINE=${ONLINE:-'1.8.0-alpha.11'}
+    local ONLINE=$(wget --no-check-certificate -qO- "https://api.github.com/repos/SagerNet/sing-box/releases" | awk -F '["v]' '/tag_name.*beta/{print $5; exit}')
+    ONLINE=${ONLINE:-'1.8.0-beta.6'}
     wget --no-check-certificate -c ${GH_PROXY}https://github.com/SagerNet/sing-box/releases/download/v$ONLINE/sing-box-$ONLINE-linux-$SING_BOX_ARCH.tar.gz -qO- | tar xz -C $TEMP_DIR sing-box-$ONLINE-linux-$SING_BOX_ARCH/sing-box
     [ -s $TEMP_DIR/sing-box-$ONLINE-linux-$SING_BOX_ARCH/sing-box ] && mv $TEMP_DIR/sing-box-$ONLINE-linux-$SING_BOX_ARCH/sing-box $TEMP_DIR
     }&
