@@ -40,7 +40,8 @@ for ((int = 0; int < ${#REGEX[@]}; int++)); do
     [[ $(echo "$SYS" | tr '[:upper:]' '[:lower:]') =~ ${REGEX[int]} ]] && SYSTEM="${RELEASE[int]}" && [[ -n $SYSTEM ]] && break
 done
 
-[[ -z $SYSTEM ]] && red "目前暂不支持你的VPS的操作系统！" && exit 1
+#[[ -z $SYSTEM ]] && red "目前暂不支持你的VPS的操作系统！" && exit 1
+[[ -z $SYSTEM ]] && red "目前暂不支持你的VPS的操作系统！1/2"
 
 if [[ -z $(type -P curl) ]]; then
     if [[ ! $SYSTEM == "CentOS" ]]; then
@@ -53,7 +54,8 @@ archAffix(){
     case "$(uname -m)" in
         x86_64 | amd64 ) echo 'x86_64' ;;
         armv8 | arm64 | aarch64 ) echo 'arm64' ;;
-        * ) red "不支持的CPU架构!" && exit 1 ;;
+        * ) red "不支持的CPU架构! 2/2" ;;
+        #* ) red "不支持的CPU架构!" && exit 1 ;;
     esac
 }
 
