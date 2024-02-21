@@ -31,17 +31,18 @@ jobs:
         
       - name: 下载节点
         run: |
-          curl -o ./vless-github.txt https://raw.githubusercontent.com/yyyr-otz/tele-providers-collector/master/script/raw/protocols/vless.txt
-          curl -o ./vless-CDN-github.txt https://raw.githubusercontent.com/yyyr-otz/tele-providers-collector/master/script/raw/protocols/vless-CDN.txt
-          curl -o ./vless-codeup.txt https://codeup.aliyun.com/yyyr/yyyr-otz/tele-providers-collector/raw/master/script/raw/protocols/vless.txt
-          curl -o ./vless-CDN-codeup.txt https://codeup.aliyun.com/yyyr/yyyr-otz/tele-providers-collector/raw/master/script/raw/protocols/vless-CDN.txt
+          # curl -o ./vless-github.txt https://raw.githubusercontent.com/yyyr-otz/tele-providers-collector/master/script/raw/protocols/vless.txt
+          # curl -o ./vless-CDN-github.txt https://raw.githubusercontent.com/yyyr-otz/tele-providers-collector/master/script/raw/protocols/vless-CDN.txt
+          # curl -o ./vless-codeup.txt https://codeup.aliyun.com/yyyr/yyyr-otz/tele-providers-collector/raw/master/script/raw/protocols/vless.txt
+          # curl -o ./vless-CDN-codeup.txt https://codeup.aliyun.com/yyyr/yyyr-otz/tele-providers-collector/raw/master/script/raw/protocols/vless-CDN.txt
+          curl -o ./update.txt https://sub.spqaq.top/api/v1/client/subscribe?token=65a863e87c85bb2302173e0f1e404797&types=hysteria2
         shell: bash
         
       - name: 对比仓库
         run: |
           git config --local user.email "932624033@qq.com"
           git config --local user.name "yyyr-otz"
-          git add -A ./vless*
+          git add -A ./update.txt
           git diff-index --quiet HEAD || (git commit -a -m "🛒 从vless-sub更新节点 🕕 $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M %Z')" --allow-empty)
 #         # git commit -am "节点资源更新 $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M %Z')"
           
