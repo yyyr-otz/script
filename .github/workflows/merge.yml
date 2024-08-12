@@ -33,22 +33,22 @@ jobs:
   
       - name: 获取内容
         run: |
-          curl -sL -o ./cdnyx/api_1_cmliu https://raw.githubusercontent.com/cmliu/WorkerVle2sub/main/addreesapi.txt
-          curl -sL -o ./cdnyx/api_2_cfyes https://addreesapi.090227.xyz/CloudFlareYes
-          curl -sL -o ./cdnyx/api_3_cfspeed https://addreesapi.090227.xyz/ip.164746.xyz
-          curl -sL -o ./cdnyx/api_4_cmliuct https://addreesapi.090227.xyz/ct
-          curl -sL -o ./cdnyx/api_5_cmliucmcc https://addreesapi.090227.xyz/cmcc
-          curl -sL -o ./cdnyx/api_6_cmliucmcc6 https://addreesapi.090227.xyz/cmcc-ipv6
-          curl -sL -o ./cdnyx/api_7_cn https://cn.xxxxxxxx.tk
-          curl -sL -o ./cdnyx/api_8_ct https://ct.xxxxxxxx.tk
-          curl -sL -o ./cdnyx/api_9_cm  https://cm.xxxxxxxx.tk
-          curl -sL -o ./cdnyx/api_10_cu https://cu.xxxxxxxx.tk
-          curl -sL -o ./cdnyx/api_11_cn6  https://cnv6.xxxxxxxx.tk
-          curl -sL -o ./cdnyx/api_12_ct6 https://ctv6.xxxxxxxx.tk
-          curl -sL -o ./cdnyx/api_13_cm6 https://cmv6.xxxxxxxx.tk
-          curl -sL -o ./cdnyx/api_14_cu6 https://cuv6.xxxxxxxx.tk
-          curl -sL -o ./cdnyx/api_15_bestcf https://ipdb.api.030101.xyz/?type=bestcf&country=true
-          curl -sL -o ./cdnyx/api_16_bestproxy https://ipdb.api.030101.xyz/?type=bestproxy&country=true
+          curl -L -o ./cdnyx/api_1_cmliu https://raw.githubusercontent.com/cmliu/WorkerVle2sub/main/addreesapi.txt
+          curl -L -o ./cdnyx/api_2_cfyes https://addreesapi.090227.xyz/CloudFlareYes
+          curl -L -o ./cdnyx/api_3_cfspeed https://addreesapi.090227.xyz/ip.164746.xyz
+          curl -L -o ./cdnyx/api_4_cmliuct https://addreesapi.090227.xyz/ct
+          curl -L -o ./cdnyx/api_5_cmliucmcc https://addreesapi.090227.xyz/cmcc
+          curl -L -o ./cdnyx/api_6_cmliucmcc6 https://addreesapi.090227.xyz/cmcc-ipv6
+          curl -L -o ./cdnyx/api_7_cn https://cn.xxxxxxxx.tk
+          curl -L -o ./cdnyx/api_8_ct https://ct.xxxxxxxx.tk
+          curl -L -o ./cdnyx/api_9_cm  https://cm.xxxxxxxx.tk
+          curl -L -o ./cdnyx/api_10_cu https://cu.xxxxxxxx.tk
+          curl -L -o ./cdnyx/api_11_cn6  https://cnv6.xxxxxxxx.tk
+          curl -L -o ./cdnyx/api_12_ct6 https://ctv6.xxxxxxxx.tk
+          curl -L -o ./cdnyx/api_13_cm6 https://cmv6.xxxxxxxx.tk
+          curl -L -o ./cdnyx/api_14_cu6 https://cuv6.xxxxxxxx.tk
+          curl -L -o ./cdnyx/api_15_bestcf https://ipdb.api.030101.xyz/?type=bestcf&country=true
+          curl -L -o ./cdnyx/api_16_bestproxy https://ipdb.api.030101.xyz/?type=bestproxy&country=true
         shell: bash
       - name: 合并内容
         run: |
