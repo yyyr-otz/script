@@ -1,5 +1,6 @@
-touch /root/cdnyx
-wget -O /root/cdnyx/cdnyx.sh https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx.sh
+if [ ! -d "/root/cdnyx/" ]; then mkdir /root/cdnyx/
+fi
+curl o  /root/cdnyx/cdnyx.sh https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx.sh
 curl -sL -o /root/cdnyx/api_15_bestcf https://ipdb.api.030101.xyz/?type=bestcf&country=true&down=true &
 curl -sL -o /root/cdnyx/api_16_bestproxy https://ipdb.api.030101.xyz/?type=bestproxy&country=true&down=true &
 curl -sL -o /root/cdnyx/api_1_cmliu https://raw.githubusercontent.com/cmliu/WorkerVle2sub/main/addressesapi.txt &
