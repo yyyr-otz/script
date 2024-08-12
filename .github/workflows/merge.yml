@@ -31,7 +31,7 @@ jobs:
       - name: 设置时区
         run: sudo timedatectl set-timezone 'Asia/Shanghai'
   
-      - name: 下载节点
+      - name: 获取内容
         run: |
           curl -L -o ./cdnyx/api_cmliu https://raw.githubusercontent.com/cmliu/WorkerVless2sub/main/addressesapi.txt
           curl -L -o ./cdnyx/api_cfyes https://addressesapi.090227.xyz/CloudFlareYes
@@ -49,7 +49,13 @@ jobs:
           curl -L -o ./cdnyx/api_cu6 https://cuv6.xxxxxxxx.tk
           curl -L -o ./cdnyx/api_bestcf https://ipdb.api.030101.xyz/?type=bestcf&country=true
           curl -L -o ./cdnyx/api_bestproxy https://ipdb.api.030101.xyz/?type=bestproxy&country=true
+        shell: bash
+      - name: 合并内容
+        run: |
           cat ./cdnyx/api_* > ./cdnyx/merge.txt
+        shell: bash
+      - name: 删除指定内容
+        run: |
           rm -f ./cdnyx/api_*
           sed 's/:443//g' ./cdnyx/merge.txt
           cat ./cdnyx/merge.txt
