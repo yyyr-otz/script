@@ -1,5 +1,5 @@
-name: 更新节点
-run-name: ${{ github.actor }} 正在更新节点信息
+name: 合并远程文件
+run-name: ${{ github.actor }} 正在合并远程文件
 on:
 #  push:
 #    branches:
@@ -8,7 +8,8 @@ on:
 #      - 'script/**'
   schedule:
 #    - cron: '0 0,4,8,12,16,20 * * *' # 北京时间4 8 12 16 20 24 每四个小时整点运行
-    - cron: '5 23 */1 * *' # 北京时间七点抓取节点
+#    - cron: '5 23 */1 * *' # 北京时间七点抓取节点
+     - cron: '*/30 * * * *'
 
   workflow_dispatch:
 
