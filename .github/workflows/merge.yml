@@ -6,10 +6,10 @@ on:
 #      - master
 #    paths:
 #      - 'script/**'
-  schedule:
+#  schedule:
 #    - cron: '0 0,4,8,12,16,20 * * *' # 北京时间4 8 12 16 20 24 每四个小时整点运行
 #    - cron: '5 23 */1 * *' # 北京时间七点抓取节点
-     - cron: '*/30 * * * *'
+#     - cron: '*/30 * * * *'
 
   workflow_dispatch:
 
@@ -32,10 +32,28 @@ jobs:
         
       - name: 下载节点
         run: |
+          curl -o ./cdnyx/api_cmliu https://raw.githubusercontent.com/cmliu/WorkerVless2sub/main/addressesapi.txt
+	        curl -o ./cdnyx/api_cfyes https://addressesapi.090227.xyz/CloudFlareYes
+          curl -o ./cdnyx/api_cfspeed https://addressesapi.090227.xyz/ip.164746.xyz
+          curl -o ./cdnyx/api_cmliuct https://addressesapi.090227.xyz/ct
+          curl -o ./cdnyx/api_cmliucmcc  https://addressesapi.090227.xyz/cmcc
+          curl -o ./cdnyx/api_cmliucmcc6 https://addressesapi.090227.xyz/cmcc-ipv6
+          curl -o ./cdnyx/api_cn  https://cn.xxxxxxxx.tk
+          curl -o ./cdnyx/api_ct  https://ct.xxxxxxxx.tk
+          curl -o ./cdnyx/api_cm  https://cm.xxxxxxxx.tk
+          curl -o ./cdnyx/api_cu https://cu.xxxxxxxx.tk
+          curl -o ./cdnyx/api_cn6  https://cnv6.xxxxxxxx.tk
+          curl -o ./cdnyx/api_ct6 https://ctv6.xxxxxxxx.tk
+          curl -o ./cdnyx/api_cm6 https://cmv6.xxxxxxxx.tk
+          curl -o ./cdnyx/api_cu6  https://cuv6.xxxxxxxx.tk
+          curl -o ./cdnyx/api_bestcf  https://ipdb.api.030101.xyz/?type=bestcf&country=true
+          curl -o ./cdnyx/api_bestproxy  https://ipdb.api.030101.xyz/?type=bestproxy&country=true
           # curl -o ./vless-github.txt https://raw.githubusercontent.com/yyyr-otz/tele-providers-collector/master/script/raw/protocols/vless.txt
           # curl -o ./vless-CDN-github.txt https://raw.githubusercontent.com/yyyr-otz/tele-providers-collector/master/script/raw/protocols/vless-CDN.txt
           # curl -o ./vless-codeup.txt https://codeup.aliyun.com/yyyr/yyyr-otz/tele-providers-collector/raw/master/script/raw/protocols/vless.txt
           # curl -o ./vless-CDN-codeup.txt https://codeup.aliyun.com/yyyr/yyyr-otz/tele-providers-collector/raw/master/script/raw/protocols/vless-CDN.txt
+          cat ./cdnyx/api_*./cdnyx/merge.txt
+          rm -f./cdnyx/api_*
         shell: bash
         
       - name: 对比仓库
