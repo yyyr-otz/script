@@ -18,49 +18,49 @@ permissions:
 
 jobs:
   clean_and_script:
-  runs-on: ubuntu-latest
-  env:
-    GITHUB_TOKEN: $ {{secrets.ACTIONS_SECRETS_TOKEN}}
-    REPO: $ {{secrets.REPO}}
-  DEBUG_MODE: 0
-  steps:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: $ {{secrets.ACTIONS_SECRETS_TOKEN}}
+      REPO: $ {{secrets.REPO}}
+    DEBUG_MODE: 0
+    steps:
   
-    - name: 迁出代码
-      uses: actions/checkout@v4
+      - name: 迁出代码
+        uses: actions/checkout@v4
 
-    - name: 设置时区
-      run: sudo timedatectl set-timezone 'Asia/Shanghai'
+      - name: 设置时区
+        run: sudo timedatectl set-timezone 'Asia/Shanghai'
+  
+      - name: 下载节点
+        run: |
+          curl -o ./cdnyx/api_cmliu https://raw.githubusercontent.com/cmliu/WorkerVless2sub/main/addressesapi.txt
+          curl -o ./cdnyx/api_cfyes https://addressesapi.090227.xyz/CloudFlareYes
+          curl -o ./cdnyx/api_cfspeed https://addressesapi.090227.xyz/ip.164746.xyz
+          curl -o ./cdnyx/api_cmliuct https://addressesapi.090227.xyz/ct
+          curl -o ./cdnyx/api_cmliucmcc https://addressesapi.090227.xyz/cmcc
+          curl -o ./cdnyx/api_cmliucmcc6 https://addressesapi.090227.xyz/cmcc-ipv6
+          curl -o ./cdnyx/api_cn https://cn.xxxxxxxx.tk
+          curl -o ./cdnyx/api_ct https://ct.xxxxxxxx.tk
+          curl -o ./cdnyx/api_cm  https://cm.xxxxxxxx.tk
+          curl -o ./cdnyx/api_cu https://cu.xxxxxxxx.tk
+          curl -o ./cdnyx/api_cn6  https://cnv6.xxxxxxxx.tk
+          curl -o ./cdnyx/api_ct6 https://ctv6.xxxxxxxx.tk
+          curl -o ./cdnyx/api_cm6 https://cmv6.xxxxxxxx.tk
+          curl -o ./cdnyx/api_cu6 https://cuv6.xxxxxxxx.tk
+          curl -o ./cdnyx/api_bestcf https://ipdb.api.030101.xyz/?type=bestcf&country=true
+          curl -o ./cdnyx/api_bestproxy https://ipdb.api.030101.xyz/?type=bestproxy&country=true
+        shell: bash
 
-    - name: 下载节点
-      run: |
-        curl -o ./cdnyx/api_cmliu https://raw.githubusercontent.com/cmliu/WorkerVless2sub/main/addressesapi.txt
-        curl -o ./cdnyx/api_cfyes https://addressesapi.090227.xyz/CloudFlareYes
-        curl -o ./cdnyx/api_cfspeed https://addressesapi.090227.xyz/ip.164746.xyz
-        curl -o ./cdnyx/api_cmliuct https://addressesapi.090227.xyz/ct
-        curl -o ./cdnyx/api_cmliucmcc https://addressesapi.090227.xyz/cmcc
-        curl -o ./cdnyx/api_cmliucmcc6 https://addressesapi.090227.xyz/cmcc-ipv6
-        curl -o ./cdnyx/api_cn https://cn.xxxxxxxx.tk
-        curl -o ./cdnyx/api_ct https://ct.xxxxxxxx.tk
-        curl -o ./cdnyx/api_cm  https://cm.xxxxxxxx.tk
-        curl -o ./cdnyx/api_cu https://cu.xxxxxxxx.tk
-        curl -o ./cdnyx/api_cn6  https://cnv6.xxxxxxxx.tk
-        curl -o ./cdnyx/api_ct6 https://ctv6.xxxxxxxx.tk
-        curl -o ./cdnyx/api_cm6 https://cmv6.xxxxxxxx.tk
-        curl -o ./cdnyx/api_cu6 https://cuv6.xxxxxxxx.tk
-        curl -o ./cdnyx/api_bestcf https://ipdb.api.030101.xyz/?type=bestcf&country=true
-        curl -o ./cdnyx/api_bestproxy https://ipdb.api.030101.xyz/?type=bestproxy&country=true
-      shell: bash
-
-    - name: 对比仓库
-      run: |
-        git config --local user.email "932624033@qq.com"
-        git config --local user.name "yyyr-otz"
-        git add -A ./update.txt
-        git diff-index --quiet HEAD || (git commit -a -m "🛒 从vless-sub更新节点 🕕 $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M %Z')" --allow-empty)
+      - name: 对比仓库
+        run: |
+          git config --local user.email "932624033@qq.com"
+          git config --local user.name "yyyr-otz"
+          git add -A ./update.txt
+          git diff-index --quiet HEAD || (git commit -a -m "🛒 从vless-sub更新节点 🕕 $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M %Z')" --allow-empty)
 #         # git commit -am "节点资源更新 $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M %Z')"
 
-    - name: 推送更改
-      uses: ad-m/github-push-action@v0.6.0
-      with: 
-        github_token: $ {{secrets.ACTIONS_SECRETS_TOKEN}}
-        branch: master
+      - name: 推送更改
+        uses: ad-m/github-push-action@v0.6.0
+        with: 
+          github_token: $ {{secrets.ACTIONS_SECRETS_TOKEN}}
+          branch: master
