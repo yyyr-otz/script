@@ -49,14 +49,18 @@ jobs:
           curl -o ./cdnyx/api_cu6 https://cuv6.xxxxxxxx.tk
           curl -o ./cdnyx/api_bestcf https://ipdb.api.030101.xyz/?type=bestcf&country=true
           curl -o ./cdnyx/api_bestproxy https://ipdb.api.030101.xyz/?type=bestproxy&country=true
+          cat ./cdnyx/api_* > ./cdnyx/merge.txt
+          rm -f ./cdnyx/api_*
+          sed 's/:443//g' ./cdnyx/merge.txt
+          cat ./cdnyx/merge.txt
         shell: bash
 
       - name: 对比仓库
         run: |
           git config --local user.email "932624033@qq.com"
           git config --local user.name "yyyr-otz"
-          git add -A ./update.txt
-          git diff-index --quiet HEAD || (git commit -a -m "🛒 从vless-sub更新节点 🕕 $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M %Z')" --allow-empty)
+          git add -A ./cdnyx/merge.txt
+          git diff-index --quiet HEAD || (git commit -a -m "🛒 更新文本 🕕 $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M %Z')" --allow-empty)
 #         # git commit -am "节点资源更新 $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M %Z')"
 
       - name: 推送更改
