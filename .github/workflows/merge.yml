@@ -61,5 +61,6 @@ jobs:
 
     - name: 推送更改
       uses: ad-m/github-push-action@v0.6.0
-      with: github_token: $ {{secrets.ACTIONS_SECRETS_TOKEN}}
-      branch: master
+      with: 
+        github_token: $ {{secrets.ACTIONS_SECRETS_TOKEN}}
+        branch: master
