@@ -60,6 +60,7 @@ jobs:
           rm -f ./cdnyx/api_*
           sed -i 's/:443//g' ./cdnyx/merge.txt
           sed  -i '/404/d' ./cdnyx/merge.txt
+          sed  -i '/DOCTYPE/d' ./cdnyx/merge.txt
           cat ./cdnyx/merge.txt
         shell: bash
         
