@@ -34,11 +34,12 @@ jobs:
       - name: 获取内容
         run: |
           curl -L -o ./cdnyx/api_1_cmliu https://raw.githubusercontent.com/cmliu/WorkerVle2sub/main/addreesapi.txt
-          curl -L -o ./cdnyx/api_2_cfyes https://addreesapi.090227.xyz/CloudFlareYes
-          curl -L -o ./cdnyx/api_3_cfspeed https://addreesapi.090227.xyz/ip.164746.xyz
-          curl -L -o ./cdnyx/api_4_cmliuct https://addreesapi.090227.xyz/ct
-          curl -L -o ./cdnyx/api_5_cmliucmcc https://addreesapi.090227.xyz/cmcc
-          curl -L -o ./cdnyx/api_6_cmliucmcc6 https://addreesapi.090227.xyz/cmcc-ipv6
+          curl -L -o ./cdnyx/api_2_cfyes https://addressesapi.090227.xyz/CloudFlareYes
+          curl -L -o ./cdnyx/api_2_cfyes https://addressesapi.090227.xyz/CloudFlareYes
+          curl -L -o ./cdnyx/api_3_cfspeed https://addressesapi.090227.xyz/ip.164746.xyz
+          curl -L -o ./cdnyx/api_4_cmliuct https://addressesapi.090227.xyz/ct
+          curl -L -o ./cdnyx/api_5_cmliucmcc https://addressesapi.090227.xyz/cmcc
+          curl -L -o ./cdnyx/api_6_cmliucmcc6 https://addressesapi.090227.xyz/cmcc-ipv6
           curl -L -o ./cdnyx/api_7_cn https://cn.xxxxxxxx.tk
           curl -L -o ./cdnyx/api_8_ct https://ct.xxxxxxxx.tk
           curl -L -o ./cdnyx/api_9_cm  https://cm.xxxxxxxx.tk
