@@ -33,33 +33,34 @@ jobs:
   
       - name: 获取内容
         run: |
-          curl -sSL -o ./cdnyx/api_cmliu https://raw.githubusercontent.com/cmliu/WorkerVless2sub/main/addressesapi.txt
-          curl -sSL -o ./cdnyx/api_cfyes https://addressesapi.090227.xyz/CloudFlareYes
-          curl -sSL -o ./cdnyx/api_cfspeed https://addressesapi.090227.xyz/ip.164746.xyz
-          curl -sSL -o ./cdnyx/api_cmliuct https://addressesapi.090227.xyz/ct
-          curl -sSL -o ./cdnyx/api_cmliucmcc https://addressesapi.090227.xyz/cmcc
-          curl -sSL -o ./cdnyx/api_cmliucmcc6 https://addressesapi.090227.xyz/cmcc-ipv6
-          curl -sSL -o ./cdnyx/api_cn https://cn.xxxxxxxx.tk
-          curl -sSL -o ./cdnyx/api_ct https://ct.xxxxxxxx.tk
-          curl -sSL -o ./cdnyx/api_cm  https://cm.xxxxxxxx.tk
-          curl -sSL -o ./cdnyx/api_cu https://cu.xxxxxxxx.tk
-          curl -sSL -o ./cdnyx/api_cn6  https://cnv6.xxxxxxxx.tk
-          curl -sSL -o ./cdnyx/api_ct6 https://ctv6.xxxxxxxx.tk
-          curl -sSL -o ./cdnyx/api_cm6 https://cmv6.xxxxxxxx.tk
-          curl -sSL -o ./cdnyx/api_cu6 https://cuv6.xxxxxxxx.tk
-          curl -sSL -o ./cdnyx/api_bestcf https://ipdb.api.030101.xyz/?type=bestcf&country=true
-          curl -sSL -o ./cdnyx/api_bestproxy https://ipdb.api.030101.xyz/?type=bestproxy&country=true
-      
+          curl -sL -o ./cdnyx/api_1_cmliu https://raw.githubusercontent.com/cmliu/WorkerVle2sub/main/addreesapi.txt
+          curl -sL -o ./cdnyx/api_2_cfyes https://addreesapi.090227.xyz/CloudFlareYes
+          curl -sL -o ./cdnyx/api_3_cfspeed https://addreesapi.090227.xyz/ip.164746.xyz
+          curl -sL -o ./cdnyx/api_4_cmliuct https://addreesapi.090227.xyz/ct
+          curl -sL -o ./cdnyx/api_5_cmliucmcc https://addreesapi.090227.xyz/cmcc
+          curl -sL -o ./cdnyx/api_6_cmliucmcc6 https://addreesapi.090227.xyz/cmcc-ipv6
+          curl -sL -o ./cdnyx/api_7_cn https://cn.xxxxxxxx.tk
+          curl -sL -o ./cdnyx/api_8_ct https://ct.xxxxxxxx.tk
+          curl -sL -o ./cdnyx/api_9_cm  https://cm.xxxxxxxx.tk
+          curl -sL -o ./cdnyx/api_10_cu https://cu.xxxxxxxx.tk
+          curl -sL -o ./cdnyx/api_11_cn6  https://cnv6.xxxxxxxx.tk
+          curl -sL -o ./cdnyx/api_12_ct6 https://ctv6.xxxxxxxx.tk
+          curl -sL -o ./cdnyx/api_13_cm6 https://cmv6.xxxxxxxx.tk
+          curl -sL -o ./cdnyx/api_14_cu6 https://cuv6.xxxxxxxx.tk
+          curl -sL -o ./cdnyx/api_15_bestcf https://ipdb.api.030101.xyz/?type=bestcf&country=true
+          curl -sL -o ./cdnyx/api_16_bestproxy https://ipdb.api.030101.xyz/?type=bestproxy&country=true
+        shell: bash
       - name: 合并内容
         run: |
-          cat ./cdnyx/api_* > ./cdnyx/merge.txt
-        
+          find ./cdnyx/ -name "api_*" | xargs sed 'a\' > ./cdnyx/merge.txt
+        shell: bash
       - name: 删除指定内容
         run: |
           rm -f ./cdnyx/api_*
-          sed 's/:443//g' ./cdnyx/merge.txt
+          sed -i 's/:443//g' ./cdnyx/merge.txt
+          sed  -i '/404/d' ./cdnyx/merge.txt
           cat ./cdnyx/merge.txt
-      
+        shell: bash
         
       - name: 对比仓库
         run: |
