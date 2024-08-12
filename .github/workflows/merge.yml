@@ -33,7 +33,7 @@ jobs:
       - name: 下载节点
         run: |
           curl -o ./cdnyx/api_cmliu https://raw.githubusercontent.com/cmliu/WorkerVless2sub/main/addressesapi.txt
-	        curl -o ./cdnyx/api_cfyes https://addressesapi.090227.xyz/CloudFlareYes
+	  curl -o ./cdnyx/api_cfyes https://addressesapi.090227.xyz/CloudFlareYes
           curl -o ./cdnyx/api_cfspeed https://addressesapi.090227.xyz/ip.164746.xyz
           curl -o ./cdnyx/api_cmliuct https://addressesapi.090227.xyz/ct
           curl -o ./cdnyx/api_cmliucmcc  https://addressesapi.090227.xyz/cmcc
