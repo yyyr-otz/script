@@ -13,13 +13,13 @@ curl -sL -H "Cache-Control: no-cache" -o /root/cdnyx/cdnyxapi.txt https://raw.gi
 while IFS= read -r url; do
   # 使用curl下载文件并重命名
   curl -sL -H "Cache-Control: no-cache" -o /root/cdnyx/$url
-  sleep 3
+  sleep 1
 done < /root/cdnyx/cdnyxapi.txt
 #修改文件
-sleep 10
+sleep 5
 sed -i 's/\(.*[0-9]\).*/\1#bestCF/' /root/cdnyx/api_15_bestcf
 sed -i 's/\(.*[0-9]\).*/\1#bestRP/' /root/cdnyx/api_16_bestproxy
-sleep 3
+sleep 1
 #合并文件
 find /root/cdnyx/ -name "api_*" | xargs sed 'a\' > "/root/cdnyx/cdnyx.txt"
 rm -f /root/cdnyx/api_*
