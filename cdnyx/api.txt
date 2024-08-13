@@ -1,0 +1,16 @@
+15_bestcf https://ipdb.api.030101.xyz/?type=bestcf&country=true&down=true
+16_bestproxy https://ipdb.api.030101.xyz/?type=bestproxy&country=true&down=true
+1_cmliu https://raw.githubusercontent.com/cmliu/WorkerVle2sub/main/addressesapi.txt
+2_cfyes https://addressesapi.090227.xyz/CloudFlareYes
+3_cfspeed https://addressesapi.090227.xyz/ip.164746.xyz
+4_cmliuct https://addressesapi.090227.xyz/ct
+5_cmliucmcc https://addressesapi.090227.xyz/cmcc
+6_cmliucmcc6 https://addressesapi.090227.xyz/cmcc-ipv6
+7_cn https://cn.xxxxxxxx.tk
+8_ct https://ct.xxxxxxxx.tk
+9_cm  https://cm.xxxxxxxx.tk
+10_cu https://cu.xxxxxxxx.tk
+11_cn6  https://cnv6.xxxxxxxx.tk
+12_ct6 https://ctv6.xxxxxxxx.tk
+13_cm6 https://cmv6.xxxxxxxx.tk
+14_cu6 https://cuv6.xxxxxxxx.tk
