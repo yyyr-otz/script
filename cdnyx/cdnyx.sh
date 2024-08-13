@@ -3,18 +3,18 @@
 if [ ! -d "/root/cdnyx" ]; then mkdir /root/cdnyx/
 fi
 #清空目录
-find /root/cdnyx -mindepth 1 ! -name 'cdnyx.*' -exec rm -rf {} +
+find /root/cdnyx -mindepth 1 ! -name 'cdnyx*' -exec rm -rf {} +
 #下载本脚本
 curl -sL -o /root/cdnyx/cdnyx.sh https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/cdnyx.sh
 #下载api列表
-curl -sL -o /root/cdnyx/api.txt https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/api.txt
+curl -sL -o /root/cdnyx/cdnyxapi.txt https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/cdnyxapi.txt
 #读取api列表
 # 读取输入文件的每一行
 while IFS= read -r url; do
   # 使用curl下载文件并重命名
   curl -sL -o /root/cdnyx/$url
   sleep 3
-done < /root/cdnyx/api.txt
+done < /root/cdnyx/cdnyxapi.txt
 #修改文件
 sleep 10
 sed -i 's/\(.*[0-9]\).*/\1#bestCF/' /root/cdnyx/api_15_bestcf
