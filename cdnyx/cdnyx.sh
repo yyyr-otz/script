@@ -12,7 +12,7 @@ curl -sL -o /root/cdnyx/api.txt https://raw.githubusercontent.com/yyyr-otz/scrip
 # 读取输入文件的每一行
 while IFS= read -r url; do
   # 使用curl下载文件并重命名
-  curl -sL -o "/root/cdnyx/api_$url"
+  curl -sL -o /root/cdnyx/$url
   sleep 3
 done < /root/cdnyx/api.txt
 #修改文件
