@@ -2,6 +2,8 @@
 #若目录不存在则创建
 if [ ! -d "/root/cdnyx" ]; then mkdir /root/cdnyx/
 fi
+#清空目录
+find /root/cdnyx -mindepth 1 ! -name 'cdnyx.*' -exec rm -rf {} +
 #下载本脚本
 curl -sL -o /root/cdnyx/cdnyx.sh https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/cdnyx.sh
 #下载api列表
@@ -15,8 +17,8 @@ while IFS= read -r url; do
 done < /root/cdnyx/api.txt
 #修改文件
 sleep 10
-sed -i 's/$/#bestCF/' /root/cdnyx/api_15_bestcf
-sed -i 's/$/#bestRP/' /root/cdnyx/api_16_bestproxy
+sed -i 's/\(.*[0-9]\).*/\1#bestCF/' /root/cdnyx/api_15_bestcf
+sed -i 's/\(.*[0-9]\).*/\1#bestRP/' /root/cdnyx/api_15_bestproxy
 sleep 3
 #合并文件
 find /root/cdnyx/ -name "api_*" | xargs sed 'a\' > "/root/cdnyx/cdnyx.txt"
