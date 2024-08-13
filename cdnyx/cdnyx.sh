@@ -18,11 +18,11 @@ done < /root/cdnyx/cdnyxapi.txt
 #修改文件
 sleep 10
 sed -i 's/\(.*[0-9]\).*/\1#bestCF/' /root/cdnyx/api_15_bestcf
-sed -i 's/\(.*[0-9]\).*/\1#bestRP/' /root/cdnyx/api_15_bestproxy
+sed -i 's/\(.*[0-9]\).*/\1#bestRP/' /root/cdnyx/api_16_bestproxy
 sleep 3
 #合并文件
 find /root/cdnyx/ -name "api_*" | xargs sed 'a\' > "/root/cdnyx/cdnyx.txt"
-rm -f /root/cdnyx/aip_*
+rm -f /root/cdnyx/api_*
 #修改文件
 sed -i 's/:443//g' /root/cdnyx/cdnyx.txt
 sed -i 's/@Warp_Key//g' /root/cdnyx/cdnyx.txt
