@@ -3,7 +3,7 @@
 if [ ! -d "/root/cdnyx" ]; then mkdir /root/cdnyx/
 fi
 #下载本脚本
-curl -sL -of/root/cdnyx/cdnyx.sh https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/cdnyx.sh
+curl -sL -o /root/cdnyx/cdnyx.sh https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/cdnyx.sh
 #下载api列表
 curl -sL -o /root/cdnyx/api.txt https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/api.txt
 #读取api列表
