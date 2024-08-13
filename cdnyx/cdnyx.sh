@@ -11,14 +11,14 @@ curl -sL -o /root/cdnyx/api.txt https://raw.githubusercontent.com/yyyr-otz/scrip
 while IFS= read -r url; do
   # 使用curl下载文件并重命名
   curl -sL -o /root/cdnyx/$url
-  wait 3
+  sleep 3
 done < /root/cdnyx/api.txt
 #修改文件
-wait 10
+sleep 10
 sed -i 's/$/#bestCF/' /root/cdnyx/api_15_bestcf
 sed -i 's/$/#bestRP/' /root/cdnyx/api_16_bestproxy
 cat /root/cdnyx/*best*
-wait 3
+sleep 3
 #合并文件
 find /root/cdnyx/ -name "api_*" | xargs sed 'a\' > "/root/cdnyx/merge.txt"
 rm -f /root/cdnyx/aip_*
