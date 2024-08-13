@@ -5,14 +5,14 @@ fi
 #清空目录
 find /root/cdnyx -mindepth 1 ! -name 'cdnyx*' -exec rm -rf {} +
 #下载本脚本
-curl -sL -o /root/cdnyx/cdnyx.sh https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/cdnyx.sh
+curl -sL -H "Cache-Control: no-cache" -o /root/cdnyx/cdnyx.sh https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/cdnyx.sh
 #下载api列表
-curl -sL -o /root/cdnyx/cdnyxapi.txt https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/cdnyxapi.txt
+curl -sL -H "Cache-Control: no-cache" -o /root/cdnyx/cdnyxapi.txt https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/cdnyxapi.txt
 #读取api列表
 # 读取输入文件的每一行
 while IFS= read -r url; do
   # 使用curl下载文件并重命名
-  curl -sL -o /root/cdnyx/$url
+  curl -sL -H "Cache-Control: no-cache" -o /root/cdnyx/$url
   sleep 3
 done < /root/cdnyx/cdnyxapi.txt
 #修改文件
