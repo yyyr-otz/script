@@ -4,9 +4,9 @@ if [ ! -d "/root/cdnyx" ]; then mkdir /root/cdnyx/
 fi
 "api_dir"="/root/cdnyx"
 #下载本脚本
-curl -sL -o "$api_dir/cdnyx.sh" https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx.sh
+curl -sL -o "$api_dir/cdnyx.sh" https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/cdnyx.sh
 #下载api列表
-curl -sL -o "$api_dir/api.txt" https://raw.githubusercontent.com/yyyr-otz/script/master/api.txt
+curl -sL -o "$api_dir/api.txt" https://raw.githubusercontent.com/yyyr-otz/script/master/cdnyx/api.txt
 #读取api列表
 # 读取输入文件的每一行
 while IFS= read -r url; do
