@@ -17,7 +17,6 @@ done < /root/cdnyx/api.txt
 sleep 10
 sed -i 's/$/#bestCF/' /root/cdnyx/api_15_bestcf
 sed -i 's/$/#bestRP/' /root/cdnyx/api_16_bestproxy
-cat /root/cdnyx/*best*
 sleep 3
 #合并文件
 find /root/cdnyx/ -name "api_*" | xargs sed 'a\' > "/root/cdnyx/merge.txt"
@@ -27,4 +26,4 @@ sed -i 's/:443//g' /root/cdnyx/merge.txt
 sed -i 's/@Warp_Key//g' /root/cdnyx/merge.txt
 sed -i '/404/d' /root/cdnyx/merge.txt
 sed -i '/DOCTYPE/d' /root/cdnyx/merge.txt
-echo "优选完成"
+echo "\n优选完成\n"
