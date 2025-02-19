@@ -65,24 +65,18 @@ validate_input() {
 
   case $mode in
     token)
-      # 增强的JWT格式验证
-      if ! [[ "$input" =~ ^([A-Za-z0-9_-]+\.){2}[A-Za-z0-9_-]+$ ]]; then
-        echo -e "${red}令牌格式错误 (需为xxxxx.yyyyy.zzzzz结构)${plain}"
+      # 更新后的验证规则
+      if [[ "$input" =~ ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$ ]]; then
+        # 进一步验证JWT结构
+        local segments=(${input//./ })
+        if [ ${#segments[@]} -ne 3 ]; then
+          echo -e "${red}令牌结构无效 (需包含3个部分)${plain}"
+          return 1
+        fi
+      else
+        echo -e "${red}令牌格式错误 (需为JWT三段式结构)${plain}"
         return 1
       fi
-      
-      # 检查header是否可以解码
-      local header=$(echo "$input" | cut -d. -f1 | base64url -d 2>/dev/null)
-      if ! jq -e . <<< "$header" &> /dev/null; then
-        echo -e "${red}令牌头部解码失败${plain}"
-        return 1
-      fi
-
-      # 检查必要字段
-      if ! jq -e '.iss == "cloudflare-tunnel" and .sub == "Tunnel" ' <<< "$header" &> /dev/null; then
-        echo -e "${red}令牌类型不匹配 (非Cloudflare Tunnel Token)${plain}"
-        return 1
-      }
       ;;
 
     json)
