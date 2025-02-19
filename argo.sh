@@ -80,12 +80,12 @@ validate_input() {
       ;;
 
     json)
-      [ -f "$input" ] || { echo -e "${red}文件不存在: $input${plain}"; return 1; }
-      jq -e 'has("AccountTag") and has("TunnelSecret") and has("TunnelID")' "$input" >/dev/null || {
-        echo -e "${red}JSON缺少必要字段 (需含AccountTag/TunnelSecret/TunnelID)${plain}"
-        return 1
-      }
-      ;;
+  [ -f "$input" ] || { echo -e "${red}文件不存在: $input${plain}"; return 1; }
+  if ! jq -e 'has("AccountTag") and has("TunnelSecret") and has("TunnelID")' "$input" >/dev/null; then
+    echo -e "${red}JSON缺少必要字段 (需含AccountTag/TunnelSecret/TunnelID)${plain}"
+    return 1
+  fi
+  ;;
   esac
 }
 
