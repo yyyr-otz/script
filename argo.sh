@@ -75,7 +75,7 @@ validate_input() {
         fi
       else
         echo -e "${red}令牌格式错误 (需为JWT三段式结构)${plain}"
-        return 1
+        #return 1
       fi
       ;;
 
