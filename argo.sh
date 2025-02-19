@@ -2,6 +2,7 @@
 
 # Cloudflared 多模式管理脚本
 # 支持：Token认证 / JSON配置文件 两种模式
+# 版本: 2.1
 
 export LANG=C.UTF-8
 green='\033[0;32m'
@@ -12,43 +13,95 @@ plain='\033[0m'
 SERVICE_NAME="cloudflared"
 BIN_PATH="/usr/local/bin/cloudflared"
 CONFIG_DIR="/etc/cloudflared"
-CREDENTIAL_FILE="${CONFIG_DIR}/credentials.json"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 
-# 配置文件模板
+# 获取最新版本
+get_latest_version() {
+    echo -e "${green}正在获取最新版本...${plain}"
+    LATEST_VERSION=$(curl -sL https://api.github.com/repos/cloudflare/cloudflared/releases/latest | grep tag_name | cut -d'"' -f4)
+    [ -z "$LATEST_VERSION" ] && echo -e "${red}错误: 无法获取最新版本号${plain}" && return 1
+    echo -e "最新稳定版: ${yellow}${LATEST_VERSION}${plain}"
+}
+
+# 检测系统架构
+get_arch() {
+    ARCH=$(uname -m)
+    case $ARCH in
+        x86_64)  echo "amd64" ;;
+        aarch64) echo "arm64" ;;
+        *)       echo -e "${red}不支持的架构: ${ARCH}${plain}" && exit 1 ;;
+    esac
+}
+
+# 安装依赖
+install_deps() {
+    if ! command -v curl &> /dev/null; then
+        echo -e "${yellow}安装 curl...${plain}"
+        apt-get update >/dev/null && apt-get install -y curl >/dev/null
+    fi
+    
+    if ! command -v jq &> /dev/null; then
+        echo -e "${yellow}安装 jq...${plain}"
+        apt-get install -y jq >/dev/null
+    fi
+
+    if ! command -v base64 &> /dev/null; then
+        echo -e "${yellow}安装 coreutils...${plain}"
+        apt-get install -y coreutils >/dev/null
+    fi
+}
+
+# 解码验证 Token
+validate_token() {
+    local token=$1
+    if ! decoded=$(echo "$token" | base64 -d 2>/dev/null); then
+        echo -e "${red}Token 解码失败${plain}"
+        return 1
+    fi
+
+    if ! jq -e 'has("a") and has("t") and has("s")' <<< "$decoded" &> /dev/null; then
+        echo -e "${red}Token 缺少必要字段 (需要包含 a/t/s)${plain}"
+        return 1
+    fi
+
+    return 0
+}
+
+# 生成配置文件
 generate_config() {
-  local mode=$1
-  local token=$2
+    local mode=$1
+    local token=$2
 
-  echo -e "${green}生成配置文件...${plain}"
-  [ ! -d "${CONFIG_DIR}" ] && mkdir -p "${CONFIG_DIR}"
+    [ ! -d "${CONFIG_DIR}" ] && mkdir -p "${CONFIG_DIR}"
 
-  # 生成主配置文件
-  cat > "${CONFIG_DIR}/config.yml" << EOF
-# 运行模式: token (CLI参数) 或 credentials (JSON文件)
-tunnel: <TUNNEL_ID>
+    # 公共配置部分
+    cat > "${CONFIG_DIR}/config.yml" << EOF
+logfile: /var/log/cloudflared.log
+metrics: 0.0.0.0:4000
+no-autoupdate: true
 EOF
 
-  # 模式专属配置
-  case $mode in
-    token)
-      echo "credentials-file: /dev/null" >> "${CONFIG_DIR}/config.yml"
-      ;;
-    json)
-      echo "credentials-file: ${CREDENTIAL_FILE}" >> "${CONFIG_DIR}/config.yml"
-      [ ! -f "$CREDENTIAL_FILE" ] && echo -e "${red}错误: 找不到凭证文件${plain}" && return 1
-      ;;
-  esac
+    # 模式专属配置
+    case $mode in
+        token)
+            local decoded=$(echo "$token" | base64 -d)
+            local tunnel_id=$(jq -r '.t' <<< "$decoded")
+            echo "tunnel: ${tunnel_id}" >> "${CONFIG_DIR}/config.yml"
+            ;;
+        json)
+            echo "credentials-file: ${CONFIG_DIR}/credentials.json" >> "${CONFIG_DIR}/config.yml"
+            ;;
+    esac
 
-  # 生成服务文件
-  cat > "${SERVICE_FILE}" << EOF
+    # 服务文件配置
+    cat > "${SERVICE_FILE}" << EOF
 [Unit]
 Description=Cloudflare Tunnel
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=${BIN_PATH} tunnel --config ${CONFIG_DIR}/config.yml run ${token:+--token $token}
+ExecStart=${BIN_PATH} tunnel --config ${CONFIG_DIR}/config.yml run${token:+ --token $token}
 Restart=always
 RestartSec=5
 User=root
@@ -58,146 +111,121 @@ WantedBy=multi-user.target
 EOF
 }
 
-# 输入验证
-validate_input() {
-  local mode=$1
-  local input=$2
+# 安装 Cloudflared
+install_cloudflared() {
+    get_latest_version || return 1
+    ARCH=$(get_arch)
+    DOWNLOAD_URL="https://github.com/cloudflare/cloudflared/releases/download/${LATEST_VERSION}/cloudflared-linux-${ARCH}"
 
-  case $mode in
-    token)
-      # 更新后的验证规则
-      if [[ "$input" =~ ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$ ]]; then
-        # 进一步验证JWT结构
-        local segments=(${input//./ })
-        if [ ${#segments[@]} -ne 3 ]; then
-          echo -e "${red}令牌结构无效 (需包含3个部分)${plain}"
-          return 1
-        fi
-      else
-        echo -e "${red}令牌格式错误 (需为JWT三段式结构)${plain}"
-        #return 1
-      fi
-      ;;
+    echo -e "${green}下载地址: ${yellow}${DOWNLOAD_URL}${plain}"
+    if ! curl -sL ${DOWNLOAD_URL} -o ${BIN_PATH}; then
+        echo -e "${red}下载失败! 请检查网络连接${plain}"
+        return 1
+    fi
 
-    json)
-  [ -f "$input" ] || { echo -e "${red}文件不存在: $input${plain}"; return 1; }
-  if ! jq -e 'has("AccountTag") and has("TunnelSecret") and has("TunnelID")' "$input" >/dev/null; then
-    echo -e "${red}JSON缺少必要字段 (需含AccountTag/TunnelSecret/TunnelID)${plain}"
-    return 1
-  fi
-  ;;
-  esac
+    chmod +x ${BIN_PATH}
+    echo -e "${green}已安装至: ${yellow}${BIN_PATH}${plain}"
 }
 
 # 安装流程
-install() {
-  echo -e "\n${green}选择认证方式:${plain}"
-  select mode in "Token认证" "JSON配置文件"; do
-    case $REPLY in
-      1) mode="token"; break ;;
-      2) mode="json"; break ;;
-      *) echo -e "${red}无效选择${plain}";;
+do_install() {
+    install_deps
+    install_cloudflared || return
+
+    echo -e "\n${green}选择认证方式:${plain}"
+    select mode in "Token认证" "JSON配置文件"; do
+        case $REPLY in
+            1) mode="token"; break ;;
+            2) mode="json"; break ;;
+            *) echo -e "${red}无效选择${plain}";;
+        esac
+    done
+
+    case $mode in
+        token)
+            while true; do
+                read -p "请输入 Cloudflare Tunnel Token: " token
+                if validate_token "$token"; then
+                    break
+                else
+                    echo -e "${yellow}请重新输入有效的 Token...${plain}"
+                fi
+            done
+            generate_config token "$token"
+            ;;
+
+        json)
+            while true; do
+                read -p "输入 JSON 文件路径 (默认: ./credentials.json): " json_file
+                json_file=${json_file:-credentials.json}
+                if [ ! -f "$json_file" ]; then
+                    echo -e "${red}文件不存在: $json_file${plain}"
+                elif ! jq -e . "$json_file" >/dev/null 2>&1; then
+                    echo -e "${red}JSON 格式无效${plain}"
+                else
+                    cp "$json_file" "${CONFIG_DIR}/credentials.json"
+                    chmod 600 "${CONFIG_DIR}/credentials.json"
+                    break
+                fi
+            done
+            generate_config json
+            ;;
     esac
-  done
 
-  case $mode in
-    token)
-      read -p "请输入 Cloudflare Tunnel Token: " token
-      validate_input token "$token" || exit 1
-      generate_config token "$token"
-      ;;
+    systemctl daemon-reload
+    systemctl enable $SERVICE_NAME >/dev/null 2>&1
+    systemctl start $SERVICE_NAME
 
-    json)
-      read -p "输入 JSON 文件路径 (默认: argo.json): " json_file
-      json_file=${json_file:-argo.json}
-      validate_input json "$json_file" || exit 1
-      cp "$json_file" "$CREDENTIAL_FILE"
-      generate_config json
-      ;;
-  esac
-
-  systemctl daemon-reload
-  systemctl enable $SERVICE_NAME
-  systemctl start $SERVICE_NAME
-  echo -e "\n${green}配置完成!${plain}"
-}
-
-# 状态检查
-status() {
-  echo -e "${green}服务状态:${plain}"
-  systemctl status $SERVICE_NAME --no-pager
-
-  echo -e "\n${green}隧道信息:${plain}"
-  $BIN_PATH tunnel list
-}
-
-# 切换模式
-switch_mode() {
-  uninstall keep_config
-  install
+    echo -e "\n${green}安装完成!${plain}"
+    echo -e "查看状态: ${yellow}systemctl status ${SERVICE_NAME}${plain}"
+    echo -e "日志文件: ${yellow}tail -f /var/log/cloudflared.log${plain}"
 }
 
 # 卸载
-uninstall() {
-  local keep_config=${1:-false}
-
-  systemctl stop $SERVICE_NAME 2>/dev/null
-  systemctl disable $SERVICE_NAME 2>/dev/null
-  rm -f "${SERVICE_FILE}"
-  systemctl daemon-reload
-
-  [ "$keep_config" = "false" ] && {
-    rm -rf "${CONFIG_DIR}"
-    echo -e "${green}已删除所有配置文件${plain}"
-  }
-
-  [ -x "$BIN_PATH" ] && {
-    rm -f "$BIN_PATH"
-    echo -e "${green}已移除二进制文件${plain}"
-  }
+do_uninstall() {
+    systemctl stop $SERVICE_NAME 2>/dev/null
+    systemctl disable $SERVICE_NAME 2>/dev/null
+    rm -f ${SERVICE_FILE}
+    rm -f ${BIN_PATH}
+    rm -rf ${CONFIG_DIR}
+    systemctl daemon-reload
+    echo -e "${green}已完全卸载${plain}"
 }
 
-# 管理菜单
-menu() {
-  echo -e "
-  Cloudflared 多模式管理
+# 显示菜单
+show_menu() {
+    echo -e "
+  Cloudflared 管理脚本
 
-  ${green}1.${plain} 安装/切换模式
-  ${green}2.${plain} 查看状态
-  ${green}3.${plain} 启动服务
-  ${green}4.${plain} 停止服务
-  ${green}5.${plain} 重启服务
-  ${green}6.${plain} 完全卸载
-  ${green}7.${plain} 退出
-  "
-  read -p "请输入选项 (1-7): " choice
-
-  case $choice in
-    1) install ;;
-    2) status ;;
-    3) systemctl start $SERVICE_NAME ;;
-    4) systemctl stop $SERVICE_NAME ;;
-    5) systemctl restart $SERVICE_NAME ;;
-    6) uninstall ;;
-    7) exit 0 ;;
-    *) echo -e "${red}无效选项${plain}" ;;
-  esac
+ ${green}1.${plain} 安装/配置
+ ${green}2.${plain} 完全卸载
+ ${green}3.${plain} 启动服务
+ ${green}4.${plain} 停止服务
+ ${green}5.${plain} 重启服务
+ ${green}6.${plain} 查看状态
+ ${green}7.${plain} 退出
+"
+    read -p "请输入操作编号 (1-7): " choice
+    case $choice in
+        1) do_install ;;
+        2) do_uninstall ;;
+        3) systemctl start $SERVICE_NAME ;;
+        4) systemctl stop $SERVICE_NAME ;;
+        5) systemctl restart $SERVICE_NAME ;;
+        6) systemctl status $SERVICE_NAME ;;
+        7) exit 0 ;;
+        *) echo -e "${red}无效输入，请重新选择${plain}" ;;
+    esac
 }
 
-# 初始化检查
-init_check() {
-  [ "$(id -u)" != "0" ] && {
-    echo -e "${red}请使用 root 权限运行${plain}"
+# 主入口
+if [[ $EUID -ne 0 ]]; then
+    echo -e "${red}请使用 root 用户运行此脚本${plain}"
     exit 1
-  }
+fi
 
-  command -v jq >/dev/null || apt-get install -y jq
-}
-
-# 主流程
-init_check
 while true; do
-  menu
-  echo -e "\n按回车键继续..."
-  read -n 1 -s
+    show_menu
+    echo -e "\n按回车键返回菜单..."
+    read -n 1 -s
 done
