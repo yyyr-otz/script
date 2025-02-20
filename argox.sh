@@ -9,7 +9,7 @@ WS_PATH_DEFAULT='argox'
 WORK_DIR='/etc/argox'
 TEMP_DIR='/tmp/argox'
 TLS_SERVER=addons.mozilla.org
-ARGO_PORT='80'
+ARGO_PORT='8080'
 METRICS_PORT='3333'
 CDN_DOMAIN=("8cc.free.hr" "cm.yutian.us.kg" "fan.yutian.us.kg" "xn--b6gac.eu.org" "dash.cloudflare.com" "skk.moe" "visa.com")
 SUBSCRIBE_TEMPLATE="https://raw.githubusercontent.com/fscarmen/client_template/main"
@@ -703,91 +703,17 @@ WantedBy=multi-user.target"
                 "decryption":"none",
                 "fallbacks":[
                     {
-                        "path":"/${WS_PATH}-ws",
-                        "dest":3002
-                    },
-                    {
-                        "path":"/${WS_PATH}-hu",
-                        "dest":3003
-                    },
-                    {
-                        "path":"/${WS_PATH}-xh",
-                        "dest":3004
-                    },
-                    {
-                        "dest":3006,
-                        "alpn": "",
-                        "xver": 1
+                        "dest":80
                     }
                 ]
             },
             "streamSettings":{
-                "network":"tcp"
+                "network":"raw"
             }
         },
         {
-            "port":3002,
-            "listen":"127.0.0.1",
-            "protocol":"vless",
-            "settings":{
-                "clients":[
-                    {
-                        "id":"${UUID}",
-                        "level":0
-                    }
-                ],
-                "decryption":"none"
-            },
-            "streamSettings":{
-                "network":"ws",
-                "security":"none",
-                "wsSettings":{
-                    "path":"/${WS_PATH}-ws"
-                }
-            },
-            "sniffing":{
-                "enabled":true,
-                "destOverride":[
-                    "http",
-                    "tls",
-                    "quic"
-                ],
-                "metadataOnly":false
-            }
-        },
-		{
-            "port":3003,
-            "listen":"127.0.0.1",
-            "protocol":"vless",
-            "settings":{
-                "clients":[
-                    {
-                        "id":"${UUID}",
-                        "level":0
-                    }
-                ],
-                "decryption":"none"
-            },
-            "streamSettings":{
-                "network":"httpupgrade",
-                "security":"none",
-                "httpupgradeSettings":{
-                    "path":"/${WS_PATH}-hu"
-                }
-            },
-            "sniffing":{
-                "enabled":true,
-                "destOverride":[
-                    "http",
-                    "tls",
-                    "quic"
-                ],
-                "metadataOnly":false
-            }
-        },
-        {
-            "port":3004,
-            "listen":"127.0.0.1",
+            "port":80,
+            "listen":"0.0.0.0",
             "protocol":"vless",
             "settings":{
                 "clients":[
@@ -802,8 +728,9 @@ WantedBy=multi-user.target"
                 "network":"xhttp",
                 "security":"none",
                 "xhttpSettings":{
+					"host": "", 
 					"mode": "auto",
-                    "path":"/${WS_PATH}-xh"
+                    "path":"/xh"
                 }
             },
             "sniffing":{
@@ -1030,8 +957,7 @@ export_list() {
   # 生成各订阅文件
  
   # 生成 V2rayN / NekoBox 订阅文件
-  local V2RAYN_SUBSCRIBE="vless://${UUID}@${SERVER}:443?encryption=none&security=tls&sni=${ARGO_DOMAIN}&type=ws&host=${ARGO_DOMAIN}&path=%2F${WS_PATH}-vl%3Fed%3D2048#${NODE_NAME}-Vl
-"
+  local V2RAYN_SUBSCRIBE=""
 
   echo -n "${V2RAYN_SUBSCRIBE}" | base64 -w0 > $WORK_DIR/subscribe/base64
 
@@ -1046,7 +972,6 @@ export_list() {
 ----------------------------
 $(info "$(sed "G" <<< "${V2RAYN_SUBSCRIBE}")
 
-ss://$(echo -n "${SS_METHOD}:${UUID}" | base64 -w0)@${SERVER}:443#${NODE_NAME}-Sh
 由于该软件导出的链接不全，请自行处理如下: 传输协议: WS , 伪装域名: ${ARGO_DOMAIN} , 路径: /${WS_PATH}-sh?ed=2048 , 传输层安全: tls , sni: ${ARGO_DOMAIN}")
 
 *******************************************
