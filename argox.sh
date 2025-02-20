@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 自用魔改 ！！
+
 # 当前脚本版本号
 VERSION='1.6.6 (2024.12.24)'
 
@@ -9,6 +9,7 @@ WS_PATH_DEFAULT='argox'
 WORK_DIR='/etc/argox'
 TEMP_DIR='/tmp/argox'
 TLS_SERVER=addons.mozilla.org
+ARGO_PORT='80'
 METRICS_PORT='3333'
 CDN_DOMAIN=("8cc.free.hr" "cm.yutian.us.kg" "fan.yutian.us.kg" "xn--b6gac.eu.org" "dash.cloudflare.com" "skk.moe" "visa.com")
 SUBSCRIBE_TEMPLATE="https://raw.githubusercontent.com/fscarmen/client_template/main"
@@ -619,7 +620,7 @@ credentials-file: $WORK_DIR/tunnel.json
 
 ingress:
   - hostname: ${ARGO_DOMAIN}
-    service: http://localhost:8080
+    service: http://localhost:${ARGO_PORT}
   - service: http_status:404
 EOF
 }
@@ -649,7 +650,7 @@ install_argox() {
   elif [[ -n "${ARGO_TOKEN}" && -n "${ARGO_DOMAIN}" ]]; then
     ARGO_RUNS="$WORK_DIR/cloudflared tunnel --edge-ip-version auto run --token ${ARGO_TOKEN}"
   else
-    ARGO_RUNS="$WORK_DIR/cloudflared tunnel --edge-ip-version auto --no-autoupdate --metrics 0.0.0.0:${METRICS_PORT} --url http://localhost:8080"
+    ARGO_RUNS="$WORK_DIR/cloudflared tunnel --edge-ip-version auto --no-autoupdate --metrics 0.0.0.0:${METRICS_PORT} --url http://localhost:${ARGO_PORT}"
   fi
 
   # Argo 生成守护进程文件
@@ -690,7 +691,7 @@ WantedBy=multi-user.target"
     "inbounds":[
         {
             "listen":"0.0.0.0",
-            "port":80,
+            "port":${ARGO_PORT},
             "protocol":"vless",
             "settings":{
                 "clients":[
@@ -962,11 +963,11 @@ export_list() {
     fi
   fi
 
-  if grep -q "^ExecStart=.*8080$" /etc/systemd/system/argo.service; then
+  if grep -q "^ExecStart=.*${ARGO_PORT}$" /etc/systemd/system/argo.service; then
     local a=5
     until [[ -n "$ARGO_DOMAIN" || "$a" = 0 ]]; do
       sleep 2
-      ARGO_DOMAIN=$(wget -qO- http://localhost:$(ps -ef | awk -F '0.0.0.0:' '/cloudflared.*:8080/{print $2}' | awk 'NR==1 {print $1}')/quicktunnel | awk -F '"' '{print $4}')
+      ARGO_DOMAIN=$(wget -qO- http://localhost:$(ps -ef | awk -F '0.0.0.0:' '/cloudflared.*:${ARGO_PORT}/{print $2}' | awk 'NR==1 {print $1}')/quicktunnel | awk -F '"' '{print $4}')
       ((a--)) || true
     done
   else
@@ -1162,7 +1163,7 @@ change_argo() {
     *--token* )
       ARGO_TYPE='Token'; ARGO_DOMAIN="$(grep -m1 '^vless' $WORK_DIR/list | sed "s@.*host=\(.*\)&.*@\1@g")" ;;
     * )
-      ARGO_TYPE='Try'; ARGO_DOMAIN=$(wget -qO- http://localhost:$(ps -ef | awk -F '0.0.0.0:' '/cloudflared.*:8080/{print $2}' | awk 'NR==1 {print $1}')/quicktunnel | awk -F '"' '{print $4}')
+      ARGO_TYPE='Try'; ARGO_DOMAIN=$(wget -qO- http://localhost:$(ps -ef | awk -F '0.0.0.0:' '/cloudflared.*:${ARGO_PORT}/{print $2}' | awk 'NR==1 {print $1}')/quicktunnel | awk -F '"' '{print $4}')
   esac
 
   hint "\n $(text 40) \n"
@@ -1172,7 +1173,7 @@ change_argo() {
       1 )
         cmd_systemctl disable argo
         [ -s $WORK_DIR/tunnel.json ] && rm -f $WORK_DIR/tunnel.{json,yml}
-        sed -i "s@ExecStart=.*@ExecStart=$WORK_DIR/cloudflared tunnel --edge-ip-version auto --no-autoupdate --metrics 0.0.0.0:${METRICS_PORT} --url http://localhost:8080@g" /etc/systemd/system/argo.service
+        sed -i "s@ExecStart=.*@ExecStart=$WORK_DIR/cloudflared tunnel --edge-ip-version auto --no-autoupdate --metrics 0.0.0.0:${METRICS_PORT} --url http://localhost:${ARGO_PORT}@g" /etc/systemd/system/argo.service
         ;;
       2 )
         SERVER_IP=$(awk -F '"' '/"SERVER_IP"/{print $4}' $WORK_DIR/*inbound*.json)
@@ -1257,7 +1258,7 @@ menu_setting() {
   if [[ "${STATUS[*]}" =~ $(text 27)|$(text 28) ]]; then
     if [ -s $WORK_DIR/cloudflared ]; then
       ARGO_VERSION=$($WORK_DIR/cloudflared -v | awk '{print $3}' | sed "s@^@Version: &@g")
-      ss -nltp | grep -q '127\.0\.0\.1:.*"cloudflared"' && ARGO_CHECKHEALTH="$(text 46): $(wget -qO- http://localhost:$(ss -nltp | grep "pid=$(ps -ef | awk '/cloudflared.*:8080/{print $2}' | awk 'NR==1 {print $1}')," | awk '{print $4}' | sed "s/.*://")/healthcheck | sed "s/OK/$(text 37)/")"
+      ss -nltp | grep -q '127\.0\.0\.1:.*"cloudflared"' && ARGO_CHECKHEALTH="$(text 46): $(wget -qO- http://localhost:$(ss -nltp | grep "pid=$(ps -ef | awk '/cloudflared.*:${ARGO_PORT}/{print $2}' | awk 'NR==1 {print $1}')," | awk '{print $4}' | sed "s/.*://")/healthcheck | sed "s/OK/$(text 37)/")"
     fi
     [ -s $WORK_DIR/xray ] && XRAY_VERSION=$($WORK_DIR/xray version | awk 'NR==1 {print $2}' | sed "s@^@Version: &@g")
     [ "$SYSTEM" = 'Alpine' ] && PS_LIST=$(ps -ef) || PS_LIST=$(ps -ef | awk '{ $1=""; sub(/^ */, ""); print $0 }')
