@@ -9,7 +9,7 @@ WS_PATH_DEFAULT='argox'
 WORK_DIR='/etc/argox'
 TEMP_DIR='/tmp/argox'
 TLS_SERVER=addons.mozilla.org
-ARGO_PORT='8080'
+ARGO_PORT='80'
 METRICS_PORT='3333'
 CDN_DOMAIN=("8cc.free.hr" "cm.yutian.us.kg" "fan.yutian.us.kg" "xn--b6gac.eu.org" "dash.cloudflare.com" "skk.moe" "visa.com")
 SUBSCRIBE_TEMPLATE="https://raw.githubusercontent.com/fscarmen/client_template/main"
@@ -689,6 +689,22 @@ WantedBy=multi-user.target"
         "loglevel":"none"
     },
     "inbounds":[
+		{
+            "listen": "0.0.0.0",
+            "port": 54321,
+            "protocol": "socks",
+            "settings": {
+                "auth": "password",
+                "accounts": [
+                    {
+                        "user": "yyyr",
+                        "pass": "yyyr"
+                    }
+                ],
+                "udp": true,
+                "ip": "127.0.0.1"
+            }
+		},
         {
             "listen":"0.0.0.0",
             "port":${ARGO_PORT},
@@ -704,6 +720,10 @@ WantedBy=multi-user.target"
                 "fallbacks":[
                     {
                         "dest":80
+                    },
+					{
+						"path":"/ws"
+                        "dest":8081
                     }
                 ]
             },
@@ -711,6 +731,36 @@ WantedBy=multi-user.target"
                 "network":"raw"
             }
         },
+		{
+            "port":8081,
+            "listen":"0.0.0.0",
+            "protocol":"vless",
+            "settings":{
+                "clients":[
+                    {
+                        "id":"${UUID}",
+                        "level":0
+                    }
+                ],
+                "decryption":"none"
+            },
+            "streamSettings":{
+                "network":"ws",
+                "security":"none",
+                "wsSettings":{
+                    "path":"/ws"
+                }
+            },
+            "sniffing":{
+                "enabled":true,
+                "destOverride":[
+                    "http",
+                    "tls",
+                    "quic"
+                ],
+                "metadataOnly":false
+            }
+        }
         {
             "port":80,
             "listen":"0.0.0.0",
