@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # 当前脚本版本号
-VERSION='1.6.6 (2024.12.24)'
+VERSION='socks+ws(argo)+xhttp'
 
 # 各变量默认值
 GH_PROXY='https://ghproxy.lvedong.eu.org/'
