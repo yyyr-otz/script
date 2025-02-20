@@ -23,7 +23,7 @@ mkdir -p $TEMP_DIR
 E[0]="Language:\n 1. English (default) \n 2. 简体中文"
 C[0]="${E[0]}"
 E[1]="Refactored the chatGPT detection method based on lmc999's detection and unlocking script."
-C[1]="根据 lmc999 的检测解锁脚本，重构了检测 chatGPT 方法（原作者https://github.com/yyyr-otz/script）"
+C[1]="根据 lmc999 的检测解锁脚本，重构了检测 chatGPT 方法（原作者https://github.com/fscarmen/ArgoX）"
 E[2]="Project to create Argo tunnels and Xray specifically for VPS, detailed:[https://github.com/yyyr-otz/script]\n Features:\n\t • Allows the creation of Argo tunnels via Token, Json and ad hoc methods. User can easily obtain the json at https://fscarmen.cloudflare.now.cc .\n\t • Extremely fast installation method, saving users time.\n\t • Support system: Ubuntu, Debian, CentOS, Alpine and Arch Linux 3.\n\t • Support architecture: AMD,ARM and s390x\n"
 C[2]="本项目专为 VPS 添加 Argo 隧道及 Xray,详细说明: [https://github.com/yyyr-otz/script]\n 脚本特点:\n\t • 允许通过 Token, Json 及 临时方式来创建 Argo 隧道,用户通过以下网站轻松获取 json: https://fscarmen.cloudflare.now.cc\n\t • 极速安装方式,大大节省用户时间\n\t • 智能判断操作系统: Ubuntu 、Debian 、CentOS 、Alpine 和 Arch Linux,请务必选择 LTS 系统\n\t • 支持硬件结构类型: AMD 和 ARM\n"
 E[3]="Input errors up to 5 times.The script is aborted."
