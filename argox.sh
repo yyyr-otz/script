@@ -8,10 +8,10 @@ GH_PROXY='https://ghproxy.lvedong.eu.org/'
 WS_PATH_DEFAULT='argox'
 WORK_DIR='/etc/argox'
 TEMP_DIR='/tmp/argox'
-TLS_SERVER=addons.mozilla.org
+TLS_SERVER=gh-pages.yyyrspeed.nyc.mn
 ARGO_PORT='80'
 METRICS_PORT='3333'
-CDN_DOMAIN=("8cc.free.hr" "cm.yutian.us.kg" "fan.yutian.us.kg" "xn--b6gac.eu.org" "dash.cloudflare.com" "skk.moe" "visa.com")
+CDN_DOMAIN=("skk.moe" "visa.com")
 SUBSCRIBE_TEMPLATE="https://raw.githubusercontent.com/fscarmen/client_template/main"
 
 export DEBIAN_FRONTEND=noninteractive
@@ -705,6 +705,51 @@ WantedBy=multi-user.target"
                 "ip": "127.0.0.1"
             }
 		},
+       {
+	"listen": "0.0.0.0",
+            "protocol":"vless",
+            "port":${REALITY_PORT},
+            "settings":{
+                "clients":[
+                    {
+                        "id":"${UUID}",
+                        "flow":"xtls-rprx-vision"
+                    }
+                ],
+                "decryption":"none",
+                "fallbacks":[
+                    {
+                        "dest":"80",
+                        "xver":1
+                    }
+                ]
+            },
+            "streamSettings":{
+                "network":"raw",
+                "security":"reality",
+                "realitySettings":{
+                    "show":true,
+                    "dest":"${TLS_SERVER}:443",
+                    "xver":0,
+                    "serverNames":[
+                        "${TLS_SERVER}"
+                    ],
+                    "privateKey":"${REALITY_PRIVATE}",
+                    "publicKey":"${REALITY_PUBLIC}",
+                    "maxTimeDiff":70000,
+                    "shortIds":[
+                        ""
+                    ]
+                }
+            },
+            "sniffing":{
+                "enabled":true,
+                "destOverride":[
+                    "http",
+                    "tls"
+                ]
+            }
+        },
         {
             "listen":"0.0.0.0",
             "port":${ARGO_PORT},
