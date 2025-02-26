@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bash <(wget -qO- https://raw.githubusercontent.com/yyyr-otz/script/main/argox.sh)
+
 # 当前脚本版本号
 VERSION='socks+ws(argo)+xhttp'
 
@@ -705,51 +705,6 @@ WantedBy=multi-user.target"
                 "ip": "127.0.0.1"
             }
 		},
-       {
-	"listen": "0.0.0.0",
-            "protocol":"vless",
-            "port":${REALITY_PORT},
-            "settings":{
-                "clients":[
-                    {
-                        "id":"${UUID}",
-                        "flow":"xtls-rprx-vision"
-                    }
-                ],
-                "decryption":"none",
-                "fallbacks":[
-                    {
-                        "dest":"80",
-                        "xver":1
-                    }
-                ]
-            },
-            "streamSettings":{
-                "network":"raw",
-                "security":"reality",
-                "realitySettings":{
-                    "show":true,
-                    "dest":"${TLS_SERVER}:443",
-                    "xver":0,
-                    "serverNames":[
-                        "${TLS_SERVER}"
-                    ],
-                    "privateKey":"${REALITY_PRIVATE}",
-                    "publicKey":"${REALITY_PUBLIC}",
-                    "maxTimeDiff":70000,
-                    "shortIds":[
-                        ""
-                    ]
-                }
-            },
-            "sniffing":{
-                "enabled":true,
-                "destOverride":[
-                    "http",
-                    "tls"
-                ]
-            }
-        },
         {
             "listen":"0.0.0.0",
             "port":${ARGO_PORT},
