@@ -721,8 +721,8 @@ WantedBy=multi-user.target"
                     {
                         "dest":80
                     },
-					{
-						"path":"/ws"
+		    {
+      			"path":"/ws"
                         "dest":8081
                     }
                 ]
@@ -778,9 +778,9 @@ WantedBy=multi-user.target"
                 "network":"xhttp",
                 "security":"none",
                 "xhttpSettings":{
-					"host": "", 
-					"mode": "auto",
-                    "path":"/xh"
+			"host": "", 
+			"mode": "auto",
+                    	"path":"/xh"
                 }
             },
             "sniffing":{
@@ -797,7 +797,7 @@ WantedBy=multi-user.target"
     "dns":{
         "servers":[
             "https+local://8.8.8.8/dns-query",
-			"https+local://1.1.1.1/dns-query"
+	    "https+local://1.1.1.1/dns-query"
         ]
     }
 }
