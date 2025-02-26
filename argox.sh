@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# bash <(wget -qO- https://raw.githubusercontent.com/yyyr-otz/script/main/argox.sh)
 # 当前脚本版本号
 VERSION='socks+ws(argo)+xhttp'
 
