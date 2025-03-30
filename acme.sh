@@ -15,6 +15,8 @@ if [[ -f /etc/redhat-release ]]; then
     release="Centos"
 elif cat /etc/issue | grep -q -E -i "debian"; then
     release="Debian"
+elif cat /etc/issue | grep -q -E -i "armbian"; then
+    release="Debian"
 elif cat /etc/issue | grep -q -E -i "ubuntu"; then
     release="Ubuntu"
 elif cat /etc/issue | grep -q -E -i "centos|red hat|redhat"; then
