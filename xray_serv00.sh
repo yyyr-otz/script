@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#bash <(curl -Ls https://github.com/yyyr-otz/script/raw/main/xray_serv00.sh)
 re="\033[0m"
 red="\033[1;91m"
 green="\e[1;32m"
