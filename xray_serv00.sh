@@ -40,7 +40,6 @@ check_port () {
 port_list=$(devil port list)
 tcp_ports=$(echo "$port_list" | grep -c "tcp")
 tcp_port=$(echo "$port_list" | awk '/tcp/ {print $1}')
-fi
 purple "vmess-argo使用的tcp端口为: $tcp_port"
 purple "tuic和hy2使用的udp端口分别为: $udp_port1 和 $udp_port2"
 export XRAY_PORT=$tcp_port
