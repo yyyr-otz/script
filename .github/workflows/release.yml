@@ -79,21 +79,24 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        # 配置 git 认证
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+    
         for ARCH in arm64 amd64; do
           FILE_PATH="xray-bin/$ARCH/xray"
-          
-          # 强制更新 lightweight tag
+      
+          # 强制更新 tag (需要显式配置认证)
           git tag -f $ARCH
           git push origin $ARCH -f
-          
-          # 处理 release
+      
+          # 创建 release 如果不存在
           if ! gh release view $ARCH; then
             gh release create $ARCH --title "$ARCH Build" --notes "Automated Xray $ARCH binary"
           fi
-          
+      
           # 清理旧文件
           gh release delete-asset $ARCH xray -y || true
-          
+      
           # 上传新文件
           gh release upload $ARCH "$FILE_PATH" --clobber
         done
