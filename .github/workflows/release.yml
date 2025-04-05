@@ -35,8 +35,8 @@ jobs:
       run: |
         # 定义所有Xray平台配置
         declare -A xray_platforms=(
-          ["arm64"]="Xray-linux-arm64-v8a.zip"
-          ["amd64"]="Xray-linux-64.zip" 
+          ["linux-arm64"]="Xray-linux-arm64-v8a.zip"
+          ["linux-amd64"]="Xray-linux-64.zip"
           ["freebsd-arm64"]="Xray-freebsd-arm64-v8a.zip"
           ["freebsd-amd64"]="Xray-freebsd-64.zip"
         )
@@ -46,10 +46,11 @@ jobs:
 
         for tag in "${!xray_platforms[@]}"; do
           filename=${xray_platforms[$tag]}
-          dir=${tag//freebsd-/}  # 移除freebsd-前缀用于目录结构
+          dir="$tag"  # 保留原始tag作为目录名
 
           echo "处理 $tag => $filename"
           curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/$filename" -o "${filename}"
+          mkdir -p "xray-bin/${dir}"
           unzip -j "${filename}" 'xray' -d "xray-bin/${dir}"
           chmod +x "xray-bin/${dir}/xray"
           rm "${filename}"
@@ -58,33 +59,43 @@ jobs:
     - name: Process Cloudflared
       run: |
         # Cloudflared平台配置
-        declare -a cloudflared_arches=("arm64" "amd64")
+        declare -A cloudflared_platforms=(
+          ["arm64"]="cloudflared-linux-arm64"
+          ["amd64"]="cloudflared-linux-amd64"
+        )
 
         mkdir -p cloudflared-bin
         VERSION=${{ steps.get_versions.outputs.cloudflared_version }}
 
-        for arch in "${cloudflared_arches[@]}"; do
-          echo "处理 $arch"
-          curl -sL "https://github.com/cloudflare/cloudflared/releases/download/$VERSION/cloudflared-linux-${arch}" -o "cloudflared-bin/argo"
-          mv "cloudflared-bin/argo" "cloudflared-bin/${arch}/argo"
-          chmod +x "cloudflared-bin/${arch}/argo"
+        for tag in "${!cloudflared_platforms[@]}"; do
+          filename=${cloudflared_platforms[$tag]}
+          echo "处理 $tag => $filename"
+          curl -sL "https://github.com/cloudflare/cloudflared/releases/download/$VERSION/$filename" -o "cloudflared-bin/$tag/argo"
+          chmod +x "cloudflared-bin/$tag/argo"
         done
 
     - name: Update releases
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # Xray发布配置
-        declare -a xray_tags=("arm64" "amd64" "freebsd-arm64" "freebsd-amd64")
+        declare -A xray_tags=(
+          ["linux-arm64"]="arm64"
+          ["linux-amd64"]="amd64"
+          ["freebsd-arm64"]="freebsd-arm64"
+          ["freebsd-amd64"]="freebsd-amd64"
+        )
 
-        for tag in "${xray_tags[@]}"; do
-          dir=${tag//freebsd-/}
-          gh release upload "$tag" "xray-bin/${dir}/xray" --clobber
+        for src_tag in "${!xray_tags[@]}"; do
+          target_tag=${xray_tags[$src_tag]}
+          gh release upload "$target_tag" "xray-bin/$src_tag/xray" --clobber
         done
 
         # Cloudflared发布配置
-        declare -a cloudflared_tags=("arm64" "amd64")
+        declare -A cloudflared_tags=(
+          ["arm64"]="arm64"
+          ["amd64"]="amd64"
+        )
 
-        for tag in "${cloudflared_tags[@]}"; do
-          gh release upload "$tag" "cloudflared-bin/${tag}/argo" --clobber
+        for src_tag in "${!cloudflared_tags[@]}"; do
+          target_tag=${cloudflared_tags[$src_tag]}
+          gh release upload "$target_tag" "cloudflared-bin/$src_tag/argo" --clobber
         done
