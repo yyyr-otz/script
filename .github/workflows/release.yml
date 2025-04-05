@@ -51,7 +51,7 @@ jobs:
 
     - name: Download and process Cloudflared
       run: |
-        mkdir -p cloudflared-bin
+        mkdir -p cloudflared-bin/{arm64,amd64}
         VERSION=${{ steps.get_cloudflared_version.outputs.cloudflared_version }}
         
         # 下载ARM64版本
