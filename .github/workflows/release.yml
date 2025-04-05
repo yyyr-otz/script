@@ -18,64 +18,73 @@ jobs:
     - name: Setup environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y curl unzip
+        sudo apt-get install -y curl unzip jq
 
-    - name: Get latest Xray version
-      id: get_xray_version
+    - name: Get versions
+      id: get_versions
       run: |
-        LATEST_XRAY_VERSION=$(curl -sL https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r '.tag_name')
-        echo "xray_version=${LATEST_XRAY_VERSION}" >> $GITHUB_OUTPUT
+        # 获取Xray版本
+        xray_version=$(curl -sL https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r '.tag_name')
+        echo "xray_version=${xray_version}" >> $GITHUB_OUTPUT
+        
+        # 获取Cloudflared版本
+        cloudflared_version=$(curl -sL https://api.github.com/repos/cloudflare/cloudflared/releases/latest | jq -r '.tag_name')
+        echo "cloudflared_version=${cloudflared_version}" >> $GITHUB_OUTPUT
 
-    - name: Get latest Cloudflared version
-      id: get_cloudflared_version
+    - name: Process Xray
       run: |
-        LATEST_CLOUDFLARED_VERSION=$(curl -sL https://api.github.com/repos/cloudflare/cloudflared/releases/latest | jq -r '.tag_name')
-        echo "cloudflared_version=${LATEST_CLOUDFLARED_VERSION}" >> $GITHUB_OUTPUT
+        # 定义所有Xray平台配置
+        declare -A xray_platforms=(
+          ["arm64"]="Xray-linux-arm64-v8a.zip"
+          ["amd64"]="Xray-linux-64.zip" 
+          ["freebsd-arm64"]="Xray-freebsd-arm64-v8a.zip"
+          ["freebsd-amd64"]="Xray-freebsd-64.zip"
+        )
 
-    - name: Download and process Xray
-      run: |
         mkdir -p xray-bin
-        VERSION=${{ steps.get_xray_version.outputs.xray_version }}
-        
-        # 处理ARM64版本
-        curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/Xray-linux-arm64-v8a.zip" -o arm64.zip
-        unzip -j arm64.zip 'xray' -d xray-bin/arm64
-        rm arm64.zip
-        chmod +x xray-bin/arm64/xray
-        
-        # 处理AMD64版本
-        curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/Xray-linux-64.zip" -o amd64.zip
-        unzip -j amd64.zip 'xray' -d xray-bin/amd64
-        rm amd64.zip
-        chmod +x xray-bin/amd64/xray
+        VERSION=${{ steps.get_versions.outputs.xray_version }}
 
-    - name: Download and process Cloudflared
+        for tag in "${!xray_platforms[@]}"; do
+          filename=${xray_platforms[$tag]}
+          dir=${tag//freebsd-/}  # 移除freebsd-前缀用于目录结构
+
+          echo "处理 $tag => $filename"
+          curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/$filename" -o "${filename}"
+          unzip -j "${filename}" 'xray' -d "xray-bin/${dir}"
+          chmod +x "xray-bin/${dir}/xray"
+          rm "${filename}"
+        done
+
+    - name: Process Cloudflared
       run: |
-        mkdir -p cloudflared-bin/{arm64,amd64}
-        VERSION=${{ steps.get_cloudflared_version.outputs.cloudflared_version }}
-        
-        # 下载ARM64版本
-        curl -sL "https://github.com/cloudflare/cloudflared/releases/download/$VERSION/cloudflared-linux-arm64" -o cloudflared-arm64
-        mv cloudflared-arm64 cloudflared-bin/arm64/argo
-        chmod +x cloudflared-bin/arm64/argo
-        
-        # 下载AMD64版本
-        curl -sL "https://github.com/cloudflare/cloudflared/releases/download/$VERSION/cloudflared-linux-amd64" -o cloudflared-amd64
-        mv cloudflared-amd64 cloudflared-bin/amd64/argo
-        chmod +x cloudflared-bin/amd64/argo
+        # Cloudflared平台配置
+        declare -a cloudflared_arches=("arm64" "amd64")
+
+        mkdir -p cloudflared-bin
+        VERSION=${{ steps.get_versions.outputs.cloudflared_version }}
+
+        for arch in "${cloudflared_arches[@]}"; do
+          echo "处理 $arch"
+          curl -sL "https://github.com/cloudflare/cloudflared/releases/download/$VERSION/cloudflared-linux-${arch}" -o "cloudflared-bin/argo"
+          mv "cloudflared-bin/argo" "cloudflared-bin/${arch}/argo"
+          chmod +x "cloudflared-bin/${arch}/argo"
+        done
 
     - name: Update releases
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # 更新Xray到对应的release
-        for ARCH in arm64 amd64; do
-          XRAY_PATH="xray-bin/$ARCH/xray"
-          gh release upload $ARCH "$XRAY_PATH" --clobber
+        # Xray发布配置
+        declare -a xray_tags=("arm64" "amd64" "freebsd-arm64" "freebsd-amd64")
+
+        for tag in "${xray_tags[@]}"; do
+          dir=${tag//freebsd-/}
+          gh release upload "$tag" "xray-bin/${dir}/xray" --clobber
         done
-        
-        # 更新Cloudflared到对应的release
-        for ARCH in arm64 amd64; do
-          CLOUDFLARED_PATH="cloudflared-bin/$ARCH/argo"
-          gh release upload $ARCH "$CLOUDFLARED_PATH" --clobber
+
+        # Cloudflared发布配置
+        declare -a cloudflared_tags=("arm64" "amd64")
+
+        for tag in "${cloudflared_tags[@]}"; do
+          gh release upload "$tag" "cloudflared-bin/${tag}/argo" --clobber
         done
