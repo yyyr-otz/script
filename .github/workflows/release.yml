@@ -64,10 +64,10 @@ jobs:
           ["amd64"]="cloudflared-linux-amd64"
         )
 
-        mkdir -p cloudflared-bin
         VERSION=${{ steps.get_versions.outputs.cloudflared_version }}
 
         for tag in "${!cloudflared_platforms[@]}"; do
+          mkdir -p cloudflared-bin/$tag
           filename=${cloudflared_platforms[$tag]}
           echo "处理 $tag => $filename"
           curl -sL "https://github.com/cloudflare/cloudflared/releases/download/$VERSION/$filename" -o "cloudflared-bin/$tag/argo"
