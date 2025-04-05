@@ -21,33 +21,61 @@ jobs:
         sudo apt-get install -y curl unzip
 
     - name: Get latest Xray version
-      id: get_version
+      id: get_xray_version
       run: |
-        LATEST_VERSION=$(curl -sL https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r '.tag_name')
-        echo "latest_version=${LATEST_VERSION}" >> $GITHUB_OUTPUT
+        LATEST_XRAY_VERSION=$(curl -sL https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r '.tag_name')
+        echo "xray_version=${LATEST_XRAY_VERSION}" >> $GITHUB_OUTPUT
 
-    - name: Download and extract Xray
+    - name: Get latest Cloudflared version
+      id: get_cloudflared_version
+      run: |
+        LATEST_CLOUDFLARED_VERSION=$(curl -sL https://api.github.com/repos/cloudflare/cloudflared/releases/latest | jq -r '.tag_name')
+        echo "cloudflared_version=${LATEST_CLOUDFLARED_VERSION}" >> $GITHUB_OUTPUT
+
+    - name: Download and process Xray
       run: |
         mkdir -p xray-bin
-        VERSION=${{ steps.get_version.outputs.latest_version }}
+        VERSION=${{ steps.get_xray_version.outputs.xray_version }}
         
-        # 下载并处理ARM64版本
+        # 处理ARM64版本
         curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/Xray-linux-arm64-v8a.zip" -o arm64.zip
         unzip -j arm64.zip 'xray' -d xray-bin/arm64
         rm arm64.zip
         chmod +x xray-bin/arm64/xray
         
-        # 下载并处理AMD64版本
+        # 处理AMD64版本
         curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/Xray-linux-64.zip" -o amd64.zip
         unzip -j amd64.zip 'xray' -d xray-bin/amd64
         rm amd64.zip
         chmod +x xray-bin/amd64/xray
 
+    - name: Download and process Cloudflared
+      run: |
+        mkdir -p cloudflared-bin
+        VERSION=${{ steps.get_cloudflared_version.outputs.cloudflared_version }}
+        
+        # 下载ARM64版本
+        curl -sL "https://github.com/cloudflare/cloudflared/releases/download/$VERSION/cloudflared-linux-arm64" -o cloudflared-arm64
+        mv cloudflared-arm64 cloudflared-bin/arm64/argo
+        chmod +x cloudflared-bin/arm64/argo
+        
+        # 下载AMD64版本
+        curl -sL "https://github.com/cloudflare/cloudflared/releases/download/$VERSION/cloudflared-linux-amd64" -o cloudflared-amd64
+        mv cloudflared-amd64 cloudflared-bin/amd64/argo
+        chmod +x cloudflared-bin/amd64/argo
+
     - name: Update releases
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        # 更新Xray到对应的release
         for ARCH in arm64 amd64; do
-          FILE_PATH="xray-bin/$ARCH/xray"
-          gh release upload $ARCH "$FILE_PATH" --clobber
+          XRAY_PATH="xray-bin/$ARCH/xray"
+          gh release upload $ARCH "$XRAY_PATH" --clobber
+        done
+        
+        # 更新Cloudflared到对应的release
+        for ARCH in arm64 amd64; do
+          CLOUDFLARED_PATH="cloudflared-bin/$ARCH/argo"
+          gh release upload $ARCH "$CLOUDFLARED_PATH" --clobber
         done
