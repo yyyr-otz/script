@@ -1,5 +1,6 @@
 name: 更新release文件
 run-name: ${{ github.actor }} 正在更新release文件
+
 on:
   schedule:
     - cron: '0 0 * * *'  # 每天UTC时间0点运行
@@ -10,17 +11,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2  # 使用固定版本
       with:
-        fetch-depth: 0  # 获取完整提交历史以便处理tags
+        fetch-depth: 0
 
-    - name: Install dependencies
+    - name: Setup environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y jq
-
-    - name: Install GitHub CLI
-      uses: azure/setup-gh-cli@v1
+        sudo apt-get install -y jq curl unzip
+        
+        # 安装 GitHub CLI
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        sudo apt-get update
+        sudo apt-get install -y gh
 
     - name: Configure git
       run: |
@@ -48,7 +52,6 @@ jobs:
       run: |
         if [ "${{ steps.get_version.outputs.latest_version }}" != "${{ steps.read_version.outputs.current_version }}" ]; then
           echo "proceed=true" >> $GITHUB_OUTPUT
-          echo "::set-output name=new_version::${{ steps.get_version.outputs.latest_version }}"
         else
           echo "proceed=false" >> $GITHUB_OUTPUT
         fi
@@ -57,69 +60,43 @@ jobs:
       if: steps.check_version.outputs.proceed == 'true'
       run: |
         mkdir -p xray-bin
-        # 下载ARM64版本
-        wget https://github.com/XTLS/Xray-core/releases/download/${{ steps.get_version.outputs.latest_version }}/Xray-linux-arm64-v8a.zip -O arm64.zip
+        VERSION=${{ steps.get_version.outputs.latest_version }}
+        
+        # ARM64 版本处理
+        curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/Xray-linux-arm64-v8a.zip" -o arm64.zip
         unzip -j arm64.zip 'xray' -d xray-bin/arm64
         rm arm64.zip
         chmod +x xray-bin/arm64/xray
         
-        # 下载AMD64版本
-        wget https://github.com/XTLS/Xray-core/releases/download/${{ steps.get_version.outputs.latest_version }}/Xray-linux-64.zip -O amd64.zip
+        # AMD64 版本处理
+        curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/Xray-linux-64.zip" -o amd64.zip
         unzip -j amd64.zip 'xray' -d xray-bin/amd64
         rm amd64.zip
         chmod +x xray-bin/amd64/xray
 
-    - name: Update ARM64 release
+    - name: Update releases
       if: steps.check_version.outputs.proceed == 'true'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        ARCH="arm64"
-        FILE_PATH="xray-bin/$ARCH/xray"
-        
-        # 强制更新tag
-        git tag -f $ARCH
-        git push origin $ARCH -f
-        
-        # 创建或获取release
-        if ! gh release view $ARCH; then
-          gh release create $ARCH --title "$ARCH Build" --notes "Automated Xray $ARCH binary"
-        fi
-        
-        # 删除已存在的xray文件
-        ASSET_ID=$(gh api repos/${{ github.repository }}/releases/tags/$ARCH | jq -r '.assets[] | select(.name == "xray").id')
-        if [ -n "$ASSET_ID" ]; then
-          gh api -X DELETE "/repos/${{ github.repository }}/releases/assets/$ASSET_ID"
-        fi
-        
-        # 上传新文件
-        gh release upload $ARCH "$FILE_PATH" --clobber
-
-    - name: Update AMD64 release
-      if: steps.check_version.outputs.proceed == 'true'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        ARCH="amd64"
-        FILE_PATH="xray-bin/$ARCH/xray"
-        
-        # 强制更新tag
-        git tag -f $ARCH
-        git push origin $ARCH -f
-        
-        # 创建或获取release
-        if ! gh release view $ARCH; then
-          gh release create $ARCH --title "$ARCH Build" --notes "Automated Xray $ARCH binary"
-        fi
-        
-        # 删除已存在的xray文件
-        ASSET_ID=$(gh api repos/${{ github.repository }}/releases/tags/$ARCH | jq -r '.assets[] | select(.name == "xray").id')
-        if [ -n "$ASSET_ID" ]; then
-          gh api -X DELETE "/repos/${{ github.repository }}/releases/assets/$ASSET_ID"
-        fi
-        
-        # 上传新文件
-        gh release upload $ARCH "$FILE_PATH" --clobber
+        for ARCH in arm64 amd64; do
+          FILE_PATH="xray-bin/$ARCH/xray"
+          
+          # 强制更新 lightweight tag
+          git tag -f $ARCH
+          git push origin $ARCH -f
+          
+          # 处理 release
+          if ! gh release view $ARCH; then
+            gh release create $ARCH --title "$ARCH Build" --notes "Automated Xray $ARCH binary"
+          fi
+          
+          # 清理旧文件
+          gh release delete-asset $ARCH xray -y || true
+          
+          # 上传新文件
+          gh release upload $ARCH "$FILE_PATH" --clobber
+        done
 
     - name: Update version record
       if: steps.check_version.outputs.proceed == 'true'
