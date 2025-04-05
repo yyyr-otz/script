@@ -1,5 +1,5 @@
-name: Update Xray Releases
-
+name: 更新release文件
+run-name: ${{ github.actor }} 正在更新release文件
 on:
   schedule:
     - cron: '0 0 * * *'  # 每天UTC时间0点运行
