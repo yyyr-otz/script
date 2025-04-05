@@ -11,100 +11,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4.2.2  # 使用固定版本
+      uses: actions/checkout@v4.1.1
       with:
         fetch-depth: 0
 
     - name: Setup environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y jq curl unzip
-        
-        # 安装 GitHub CLI
-        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-        sudo apt-get update
-        sudo apt-get install -y gh
-
-    - name: Configure git
-      run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
+        sudo apt-get install -y curl unzip
 
     - name: Get latest Xray version
       id: get_version
       run: |
         LATEST_VERSION=$(curl -sL https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r '.tag_name')
-        echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
-
-    - name: Read current version
-      id: read_version
-      run: |
-        if [ -f version.txt ]; then
-          CURRENT_VERSION=$(cat version.txt)
-          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-        else
-          echo "current_version=" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Check version update
-      id: check_version
-      run: |
-        if [ "${{ steps.get_version.outputs.latest_version }}" != "${{ steps.read_version.outputs.current_version }}" ]; then
-          echo "proceed=true" >> $GITHUB_OUTPUT
-        else
-          echo "proceed=false" >> $GITHUB_OUTPUT
-        fi
+        echo "latest_version=${LATEST_VERSION}" >> $GITHUB_OUTPUT
 
     - name: Download and extract Xray
-      if: steps.check_version.outputs.proceed == 'true'
       run: |
         mkdir -p xray-bin
         VERSION=${{ steps.get_version.outputs.latest_version }}
         
-        # ARM64 版本处理
+        # 下载并处理ARM64版本
         curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/Xray-linux-arm64-v8a.zip" -o arm64.zip
         unzip -j arm64.zip 'xray' -d xray-bin/arm64
         rm arm64.zip
         chmod +x xray-bin/arm64/xray
         
-        # AMD64 版本处理
+        # 下载并处理AMD64版本
         curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/Xray-linux-64.zip" -o amd64.zip
         unzip -j amd64.zip 'xray' -d xray-bin/amd64
         rm amd64.zip
         chmod +x xray-bin/amd64/xray
 
     - name: Update releases
-      if: steps.check_version.outputs.proceed == 'true'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # 配置 git 认证
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-    
         for ARCH in arm64 amd64; do
           FILE_PATH="xray-bin/$ARCH/xray"
-      
-          # 强制更新 tag (需要显式配置认证)
-          git tag -f $ARCH
-          git push origin $ARCH -f
-      
-          # 创建 release 如果不存在
-          if ! gh release view $ARCH; then
-            gh release create $ARCH --title "$ARCH Build" --notes "Automated Xray $ARCH binary"
-          fi
-      
-          # 清理旧文件
-          gh release delete-asset $ARCH xray -y || true
-      
-          # 上传新文件
           gh release upload $ARCH "$FILE_PATH" --clobber
         done
-
-    - name: Update version record
-      if: steps.check_version.outputs.proceed == 'true'
-      run: |
-        echo "${{ steps.get_version.outputs.latest_version }}" > version.txt
-        git add version.txt
-        git commit -m "chore: Update Xray version [skip ci]"
-        git push
