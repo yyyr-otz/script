@@ -23,6 +23,10 @@ jobs:
     - name: Get versions
       id: get_versions
       run: |
+        # 获取nezha-agent版本
+        agent_version=$(curl -sL https://api.github.com/repos/nezhahq/agent/releases/latest | jq -r '.tag_name')
+        echo "agent_version=${xray_version}" >> $GITHUB_OUTPUT
+      
         # 获取Xray版本
         xray_version=$(curl -sL https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r '.tag_name')
         echo "xray_version=${xray_version}" >> $GITHUB_OUTPUT
@@ -30,6 +34,32 @@ jobs:
         # 获取Cloudflared版本
         cloudflared_version=$(curl -sL https://api.github.com/repos/cloudflare/cloudflared/releases/latest | jq -r '.tag_name')
         echo "cloudflared_version=${cloudflared_version}" >> $GITHUB_OUTPUT
+
+    - name: Process nezha-agent
+      run: |
+        # 定义所有agent平台配置
+        declare -A agent_platforms=(
+          ["linux-arm64"]="nezha-agent_linux_arm64.zip"
+          ["linux-amd64"]="nezha-agent_linux_amd64.zip"
+          ["freebsd-arm64"]="nezha-agent_freebsd_arm64.zip"
+          ["freebsd-amd64"]="nezha-agent_freebsd_amd64.zip"
+        )
+
+        mkdir -p agent-bin
+        VERSION=${{ steps.get_versions.outputs.agent_version }}
+
+        for tag in "${!agent_platforms[@]}"; do
+          filename=${agent_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+
+          echo "处理 $tag => $filename"
+          curl -sL "https://github.com/nezhahq/agent/releases/download/$VERSION/$filename" -o "${filename}"
+          mkdir -p "agent-bin/${dir}"
+          unzip -j "${filename}" 'nezha-agent' -d "agent-bin/${dir}"
+          mv "agent-bin/${dir}/nezha-agent" "agent-bin/${dir}/nezha-agent-v1"
+          chmod +x "agent-bin/${dir}/nezha-agent-v1"
+          rm "${filename}"
+        done
 
     - name: Process Xray
       run: |
@@ -78,6 +108,19 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        # nezha-agent发布配置
+        declare -A agent_tags=(
+          ["linux-arm64"]="arm64"
+          ["linux-amd64"]="amd64"
+          ["freebsd-arm64"]="freebsd-arm64"
+          ["freebsd-amd64"]="freebsd-amd64"
+        )
+
+        for src_tag in "${!agent_tags[@]}"; do
+          target_tag=${agent_tags[$src_tag]}
+          gh release upload "$target_tag" "agent-bin/$src_tag/nezha-agent-v1" --clobber
+        done
+      
         # Xray发布配置
         declare -A xray_tags=(
           ["linux-arm64"]="arm64"
