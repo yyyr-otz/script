@@ -75,6 +75,8 @@ jobs:
         done
 
     - name: Update releases
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # Xray发布配置
         declare -A xray_tags=(
