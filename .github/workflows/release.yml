@@ -21,18 +21,60 @@ jobs:
         sudo apt-get install -y curl unzip jq
 
     - name: Get versions
-      id: get_versions
-      run: |
-        # 获取nezha-agent版本
-        agent_version=$(curl -sL https://api.github.com/repos/nezhahq/agent/releases/latest | jq -r '.tag_name')
+    id: get_versions
+    run: |
+        # 定义获取版本的函数
+        get_latest_version() {
+        repo=$1
+        curl -sL "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name'
+        }
+    
+        get_prerelease_version() {
+        repo=$1
+        # 获取所有版本，筛选出prerelease版本，并选择最新的一个
+        curl -sL "https://api.github.com/repos/$repo/releases" | \
+            jq -r '[.[] | select(.prerelease == true) | .tag_name] | sort_by(split(".") | map(tonumber)) | reverse | first'
+        }
+    
+        compare_versions() {
+        # 比较两个版本，返回较大的版本号
+        local v1=$1
+        local v2=$2
+        # 使用sort命令进行版本比较，假设版本号遵循语义化版本格式
+        printf "%s\n%s" "$v1" "$v2" | sort -V | tail -n1
+        }
+    
+        # 获取各项目版本
+        declare -A versions
+    
+        # Nezha Agent
+        agent_latest=$(get_latest_version nezhahq/agent)
+        agent_prerelease=$(get_prerelease_version nezhahq/agent)
+        if [ "$agent_prerelease" != "null" ]; then
+        agent_version=$(compare_versions "$agent_latest" "$agent_prerelease")
+        else
+        agent_version=$agent_latest
+        fi
         echo "agent_version=${agent_version}" >> $GITHUB_OUTPUT
-      
-        # 获取Xray版本
-        xray_version=$(curl -sL https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r '.tag_name')
+    
+        # Xray Core
+        xray_latest=$(get_latest_version XTLS/Xray-core)
+        xray_prerelease=$(get_prerelease_version XTLS/Xray-core)
+        if [ "$xray_prerelease" != "null" ]; then
+        xray_version=$(compare_versions "$xray_latest" "$xray_prerelease")
+        else
+        xray_version=$xray_latest
+        fi
         echo "xray_version=${xray_version}" >> $GITHUB_OUTPUT
-        
-        # 获取Cloudflared版本
-        cloudflared_version=$(curl -sL https://api.github.com/repos/cloudflare/cloudflared/releases/latest | jq -r '.tag_name')
+    
+        # Cloudflared
+        cloudflared_latest=$(get_latest_version cloudflare/cloudflared)
+        cloudflared_prerelease=$(get_prerelease_version cloudflare/cloudflared)
+        if [ "$cloudflared_prerelease" != "null" ]; then
+        cloudflared_version=$(compare_versions "$cloudflared_latest" "$cloudflared_prerelease")
+        else
+        cloudflared_version=$cloudflared_latest
+        fi
         echo "cloudflared_version=${cloudflared_version}" >> $GITHUB_OUTPUT
 
     - name: Process nezha-agent
