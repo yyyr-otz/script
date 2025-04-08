@@ -43,7 +43,7 @@ on:
         type: boolean
 
   schedule:
-    - cron: '30 21 */3 * *'
+    - cron: '30 21 */7 * *'
 
 jobs:
   delete_runs:
@@ -56,8 +56,8 @@ jobs:
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
-          retain_days: ${{ github.event.inputs.days || 0.2 }}
-          keep_minimum_runs: ${{ github.event.inputs.minimum_runs || 1 }}
+          retain_days: ${{ github.event.inputs.days || 0.5 }}
+          keep_minimum_runs: ${{ github.event.inputs.minimum_runs || 3 }}
           delete_workflow_pattern: ${{ github.event.inputs.delete_workflow_pattern || '' }}
           delete_workflow_by_state_pattern: ${{ github.event.inputs.delete_workflow_by_state_pattern }}
           delete_run_by_conclusion_pattern: ${{ github.event.inputs.delete_run_by_conclusion_pattern == 'ALL' && 'ALL' || github.event.inputs.delete_run_by_conclusion_pattern }}
