@@ -1,5 +1,5 @@
 name: 清除工作流日志
-run-name: ${{ github.actor }} 正在执行清理
+run-name: ${{ github.actor }} 正在清理过期工作流
 on:
   workflow_dispatch:
     inputs:
@@ -17,33 +17,33 @@ on:
       delete_workflow_by_state_pattern:
         description: '按状态筛选工作流'
         required: true
-        default: "所有状态（ALL）"
+        default: "ALL"
         type: choice
         options:
-          - "所有状态（ALL）"
-          - "活跃状态（active）"
-          - "已删除（deleted）"
-          - "因不活跃禁用（disabled_inactivity）"
-          - "手动禁用（disabled_manually）"
+          - "ALL"
+          - "active"
+          - "deleted"
+          - "disabled_inactivity"
+          - "disabled_manually"
       delete_run_by_conclusion_pattern:
         description: '按执行结果筛选要删除的日志'
         required: true
-        default: "全部结果（ALL）"
+        default: "ALL"
         type: choice
         options:
-          - "全部结果（ALL）"
-          - "仅失败：action_required,cancelled,failure,skipped"
-          - action_required
-          - cancelled
-          - failure
-          - skipped
-          - success
+          - "ALL"
+          - "action_required"
+          - "cancelled"
+          - "failure"
+          - "skipped"
+          - "success"
       dry_run:
         description: '模拟运行（不会实际删除）'
         required: false
 
   schedule:
-    - cron: '30 21 */3 * *'
+    - cron: '0 19 * * *'
+      timezone: Asia/Shanghai
 
 jobs:
   delete_runs:
@@ -59,19 +59,10 @@ jobs:
           retain_days: ${{ github.event.inputs.days || 0.2 }}
           keep_minimum_runs: ${{ github.event.inputs.minimum_runs || 1 }}
           delete_workflow_pattern: ${{ github.event.inputs.delete_workflow_pattern || '' }}
-          delete_workflow_by_state_pattern: >-
-            ${{ 
-              github.event.inputs.delete_workflow_by_state_pattern 
-              | replace('所有状态（ALL）', 'ALL') 
-              | replace('活跃状态（active）', 'active') 
-              | replace('已删除（deleted）', 'deleted') 
-              | replace('因不活跃禁用（disabled_inactivity）', 'disabled_inactivity') 
-              | replace('手动禁用（disabled_manually）', 'disabled_manually') 
-            }}
-          delete_run_by_conclusion_pattern: >-
-            ${{ 
-              startsWith(github.event.inputs.delete_run_by_conclusion_pattern, '仅失败：') 
-              && 'action_required,cancelled,failure,skipped' 
-              || (github.event.inputs.delete_run_by_conclusion_pattern || 'ALL') 
-            }}
+          delete_workflow_by_state_pattern: ${{ github.event.inputs.delete_workflow_by_state_pattern }}
+          delete_run_by_conclusion_pattern: ${{ 
+            startsWith(github.event.inputs.delete_run_by_conclusion_pattern, 'Unsuccessful:') 
+            && 'action_required,cancelled,failure,skipped' 
+            || (github.event.inputs.delete_run_by_conclusion_pattern || 'ALL') 
+          }}
           dry_run: ${{ github.event.inputs.dry_run || false }}
