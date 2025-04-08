@@ -4,61 +4,68 @@ on:
   workflow_dispatch:
     inputs:
       days:
-        description: '每个工作流保留日志的天数'
+        description: '日志保留天数'
         required: true
-        default: '0.2'
+        default: '0.1'
       minimum_runs:
-        description: '每个工作流至少保留的日志数量'
+        description: '最少保留记录数'
         required: true
-        default: '1'
+        default: '2'
       delete_workflow_pattern:
-        description: '目标工作流的名称或文件名（留空则处理全部工作流）'
+        description: '目标工作流名称/文件名（留空处理所有）'
         required: false
       delete_workflow_by_state_pattern:
-        description: '按状态筛选工作流 (ALL/active/deleted/disabled_inactivity/disabled_manually)'
+        description: '按状态筛选 (ALL/active/deleted/disabled_*)'
         required: true
         default: "ALL"
         type: choice
         options:
           - "ALL"
-          - "active"
-          - "deleted"
-          - "disabled_inactivity"
-          - "disabled_manually"
+          - active
+          - deleted
+          - disabled_inactivity
+          - disabled_manually
       delete_run_by_conclusion_pattern:
-        description: '按执行结果筛选 (ALL/action_required/cancelled/failure/skipped/success)'
+        description: '按结果筛选 (ALL/Unsuccessful:.../单个状态)'
         required: true
         default: "ALL"
         type: choice
         options:
           - "ALL"
-          - "action_required"
-          - "cancelled"
-          - "failure"
-          - "skipped"
-          - "success"
+          - "Unsuccessful: action_required,cancelled,failure,skipped"
+          - action_required
+          - cancelled
+          - failure
+          - skipped
+          - success
       dry_run:
-        description: '模拟运行（不会实际删除）'
+        description: '模拟运行'
         required: false
         type: boolean
 
   schedule:
-    - cron: '30 21 */7 * *'
+    - cron: '0 22 */5 * *'
 
 jobs:
   delete_runs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
+      contents: read  # 新增必要权限
     steps:
-      - name: 执行日志清理
+      - name: 执行清理
         uses: Mattraks/delete-workflow-runs@v2
         with:
-          token: ${{ github.token }}
+          token: ${{ secrets.GITHUB_TOKEN }}  # 显式声明token
           repository: ${{ github.repository }}
-          retain_days: ${{ github.event.inputs.days || 0.5 }}
-          keep_minimum_runs: ${{ github.event.inputs.minimum_runs || 3 }}
-          delete_workflow_pattern: ${{ github.event.inputs.delete_workflow_pattern || '' }}
-          delete_workflow_by_state_pattern: ${{ github.event.inputs.delete_workflow_by_state_pattern }}
-          delete_run_by_conclusion_pattern: ${{ github.event.inputs.delete_run_by_conclusion_pattern == 'ALL' && 'ALL' || github.event.inputs.delete_run_by_conclusion_pattern }}
-          dry_run: ${{ github.event.inputs.dry_run || false }}
+          retain_days: ${{ inputs.days || 0.1 }}  # 修复默认值写法
+          keep_minimum_runs: ${{ inputs.minimum_runs || 2 }}
+          delete_workflow_pattern: ${{ inputs.delete_workflow_pattern || '' }}
+          delete_workflow_by_state_pattern: ${{ inputs.delete_workflow_by_state_pattern }}
+          delete_run_by_conclusion_pattern: >-
+            ${{ 
+              inputs.delete_run_by_conclusion_pattern == 'Unsuccessful: action_required,cancelled,failure,skipped' 
+              && 'action_required,cancelled,failure,skipped' 
+              || inputs.delete_run_by_conclusion_pattern 
+            }}
+          dry_run: ${{ inputs.dry_run || false }}
