@@ -1,55 +1,53 @@
 name: 清除工作流日志
-run-name: ${{ github.actor }} 正在清理过期工作流
+run-name: ${{ github.actor }} 正在执行清理
 on:
-  # 手动触发配置
   workflow_dispatch:
     inputs:
       days:
-        description: '每个工作流保留多少天的运行记录'
+        description: '每个工作流保留日志的天数'  # 描述汉化
         required: true
         default: '0.5'
       minimum_runs:
-        description: '每个工作流至少保留多少条运行记录'
+        description: '每个工作流至少保留的日志数量'
         required: true
-        default: '1'
+        default: '2'
       delete_workflow_pattern:
-        description: '目标工作流的名称或文件名（留空则处理全部工作流）'
+        description: '目标工作流名称或文件名（留空则处理所有工作流）'
         required: false
       delete_workflow_by_state_pattern:
-        description: '按状态过滤工作流'
+        description: '按状态筛选工作流'  # 描述汉化
         required: true
-        default: '全部'
+        default: "ALL"                   # 值保持英文
         type: choice
-        options:
-          - '全部'
-          - active
-          - deleted
-          - disabled_inactivity
-          - disabled_manually
+        options:                         # 选项标签显示中文，值保持英文
+          - "所有状态（ALL）"            # 显示用中文
+          - "活跃状态（active）"
+          - "已删除（deleted）"
+          - "因不活跃禁用（disabled_inactivity）"
+          - "手动禁用（disabled_manually）"
       delete_run_by_conclusion_pattern:
-        description: '按执行结果过滤要删除的运行记录'
+        description: '按执行结果筛选要删除的日志' 
         required: true
-        default: '全部'
+        default: "ALL"                   # 值保持英文
         type: choice
-        options:
-          - '全部'
-          - '仅失败：action_required,cancelled,failure,skipped'
+        options:                         # 混合模式显示
+          - "全部结果（ALL）"
+          - "仅失败：action_required,cancelled,failure,skipped"
           - action_required
           - cancelled
           - failure
           - skipped
           - success
       dry_run:
-        description: '模拟运行模式（不会实际删除）'
+        description: '模拟运行（不实际删除）'
         required: false
-        type: boolean
 
-  # 自动定时任务
   schedule:
-    - cron: '30 21 */3 * *'
+    - cron: '0 19 * * *'
+      timezone: Asia/Shanghai
 
 jobs:
-  delete-runnner:
+  delete_runs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -60,13 +58,18 @@ jobs:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
           retain_days: ${{ github.event.inputs.days || 0.5 }}
-          keep_minimum_runs: ${{ github.event.inputs.minimum_runs || 1 }}
+          keep_minimum_runs: ${{ github.event.inputs.minimum_runs || 2 }}
           delete_workflow_pattern: ${{ github.event.inputs.delete_workflow_pattern || '' }}
-          delete_workflow_by_state_pattern: ${{ github.event.inputs.delete_workflow_by_state_pattern || '全部' }}
+          # 保持参数值为原始英文
+          delete_workflow_by_state_pattern: ${{ 
+            github.event.inputs.delete_workflow_by_state_pattern 
+            | replace('所有状态（ALL）', 'ALL')  # 反向映射
+            | replace('活跃状态（active）', 'active')
+          }}
           delete_run_by_conclusion_pattern: >-
             ${{ 
               startsWith(github.event.inputs.delete_run_by_conclusion_pattern, '仅失败：') 
               && 'action_required,cancelled,failure,skipped' 
-              || (github.event.inputs.delete_run_by_conclusion_pattern || '全部')
+              || (github.event.inputs.delete_run_by_conclusion_pattern || 'ALL')
             }}
           dry_run: ${{ github.event.inputs.dry_run || false }}
