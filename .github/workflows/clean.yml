@@ -1,73 +1,72 @@
-name: 清除日志
-run-name: ${{ github.actor }} 正在清除runners
+name: 清除工作流日志
+run-name: ${{ github.actor }} 正在清理过期工作流
 on:
-  workflow_dispatch:    # 手动触发模式
+  # 手动触发配置
+  workflow_dispatch:
     inputs:
       days:
-        description: 'Days-worth of runs to keep for each workflow'
+        description: '每个工作流保留多少天的运行记录'
         required: true
         default: '0.5'
       minimum_runs:
-        description: 'Minimum runs to keep for each workflow'
+        description: '每个工作流至少保留多少条运行记录'
         required: true
         default: '1'
       delete_workflow_pattern:
-        description: 'Name or filename of the workflow (if not set, all workflows are targeted)'
+        description: '目标工作流的名称或文件名（留空则处理全部工作流）'
         required: false
       delete_workflow_by_state_pattern:
-        description: 'Filter workflows by state'
+        description: '按状态过滤工作流'
         required: true
-        default: "ALL"
+        default: '全部'
         type: choice
         options:
-          - "ALL"
+          - '全部'
           - active
           - deleted
           - disabled_inactivity
           - disabled_manually
       delete_run_by_conclusion_pattern:
-        description: 'Remove runs based on conclusion'
+        description: '按执行结果过滤要删除的运行记录'
         required: true
-        default: "ALL"
+        default: '全部'
         type: choice
         options:
-          - "ALL"
-          - "Unsuccessful: action_required,cancelled,failure,skipped"
+          - '全部'
+          - '仅失败：action_required,cancelled,failure,skipped'
           - action_required
           - cancelled
           - failure
           - skipped
           - success
       dry_run:
-        description: 'Logs simulated changes, no deletions are performed'
+        description: '模拟运行模式（不会实际删除）'
         required: false
-  schedule:              # 定时触发模式
-    - cron: '30 22 */3 * *'  # 每3天 UTC 22:30（北京时间凌晨5点30）
-      inputs:            # 继承手动触发默认参数
-        days: '0.5'
-        minimum_runs: '1'
-        delete_workflow_by_state_pattern: "ALL"
-        delete_run_by_conclusion_pattern: "ALL"
+        type: boolean
+
+  # 自动定时任务
+  schedule:
+    - cron: '30 21 */3 * *'
 
 jobs:
-  delete_runs:
+  delete-runnner:
     runs-on: ubuntu-latest
     permissions:
       actions: write
     steps:
-      - name: 删除workflow日志
+      - name: 执行日志清理
         uses: Mattraks/delete-workflow-runs@v2
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
-          retain_days: ${{ github.event.inputs.days || 0.5 }}  # 兼容两种触发模式
-          keep_minimum_runs: ${{ github.event.inputs.minimum_runs || 2 }}
-          delete_workflow_pattern: ${{ github.event.inputs.delete_workflow_pattern }}
-          delete_workflow_by_state_pattern: ${{ github.event.inputs.delete_workflow_by_state_pattern || 'ALL' }}
+          retain_days: ${{ github.event.inputs.days || 0.5 }}
+          keep_minimum_runs: ${{ github.event.inputs.minimum_runs || 1 }}
+          delete_workflow_pattern: ${{ github.event.inputs.delete_workflow_pattern || '' }}
+          delete_workflow_by_state_pattern: ${{ github.event.inputs.delete_workflow_by_state_pattern || '全部' }}
           delete_run_by_conclusion_pattern: >-
             ${{ 
-              startsWith(github.event.inputs.delete_run_by_conclusion_pattern, 'Unsuccessful:') 
+              startsWith(github.event.inputs.delete_run_by_conclusion_pattern, '仅失败：') 
               && 'action_required,cancelled,failure,skipped' 
-              || (github.event.inputs.delete_run_by_conclusion_pattern || 'ALL')
+              || (github.event.inputs.delete_run_by_conclusion_pattern || '全部')
             }}
           dry_run: ${{ github.event.inputs.dry_run || false }}
