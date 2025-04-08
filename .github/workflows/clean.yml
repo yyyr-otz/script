@@ -43,8 +43,7 @@ on:
         type: boolean
 
   schedule:
-    - cron: '0 19 * * *'
-      timezone: Asia/Shanghai
+    - cron: '30 21 */3 * *'
 
 jobs:
   delete_runs:
