@@ -61,5 +61,11 @@ jobs:
           keep_minimum_runs: ${{ inputs.minimum_runs || 2 }}
           delete_workflow_pattern: ${{ inputs.delete_workflow_pattern || '' }}
           delete_workflow_by_state_pattern: ${{ inputs.delete_workflow_by_state_pattern }}
-          delete_run_by_conclusion_pattern: ${{ inputs.delete_run_by_conclusion_pattern }}
+          # delete_run_by_conclusion_pattern: ${{ inputs.delete_run_by_conclusion_pattern }}
+          delete_run_by_conclusion_pattern: >-
+            ${{
+              startsWith(inputs.delete_run_by_conclusion_pattern, 'Unsuccessful:')
+              && 'action_required,cancelled,failure,skipped'
+              || inputs.delete_run_by_conclusion_pattern
+            }}
           dry_run: ${{ inputs.dry_run || false }}
