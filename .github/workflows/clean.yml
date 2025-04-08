@@ -15,7 +15,7 @@ on:
         description: '目标工作流的名称或文件名（留空则处理全部工作流）'
         required: false
       delete_workflow_by_state_pattern:
-        description: '按状态筛选工作流'
+        description: '按状态筛选工作流 (ALL/active/deleted/disabled_inactivity/disabled_manually)'
         required: true
         default: "ALL"
         type: choice
@@ -26,7 +26,7 @@ on:
           - "disabled_inactivity"
           - "disabled_manually"
       delete_run_by_conclusion_pattern:
-        description: '按执行结果筛选要删除的日志'
+        description: '按执行结果筛选 (ALL/action_required/cancelled/failure/skipped/success)'
         required: true
         default: "ALL"
         type: choice
@@ -40,6 +40,7 @@ on:
       dry_run:
         description: '模拟运行（不会实际删除）'
         required: false
+        type: boolean
 
   schedule:
     - cron: '0 19 * * *'
@@ -60,9 +61,5 @@ jobs:
           keep_minimum_runs: ${{ github.event.inputs.minimum_runs || 1 }}
           delete_workflow_pattern: ${{ github.event.inputs.delete_workflow_pattern || '' }}
           delete_workflow_by_state_pattern: ${{ github.event.inputs.delete_workflow_by_state_pattern }}
-          delete_run_by_conclusion_pattern: ${{ 
-            startsWith(github.event.inputs.delete_run_by_conclusion_pattern, 'Unsuccessful:') 
-            && 'action_required,cancelled,failure,skipped' 
-            || (github.event.inputs.delete_run_by_conclusion_pattern || 'ALL') 
-          }}
+          delete_run_by_conclusion_pattern: ${{ github.event.inputs.delete_run_by_conclusion_pattern == 'ALL' && 'ALL' || github.event.inputs.delete_run_by_conclusion_pattern }}
           dry_run: ${{ github.event.inputs.dry_run || false }}
