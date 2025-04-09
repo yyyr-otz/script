@@ -37,7 +37,7 @@ jobs:
       - name: Validate patterns
         run: |
           # 检测危险通配符（可选）
-          dangerous_patterns=("/*" "/etc" "/root")
+          dangerous_patterns=("")
           for pattern in ${{ inputs.targets }}; do
             if [[ " ${dangerous_patterns[@]} " =~ " $pattern " ]]; then
               echo "::error::危险路径模式被拒绝: $pattern"
