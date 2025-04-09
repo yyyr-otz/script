@@ -6,11 +6,11 @@ on:
       days:
         description: '保留日志的天数'
         required: true
-        default: '0.5'
+        default: '0.1'
       minimum_runs:
         description: '最少保留的运行记录数'
         required: true
-        default: '2'
+        default: '1'
       delete_workflow_pattern:
         description: '目标工作流的名称或文件名（留空则处理所有工作流）'
         required: false
@@ -40,7 +40,6 @@ on:
       dry_run:
         description: '模拟运行（不会实际删除）'
         required: false
-        type: boolean
 
   schedule:
     - cron: '0 22 */3 * *'
@@ -57,8 +56,8 @@ jobs:
         with:
           token: ${{ github.token }}  # 使用正确的Token
           repository: ${{ github.repository }}
-          retain_days: ${{ inputs.days || 0.5 }}
-          keep_minimum_runs: ${{ inputs.minimum_runs || 2 }}
+          retain_days: ${{ inputs.days || 0.1 }}
+          keep_minimum_runs: ${{ inputs.minimum_runs || 1 }}
           delete_workflow_pattern: ${{ inputs.delete_workflow_pattern || '' }}
           delete_workflow_by_state_pattern: ${{ inputs.delete_workflow_by_state_pattern }}
           # delete_run_by_conclusion_pattern: ${{ inputs.delete_run_by_conclusion_pattern }}
