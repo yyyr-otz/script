@@ -14,7 +14,8 @@ on:
         default: '*.md LICENSE .github/ .git/'
 
 permissions:
-  contents: write  # 必须包含写入权限
+  contents: write
+  pull-requests: write
 
 jobs:
   path-cleaner:
@@ -24,17 +25,104 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true  # 关键配置：保持认证信息
+          persist-credentials: true
           fetch-depth: 0
 
-      # ... (其他步骤保持不变)
+      - name: 初始化环境
+        run: |
+          shopt -s globstar extglob nullglob
+          echo "::add-mask::${{ inputs.targets }}"
+
+      - name: 设置保护列表
+        id: whitelist
+        run: |
+          declare -a patterns=()
+          IFS=' ' read -ra input_patterns <<< "${{ inputs.whitelist }}"
+          patterns+=("${input_patterns[@]}")
+          
+          printf "%s\n" "${patterns[@]}" > .whitelist
+          echo "保护模式清单："
+          cat .whitelist
+
+      - name: 执行清理
+        id: cleaner
+        run: |
+          set +e  # 禁用自动错误退出
+
+          handle_error() {
+            echo "❌ 错误发生在: $1 (代码:$2)"
+            ((error_count++))
+            return 0
+          }
+
+          is_protected() {
+            while IFS= read -r pattern; do
+              case "${1#./}" in  # 统一去除路径前缀
+                $pattern) return 0 ;;
+              esac
+            done < .whitelist
+            return 1
+          }
+
+          total_deleted=0
+          error_count=0
+          protected_count=0
+
+          IFS=' ' read -ra targets <<< "${{ inputs.targets }}"
+          for pattern in "${targets[@]}"; do
+            echo "::group::🔄 处理模式: $pattern"
+            
+            # 使用安全匹配模式
+            matches=()
+            while IFS= read -r -d '' path; do
+              matches+=("$path")
+            done < <(find . -wholename "*$pattern" -print0 2>/dev/null)
+
+            if [ ${#matches[@]} -eq 0 ]; then
+              echo "ℹ️ 无匹配项: $pattern"
+            else
+              for path in "${matches[@]}"; do
+                normalized_path="${path#./}"
+                normalized_path="${normalized_path%/}"
+
+                if is_protected "$normalized_path"; then
+                  echo "🛡️ 保护跳过: $normalized_path"
+                  ((protected_count++))
+                  continue
+                fi
+
+                if [ -e "$path" ]; then
+                  if rm -rfv "$path"; then
+                    ((total_deleted++))
+                    echo "✅ 已清理: $path"
+                  else
+                    handle_error "$path" $?
+                  fi
+                else
+                  echo "⚠️  幽灵路径: $path"
+                fi
+              done
+            fi
+            echo "::endgroup::"
+          done
+
+          echo "total_deleted=$total_deleted" >> $GITHUB_OUTPUT
+          echo "error_count=$error_count" >> $GITHUB_OUTPUT
+          echo "protected_count=$protected_count" >> $GITHUB_OUTPUT
+
+          # 智能退出状态管理
+          if [ $error_count -gt 0 ]; then
+            echo "::warning::完成清理但存在 $error_count 个错误"
+            exit 0  # 强制返回成功状态
+          else
+            exit 0
+          fi
 
       - name: 提交变更
         if: always() && steps.cleaner.outputs.total_deleted > 0
         run: |
           # 配置Git认证信息
           remote_repo="https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
-          
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git remote set-url origin "$remote_repo"
@@ -42,9 +130,24 @@ jobs:
           if ! git diff --quiet; then
             git add -A
             commit_msg="chore: 自动清理 (删除 ${{ steps.cleaner.outputs.total_deleted }} 项)"
+            echo "提交信息: $commit_msg"
             git commit -m "${commit_msg}"
-            git push origin HEAD:${GITHUB_REF#refs/heads/}  # 推送到当前分支
+            git push --verbose 2>&1 | tee push.log
+            if [ $? -ne 0 ]; then
+              echo "::error::推送失败，日志如下："
+              cat push.log
+              exit 1
+            fi
             echo "🚀 变更已推送"
           else
             echo "🟢 无文件变更"
           fi
+
+      - name: 最终报告
+        if: always()
+        run: |
+          echo "::group::📊 最终统计"
+          echo "🗑️ 成功删除: ${{ steps.cleaner.outputs.total_deleted }}"
+          echo "🛡️ 保护跳过: ${{ steps.cleaner.outputs.protected_count }}"
+          echo "❌ 操作错误: ${{ steps.cleaner.outputs.error_count }}"
+          echo "::endgroup::"
