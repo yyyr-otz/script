@@ -67,4 +67,5 @@ jobs:
               && 'action_required,cancelled,failure,skipped'
               || inputs.delete_run_by_conclusion_pattern
             }}
-          dry_run: ${{ inputs.dry_run || false }}
+          #dry_run: ${{ inputs.dry_run || false }}
+          dry_run: ${{ github.event.inputs.dry_run }}
