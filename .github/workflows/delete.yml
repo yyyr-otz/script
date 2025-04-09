@@ -1,18 +1,17 @@
-name: 删除文件
-run-name: ${{ github.actor }} 正在删除指定文件
+name: 安全文件清理
+run-name: ${{ github.actor }} 正在执行清理
 on:
   workflow_dispatch:
     inputs:
       targets:
-        description: '待删除路径（空格分隔，支持通配符）'
+        description: '待清理路径（空格分隔，支持通配符）'
         required: true
         type: string
-        #example: '*.txt *.log temp/'
       whitelist:
-        description: '白名单路径（空格分隔，支持通配符）'
+        description: '保护路径（空格分隔，支持通配符）'
         required: false
         type: string
-        default: '*.md LICENSE .github/'
+        default: '*.md LICENSE .github/ .git/'
 
 permissions:
   contents: write
@@ -21,104 +20,130 @@ jobs:
   path-cleaner:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: 检出仓库
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: false
 
-      - name: Set up environment
+      - name: 初始化环境
         run: |
-          # 启用高级通配符功能
           shopt -s globstar extglob nullglob
-          # 屏蔽敏感信息
           echo "::add-mask::${{ inputs.targets }}"
 
-      - name: Define whitelist
+      - name: 设置保护列表
+        id: whitelist
         run: |
-          declare -a whitelist=()
-          # 处理默认白名单
-          IFS=' ' read -ra default_whitelist <<< "${{ inputs.whitelist }}"
-          whitelist+=("${default_whitelist[@]}")
-          # 将白名单写入环境变量
-          echo "whitelist=${whitelist[*]}" >> $GITHUB_ENV
+          declare -a patterns=()
+          IFS=' ' read -ra input_patterns <<< "${{ inputs.whitelist }}"
+          patterns+=("${input_patterns[@]}")
+          
+          # 生成保护路径清单文件
+          printf "%s\n" "${patterns[@]}" > .whitelist
+          echo "保护模式清单："
+          cat .whitelist
 
-      - name: Delete paths
+      - name: 执行清理
+        id: cleaner
         run: |
-          # 函数：检查路径是否在白名单中
-          is_protected() {
-            local path=$1
-            for pattern in "${whitelist[@]}"; do
-              case "$path" in
-                $pattern) return 0 ;;  # 匹配成功，路径受保护
-              esac
-            done
-            return 1  # 未匹配，路径不被保护
+          # 错误处理函数
+          handle_error() {
+            echo "❌ 错误发生在: $1 (代码:$2)"
+            ((error_count++))
+            return 0  # 继续执行后续操作
           }
 
-          # 从输入中获取要删除的路径列表
-          IFS=' ' read -ra targets <<< "${{ inputs.targets }}"
-          deleted_count=0
-          error_count=0
+          # 路径保护检查
+          is_protected() {
+            while IFS= read -r pattern; do
+              case "$1" in
+                $pattern) return 0 ;;
+              esac
+            done < .whitelist
+            return 1
+          }
 
+          # 状态变量初始化
+          total_deleted=0
+          error_count=0
+          protected_count=0
+
+          # 主处理循环
+          IFS=' ' read -ra targets <<< "${{ inputs.targets }}"
           for pattern in "${targets[@]}"; do
-            echo "::group::🔍 处理模式: $pattern"
+            echo "::group::🔄 处理模式: $pattern"
             
-            # 获取匹配项，使用nullglob处理无匹配情况
-            matches=($pattern)
-            
+            # 获取匹配项（安全模式）
+            matches=()
+            while IFS= read -r -d $'\0'; do
+              matches+=("$REPLY")
+            done < <(find . -path "./.git" -prune -o -name "$pattern" -print0)
+
             if [ ${#matches[@]} -eq 0 ]; then
               echo "ℹ️ 无匹配项: $pattern"
-              echo "::endgroup::"
-              continue
-            fi
+            else
+              for path in "${matches[@]}"; do
+                # 标准化路径格式
+                normalized_path="${path#./}"
+                normalized_path="${normalized_path%/}"
 
-            for match in "${matches[@]}"; do
-              # 标准化路径格式，去除末尾斜杠
-              normalized_match="${match%/}"
-              
-              # 检查是否在白名单中
-              if is_protected "$normalized_match"; then
-                echo "🛡️ 受保护: $match"
-                continue
-              fi
-
-              # 检查路径是否存在
-              if [ -e "$match" ]; then
-                # 尝试删除，使用-v参数显示详细信息
-                if rm -rfv "$match"; then
-                  ((deleted_count++))
-                  echo "✅ 删除成功: $match"
-                else
-                  ((error_count++))
-                  echo "❌ 删除失败: $match (错误码: $?)" >&2
+                if is_protected "$normalized_path"; then
+                  echo "🛡️ 保护跳过: $normalized_path"
+                  ((protected_count++))
+                  continue
                 fi
-              else
-                echo "⚠️  路径不存在: $match"
-              fi
-            done
-            
+
+                if [ -e "$path" ]; then
+                  if rm -rfv "$path"; then
+                    echo "✅ 已清理: $path"
+                    ((total_deleted++))
+                  else
+                    handle_error "$path" $?
+                  fi
+                else
+                  echo "⚠️  幽灵路径: $path"
+                fi
+              done
+            fi
             echo "::endgroup::"
           done
 
-          # 输出汇总报告
-          echo "::group::📊 执行结果"
-          echo "🗑️ 成功删除: $deleted_count 项"
-          echo "❌ 失败操作: $error_count 项"
-          [ $error_count -gt 0 ] && exit 1  # 有错误时返回非零状态码
-          echo "::endgroup::"
+          # 生成状态报告
+          echo "total_deleted=$total_deleted" >> $GITHUB_OUTPUT
+          echo "error_count=$error_count" >> $GITHUB_OUTPUT
+          echo "protected_count=$protected_count" >> $GITHUB_OUTPUT
 
-      - name: Commit and push
-        if: success()
+          # 根据错误状态退出
+          if [ $error_count -gt 0 ]; then
+            echo "::warning::完成清理但存在 $error_count 个错误"
+            exit 0  # 允许继续后续步骤
+          fi
+
+      - name: 提交变更
+        if: always() && steps.cleaner.outputs.total_deleted > 0
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           
-          # 检测变更
-          if git diff --quiet; then
-            echo "🟢 未检测到变更"
-          else
-            git add --all
-            git commit -m "chore: 自动清理 (${{ github.run_id }})"
+          if ! git diff --quiet; then
+            git add -A
+            commit_msg="chore: 自动清理 (删除 ${{ steps.cleaner.outputs.total_deleted }} 项)"
+            git commit -m "${commit_msg}"
             git push
-            echo "🚀 变更已推送"
+            echo "🚀 已提交 ${{ steps.cleaner.outputs.total_deleted }} 项变更"
+          else
+            echo "🟢 无实际变更需要提交"
+          fi
+
+      - name: 最终报告
+        if: always()
+        run: |
+          echo "::group::📊 最终统计"
+          echo "🗑️ 成功删除: ${{ steps.cleaner.outputs.total_deleted }}"
+          echo "🛡️ 保护跳过: ${{ steps.cleaner.outputs.protected_count }}"
+          echo "❌ 操作错误: ${{ steps.cleaner.outputs.error_count }}"
+          echo "::endgroup::"
+          
+          if ${{ steps.cleaner.outputs.error_count > 0 }}; then
+            echo "::warning::存在 ${{ steps.cleaner.outputs.error_count }} 个非致命错误"
           fi
