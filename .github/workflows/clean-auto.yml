@@ -1,0 +1,20 @@
+name: 自动清除日志
+run-name: ${{ github.actor }} 正在按计划清除工作流
+on:
+  schedule:
+    - cron: '30 22 */3 * *' # 每2天在北京时间6:30清理
+  workflow_dispatch:
+
+jobs:
+  del_runs:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0.1
+          keep_minimum_runs: 1
