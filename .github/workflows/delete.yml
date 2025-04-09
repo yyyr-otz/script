@@ -1,4 +1,3 @@
-
 name: 删除文件
 run-name: ${{ github.actor }} 正在删除指定文件
 on:
@@ -8,6 +7,7 @@ on:
         description: '待删除路径（空格分隔，支持通配符）'
         required: true
         type: string
+        #example: '*.txt *.log temp/'
       whitelist:
         description: '白名单路径（空格分隔，支持通配符）'
         required: false
@@ -28,8 +28,10 @@ jobs:
 
       - name: Set up environment
         run: |
+          # 启用高级通配符功能
           shopt -s globstar extglob nullglob
-          echo "::add-mask::${{ inputs.targets }}"  # 屏蔽敏感信息
+          # 屏蔽敏感信息
+          echo "::add-mask::${{ inputs.targets }}"
 
       - name: Define whitelist
         run: |
@@ -37,23 +39,23 @@ jobs:
           # 处理默认白名单
           IFS=' ' read -ra default_whitelist <<< "${{ inputs.whitelist }}"
           whitelist+=("${default_whitelist[@]}")
-          
           # 将白名单写入环境变量
           echo "whitelist=${whitelist[*]}" >> $GITHUB_ENV
 
       - name: Delete paths
         run: |
-          # 增强白名单检查函数
+          # 函数：检查路径是否在白名单中
           is_protected() {
             local path=$1
             for pattern in "${whitelist[@]}"; do
               case "$path" in
-                $pattern) return 0 ;;
+                $pattern) return 0 ;;  # 匹配成功，路径受保护
               esac
             done
-            return 1
+            return 1  # 未匹配，路径不被保护
           }
 
+          # 从输入中获取要删除的路径列表
           IFS=' ' read -ra targets <<< "${{ inputs.targets }}"
           deleted_count=0
           error_count=0
@@ -61,7 +63,7 @@ jobs:
           for pattern in "${targets[@]}"; do
             echo "::group::🔍 处理模式: $pattern"
             
-            # 获取匹配项（已处理空匹配）
+            # 获取匹配项，使用nullglob处理无匹配情况
             matches=($pattern)
             
             if [ ${#matches[@]} -eq 0 ]; then
@@ -71,21 +73,24 @@ jobs:
             fi
 
             for match in "${matches[@]}"; do
-              # 标准化路径格式
+              # 标准化路径格式，去除末尾斜杠
               normalized_match="${match%/}"
               
+              # 检查是否在白名单中
               if is_protected "$normalized_match"; then
                 echo "🛡️ 受保护: $match"
                 continue
               fi
 
+              # 检查路径是否存在
               if [ -e "$match" ]; then
+                # 尝试删除，使用-v参数显示详细信息
                 if rm -rfv "$match"; then
                   ((deleted_count++))
                   echo "✅ 删除成功: $match"
                 else
                   ((error_count++))
-                  echo "❌ 删除失败: $match (错误码 $?)" >&2
+                  echo "❌ 删除失败: $match (错误码: $?)" >&2
                 fi
               else
                 echo "⚠️  路径不存在: $match"
@@ -97,8 +102,8 @@ jobs:
 
           # 输出汇总报告
           echo "::group::📊 执行结果"
-          echo "🗑️ 删除成功总览: $deleted_count 项"
-          echo "❌ 删除失败总览: $error_count 项"
+          echo "🗑️ 成功删除: $deleted_count 项"
+          echo "❌ 失败操作: $error_count 项"
           [ $error_count -gt 0 ] && exit 1  # 有错误时返回非零状态码
           echo "::endgroup::"
 
@@ -108,11 +113,12 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           
-          if ! git diff --quiet; then
-            git add -A
+          # 检测变更
+          if git diff --quiet; then
+            echo "🟢 未检测到变更"
+          else
+            git add --all
             git commit -m "chore: 自动清理 (${{ github.run_id }})"
             git push
             echo "🚀 变更已推送"
-          else
-            echo "🟢 无文件变更"
           fi
