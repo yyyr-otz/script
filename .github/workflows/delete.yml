@@ -12,7 +12,7 @@ on:
         description: '白名单路径（空格分隔，支持通配符）'
         required: false
         type: string
-        default: '*.md LICENSE .github/ .git/'
+        default: '*.md LICENSE .github/'
 
 permissions:
   contents: write
