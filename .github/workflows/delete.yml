@@ -16,7 +16,8 @@ jobs:
     - name: 检出仓库
       uses: actions/checkout@v4
       with:
-        persist-credentials: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+        persist-credentials: true
 
     - name: 设置保护列表
       id: whitelist
