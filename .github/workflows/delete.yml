@@ -1,3 +1,4 @@
+
 name: 删除文件
 run-name: ${{ github.actor }} 正在删除指定文件
 on:
@@ -27,83 +28,91 @@ jobs:
 
       - name: Set up environment
         run: |
-          # 启用高级通配符功能
           shopt -s globstar extglob nullglob
+          echo "::add-mask::${{ inputs.targets }}"  # 屏蔽敏感信息
 
       - name: Define whitelist
         run: |
-          # 定义不允许删除的文件和目录
-          declare -a whitelist=(
-            "README.md"
-            "LICENSE"
-            ".github/"
-          )
-          # 如果用户提供了自定义的白名单，则合并
-          if [ -n "${{ inputs.whitelist }}" ]; then
-            IFS=' ' read -r -a user_whitelist <<< "${{ inputs.whitelist }}"
-            whitelist+=("${user_whitelist[@]}")
-          fi
-
-          # 将whitelist写入环境变量供后续步骤使用
+          declare -a whitelist=()
+          # 处理默认白名单
+          IFS=' ' read -ra default_whitelist <<< "${{ inputs.whitelist }}"
+          whitelist+=("${default_whitelist[@]}")
+          
+          # 将白名单写入环境变量
           echo "whitelist=${whitelist[*]}" >> $GITHUB_ENV
 
       - name: Delete paths
         run: |
-          # 从输入中获取要删除的路径列表
-          IFS=' ' read -r -a paths <<< "${{ inputs.targets }}"
+          # 增强白名单检查函数
+          is_protected() {
+            local path=$1
+            for pattern in "${whitelist[@]}"; do
+              case "$path" in
+                $pattern) return 0 ;;
+              esac
+            done
+            return 1
+          }
 
-          # 读取白名单
-          whitelist=(${whitelist//,/ })
-
-          # 记录开始前的文件系统状态
-          echo "📁 初始工作区内容:"
-          ls -lR
-
-          # 执行删除操作
+          IFS=' ' read -ra targets <<< "${{ inputs.targets }}"
           deleted_count=0
-          for pattern in "${paths[@]}"; do
-            echo "🕵️ 正在进行操作: $pattern"
+          error_count=0
+
+          for pattern in "${targets[@]}"; do
+            echo "::group::🔍 处理模式: $pattern"
             
-            # 查找所有匹配项
-            matches=( $pattern )
+            # 获取匹配项（已处理空匹配）
+            matches=($pattern)
             
             if [ ${#matches[@]} -eq 0 ]; then
-              echo "⚠️  没有与此匹配的项: $pattern"
+              echo "ℹ️ 无匹配项: $pattern"
+              echo "::endgroup::"
               continue
             fi
 
-            # 遍历匹配项
             for match in "${matches[@]}"; do
-              # 检查是否在白名单中
-              if [[ " ${whitelist[*]} " =~ " ${match} " ]]; then
-                echo "🚫 跳过白名单: $match"
+              # 标准化路径格式
+              normalized_match="${match%/}"
+              
+              if is_protected "$normalized_match"; then
+                echo "🛡️ 受保护: $match"
                 continue
               fi
 
               if [ -e "$match" ]; then
-                rm -rf "$match"
-                ((deleted_count++))
-                echo "✅ 成功删除: $match"
+                if rm -rfv "$match"; then
+                  ((deleted_count++))
+                  echo "✅ 删除成功: $match"
+                else
+                  ((error_count++))
+                  echo "❌ 删除失败: $match (错误码 $?)" >&2
+                fi
               else
-                echo "🔍 未找到: $match (after pattern expansion)"
+                echo "⚠️  路径不存在: $match"
               fi
             done
+            
+            echo "::endgroup::"
           done
 
-          echo "🗑️ 已删除项目总览: $deleted_count"
+          # 输出汇总报告
+          echo "::group::📊 执行结果"
+          echo "🗑️ 删除成功总览: $deleted_count 项"
+          echo "❌ 删除失败总览: $error_count 项"
+          [ $error_count -gt 0 ] && exit 1  # 有错误时返回非零状态码
+          echo "::endgroup::"
 
       - name: Commit and push
-        if: always()
+        if: success()
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           
-          # 检测变更
-          if git diff --quiet; then
-            echo "🟢 未检测到变更"
-          else
-            git add --all
-            git commit -m "任务: 自动删除 (${{ github.run_id }})"
+          if ! git diff --quiet; then
+            git add -A
+            git commit -m "chore: 自动清理 (${{ github.run_id }})"
             git push
-            echo "🚀 已成功推送更改"
+            echo "🚀 变更已推送"
+          else
+            echo "🟢 无文件变更"
           fi
