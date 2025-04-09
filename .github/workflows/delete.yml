@@ -1,67 +1,97 @@
 name: 安全文件清理
-on: 
+on:
   workflow_dispatch:
     inputs:
       targets:
         description: '待清理路径（支持 glob 模式）'
         required: true
+      whitelist:
+        description: '保护路径（空格分隔，支持通配符）'
+        default: '*.md LICENSE .github/'
 
 jobs:
   clean:
     runs-on: ubuntu-latest
     steps:
-    - name: 检出代码
+    - name: 检出仓库
       uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
-    - name: 精确路径清理
+    - name: 设置保护列表
+      id: whitelist
       run: |
-        # 路径解析函数
-        parse_pattern() {
-          local pattern=$1
-          local depth=0
-          
-          # 替换连续斜杠并去除首尾斜杠
-          pattern=$(echo "$pattern" | sed 's#//*#/#g; s#^/##; s#/$##')
-          
-          # 计算路径深度
-          IFS='/' read -ra parts <<< "$pattern"
-          for part in "${parts[@]}"; do
-            if [[ $part != *"*"* ]]; then
-              ((depth++))
-            fi
-          done
-          
-          # 生成find参数
-          if [[ $pattern == *"**"* ]]; then
-            echo "-path './${pattern}' -prune"
-          else
-            echo "-path './${pattern}' -maxdepth $((depth+1))"
-          fi
+        # 标准化白名单格式
+        echo "::group::🛡️ 白名单配置"
+        mkdir -p .github/artifacts
+        # 转换输入为每行一个模式
+        echo "${{ inputs.whitelist }}" | tr ' ' '\n' > .whitelist
+        # 添加默认保护项
+        echo -e ".git/\n.github/workflows/" >> .whitelist
+        echo "有效保护模式："
+        cat .whitelist
+        echo "::endgroup::"
+
+    - name: 精确清理
+      run: |
+        set -eo pipefail
+        # 路径检查函数
+        is_protected() {
+          local target_path=$1
+          # 标准化路径格式
+          clean_path="${target_path#./}"
+          clean_path="${clean_path%/}"
+
+          while IFS= read -r pattern; do
+            case "$clean_path" in
+              $pattern) 
+                echo "🛡️ 保护跳过: $clean_path (匹配模式: $pattern)"
+                return 0
+                ;;
+            esac
+          done < .whitelist
+          return 1
         }
 
         # 主清理逻辑
         IFS=',' read -ra patterns <<< "${{ inputs.targets }}"
         for pattern in "${patterns[@]}"; do
-          echo "::group::🔄 处理模式: $pattern"
+          echo "::group::🗑️ 处理模式: $pattern"
           
           # 生成find参数
-          find_args=$(parse_pattern "$pattern")
-          
-          # 执行查找并删除
-          while IFS= read -r -d $'\0' file; do
-            if [ -e "$file" ]; then
-              rm -v "$file"
-            else
-              echo "⚠️ 文件不存在: $file"
+          find_cmd="find . -path './${pattern}'"
+          if [[ $pattern != *"**"* ]]; then
+            depth=$(tr -dc '/' <<< "$pattern" | wc -c)
+            find_cmd+=" -maxdepth $((depth+1))"
+          fi
+
+          # 执行清理
+          while IFS= read -r -d $'\0' path; do
+            if is_protected "$path"; then
+              continue
             fi
-          done < <(find . -name . -o -type d -prune -o \
-            \( $find_args \) -print0)
+
+            if [ -e "$path" ]; then
+              echo "✅ 删除: $path"
+              rm -rf "$path"
+            else
+              echo "⚠️ 路径不存在: $path"
+            fi
+          done < <(eval "$find_cmd -print0")
           
           echo "::endgroup::"
         done
 
     - name: 提交变更
       run: |
-        git add -A
-        git commit -m "清理完成" || echo "无变更可提交"
-        git push
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        
+        if ! git diff --quiet; then
+          git add -A
+          git commit -m "chore: 自动清理"
+          git push
+          echo "变更已提交"
+        else
+          echo "无文件变更"
+        fi
