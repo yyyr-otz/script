@@ -1,0 +1,127 @@
+name: 删除文件
+run-name: ${{ github.actor }} 正在删除指定文件
+on:
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: '待删除路径（空格分隔，支持通配符）'
+        required: true
+        type: string
+      whitelist:
+        description: '白名单路径（空格分隔，支持通配符）'
+        required: false
+        type: string
+        default: '*.md LICENSE .github/ .git/'
+
+permissions:
+  contents: write
+
+jobs:
+  path-cleaner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialize environment
+        run: |
+          # 启用高级通配符功能
+          shopt -s globstar extglob nullglob
+          echo "::group::🔍 初始化参数"
+          echo "删除目标: ${{ inputs.targets }}"
+          echo "白名单: ${{ inputs.whitelist }}"
+          echo "::endgroup::"
+
+      - name: Validate patterns
+        run: |
+          # 检测危险通配符（可选）
+          dangerous_patterns=("/*" "/etc" "/root")
+          for pattern in ${{ inputs.targets }}; do
+            if [[ " ${dangerous_patterns[@]} " =~ " $pattern " ]]; then
+              echo "::error::危险路径模式被拒绝: $pattern"
+              exit 1
+            fi
+          done
+
+      - name: Execute cleanup
+        run: |
+          # 函数：检查是否在白名单
+          is_whitelisted() {
+            local path=$1
+            # 优先检查显式白名单
+            IFS=' ' read -ra whitelist <<< "${{ inputs.whitelist }}"
+            for pattern in "${whitelist[@]}"; do
+              case "$path" in
+                $pattern) return 0 ;;
+              esac
+            done
+            return 1
+          }
+
+          # 主处理逻辑
+          IFS=' ' read -ra targets <<< "${{ inputs.targets }}"
+          total_deleted=0
+          protected_items=()
+
+          for pattern in "${targets[@]}"; do
+            echo "::group::🔄 处理模式: $pattern"
+            matches=($pattern)
+            
+            if [ ${#matches[@]} -eq 0 ]; then
+              echo "⚠️  无匹配项: $pattern"
+              echo "::endgroup::"
+              continue
+            fi
+
+            for match in "${matches[@]}"; do
+              if is_whitelisted "$match"; then
+                protected_items+=("$match")
+                continue
+              fi
+
+              # 递归检查父目录是否在白名单
+              parent="$match"
+              while parent=$(dirname "$parent") && [ "$parent" != "." ]; do
+                if is_whitelisted "$parent"; then
+                  protected_items+=("$match → 父目录受保护: $parent")
+                  continue 2
+                fi
+              done
+
+              # 执行删除
+              if [ -e "$match" ]; then
+                rm -rf "$match" && {
+                  ((total_deleted++))
+                  echo "✅ 已删除: $match"
+                } || echo "❌ 删除失败: $match"
+              else
+                echo "🔍 路径不存在: $match"
+              fi
+            done
+            echo "::endgroup::"
+          done
+
+          # 输出汇总报告
+          echo "::group::📊 执行报告"
+          echo "🗑️ 已删除项目: $total_deleted"
+          if [ ${#protected_items[@]} -gt 0 ]; then
+            echo "🛡️ 受保护项目:"
+            printf '  - %s\n' "${protected_items[@]}"
+          fi
+          echo "::endgroup::"
+
+      - name: Commit changes
+        if: success()
+        run: |
+          if ! git diff --quiet; then
+            git config --global user.name "GitHub Actions"
+            git config --global user.email "actions@github.com"
+            git add --all
+            git commit -m "chore: 安全清理 (工作流 #${{ github.run_id }})"
+            git push
+            echo "🚀 变更已提交"
+          else
+            echo "🟢 无文件变更"
+          fi
