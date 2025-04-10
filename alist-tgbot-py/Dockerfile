@@ -56,7 +56,7 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then \
     fi
 
 # 第二阶段：运行时镜像
-FROM --platform=$TARGETPLATFORM alpine:3.21 AS runner  # 使用稳定版本
+FROM --platform=$TARGETPLATFORM alpine:3.21 AS runner
 RUN apk add --no-cache libstdc++
 COPY --from=builder /app/dist/alist-tgbot-py /app/
 ENTRYPOINT ["/app/alist-tgbot-py"]
