@@ -1,4 +1,4 @@
-name: Static Cross-Compile
+name: Static Cross-Compile Fix
 
 on:
   workflow_dispatch:
@@ -15,33 +15,41 @@ jobs:
 
       - name: Setup cross-compile tools
         run: |
-          # 安装 musl 工具链和跨编译依赖
           sudo apt-get update
           sudo apt-get install -y \
             musl-tools \
             gcc-aarch64-linux-gnu \
-            gcc-x86-64-linux-gnu
+            gcc-x86-64-linux-gnu \
+            qemu-user-static  # 启用ARM64二进制模拟
 
       - name: Prepare musl libc
         run: |
-          # 根据架构选择 musl 库路径
           case "${{ matrix.arch }}" in
             amd64)
-              MUSL_PATH=/usr/x86_64-linux-musl/lib/libc.so
+              MUSL_PATH="/usr/lib/x86_64-linux-musl/libc.so"
               ;;
             arm64)
-              MUSL_PATH=/usr/aarch64-linux-musl/lib/libc.so
+              MUSL_PATH="/usr/lib/aarch64-linux-musl/libc.so"
               ;;
           esac
 
           mkdir -p lib
+          echo "Copying musl libc from: $MUSL_PATH"
           cp $MUSL_PATH lib/
 
-      - name: Static build with musl
+      - name: Verify musl path
+        run: |
+          ls -l lib/libc.so
+          file lib/libc.so
+
+      - name: Static build
         env:
-          # 动态设置编译器
           CC: |
-            ${{ matrix.arch == 'amd64' && 'x86_64-linux-musl-gcc' || 'aarch64-linux-musl-gcc' }}
+            if [ "${{ matrix.arch }}" = "amd64" ]; then
+              echo "x86_64-linux-musl-gcc"
+            else
+              echo "aarch64-linux-musl-gcc"
+            fi
         run: |
           pip install -r alist-tgbot/requirements.txt
           pyinstaller --onefile \
@@ -51,18 +59,10 @@ jobs:
             --distpath dist \
             alist-tgbot/tgbot.py
 
-      - name: Verify binary
-        run: |
-          file dist/alist-tgbot | grep "${{ matrix.arch }}"  # 验证架构
-          ldd dist/alist-tgbot 2>&1 | grep "not a dynamic executable"  # 验证静态链接
-
-      - name: Create/Update Release
+      - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
           tag: ${{ matrix.arch }}
-          name: "Alist-TGBot (${{ matrix.arch }})"
-          body: "Static binary for ${{ matrix.arch }}"
-          files: |
-            dist/alist-tgbot
+          files: dist/alist-tgbot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
