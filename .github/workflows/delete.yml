@@ -21,6 +21,8 @@ jobs:
     - name: 检出代码库
       uses: actions/checkout@v4
       with:
+        ref: ${{ github.ref }}
+        fetch-depth: 0
         persist-credentials: true
 
     - name: 初始化保护
@@ -32,12 +34,11 @@ jobs:
         echo "🛡️ 生效白名单："
         cat .whitelist
 
+
     - name: 安全清理
       id: cleaner
-      env:
-        GIT_TRACE: 0
       run: |
-        set +eo pipefail  # 禁用所有错误中断
+        set +eo pipefail
         
         total=0
         IFS=',' read -ra patterns <<< "${{ github.event.inputs.targets }}"
@@ -74,22 +75,24 @@ jobs:
         echo "total_deleted=$total" >> $GITHUB_OUTPUT
         rm -f .whitelist
         
-        exit 0  # 强制返回成功状态
+        git add -u .
+        git reset --hard HEAD
+
+        exit 0
 
 
     - name: 智能提交
-      if: success() || failure()
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        git config --global user.name "自动清理机器人"
-        git config --global user.email "auto-cleanup@users.noreply.github.com"
-        
-        # 检查是否有需要提交的更改
-        if git status --porcelain | grep -q '^[MADRC]'; then
+        echo "::group::🔄 Git 状态诊断"
+        git status -vv
+        git ls-files --deleted
+        echo "::endgroup::"
+
+        if ! git diff-index --quiet HEAD --; then
           commit_msg="chore: 自动清理 (${{ steps.cleaner.outputs.total_deleted }}项)"
           
           git add -A
+          git commit -m "$commit_msg"
           if git commit -m "$commit_msg"; then
             # 带重试的推送逻辑
             max_retries=3
