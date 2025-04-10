@@ -22,9 +22,10 @@ from telegram.constants import ParseMode, ChatAction
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 # 加载 .env 文件中的环境变量
 #load_dotenv()
-from pathlib import Path
-script_dir = Path(__file__).parent.absolute()
-env_path = script_dir / '.env'
+# 获取脚本所在目录的绝对路径
+script_dir = os.path.dirname(os.path.abspath(__file__))
+env_path = os.path.join(script_dir, '.env')
+# 加载 .env 文件
 load_dotenv(env_path)
 # 配置日志
 logging.basicConfig(
