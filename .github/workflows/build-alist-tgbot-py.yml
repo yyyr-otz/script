@@ -1,4 +1,4 @@
-name: Static Build (alist-tgbot-py)
+name: Static Cross-Compile
 
 on:
   workflow_dispatch:
@@ -6,40 +6,63 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install musl toolchain
+      - name: Setup cross-compile tools
         run: |
+          # 安装 musl 工具链和跨编译依赖
           sudo apt-get update
-          sudo apt-get install -y musl-tools python3-pip
+          sudo apt-get install -y \
+            musl-tools \
+            gcc-aarch64-linux-gnu \
+            gcc-x86-64-linux-gnu
 
-      - name: Prepare libc.so
+      - name: Prepare musl libc
         run: |
-          # 将 musl 的 libc.so 复制到项目目录
+          # 根据架构选择 musl 库路径
+          case "${{ matrix.arch }}" in
+            amd64)
+              MUSL_PATH=/usr/x86_64-linux-musl/lib/libc.so
+              ;;
+            arm64)
+              MUSL_PATH=/usr/aarch64-linux-musl/lib/libc.so
+              ;;
+          esac
+
           mkdir -p lib
-          cp /usr/lib/x86_64-linux-musl/libc.so lib/
+          cp $MUSL_PATH lib/
 
-      - name: Build with musl-gcc
+      - name: Static build with musl
         env:
-          CC: musl-gcc  # 强制使用 musl 编译器
+          # 动态设置编译器
+          CC: |
+            ${{ matrix.arch == 'amd64' && 'x86_64-linux-musl-gcc' || 'aarch64-linux-musl-gcc' }}
         run: |
-          pip install pyinstaller
+          pip install -r alist-tgbot/requirements.txt
           pyinstaller --onefile \
             --name alist-tgbot \
-            --add-binary "lib/libc.so:." \  # 关键：使用相对路径
+            --add-binary "lib/libc.so:." \
             --workpath build \
             --distpath dist \
             alist-tgbot/tgbot.py
 
-      - name: Verify static binary
+      - name: Verify binary
         run: |
-          ldd dist/alist-tgbot | grep "not a dynamic executable" || (echo "Binary is not static!"; exit 1)
+          file dist/alist-tgbot | grep "${{ matrix.arch }}"  # 验证架构
+          ldd dist/alist-tgbot 2>&1 | grep "not a dynamic executable"  # 验证静态链接
 
-      - name: Upload to Releases
+      - name: Create/Update Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag: ${{ matrix.arch }}
+          name: "Alist-TGBot (${{ matrix.arch }})"
+          body: "Static binary for ${{ matrix.arch }}"
+          files: |
+            dist/alist-tgbot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "static" --title "Static Build" --notes "Musl-compiled binary" || true
-          gh release upload "static" dist/alist-tgbot --clobber
