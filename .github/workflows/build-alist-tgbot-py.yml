@@ -9,6 +9,7 @@ jobs:
     strategy:
       matrix:
         arch: [amd64, arm64]
+        alpine_version: ["3.21"]
       fail-fast: false 
     steps:
       - name: Checkout code
@@ -36,6 +37,7 @@ jobs:
           outputs: type=local,dest=./dist/linux_${{ matrix.arch }}
           build-args: |
             TARGETPLATFORM=linux/${{ matrix.arch }}
+            ALPINE_VERSION=${{ matrix.alpine_version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
