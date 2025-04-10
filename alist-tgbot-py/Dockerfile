@@ -11,37 +11,47 @@ COPY --from=xx / /
 ARG TARGETPLATFORM
 ENV XX_TARGETPLATFORM=$TARGETPLATFORM
 
-# 动态设置命令前缀
-ARG REPO_URL=http://dl-cdn.alpinelinux.org/alpine/latest-stable
-RUN \
-  if [ "$TARGETARCH" = "arm64" ]; then \
-    PKG_MANAGER="xx-apk --arch arm64 --repository $REPO_URL/main --repository $REPO_URL/community"; \
-    PIP_CMD="xx-pip"; \
-  else \
-    PKG_MANAGER="apk --no-cache"; \
-    PIP_CMD="pip"; \
-  fi && \
-  # 安装系统依赖
-  $PKG_MANAGER add gcc musl-dev python3-dev py3-pip
+# 安装基础依赖
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      xx-apk update --arch arm64 --repository http://dl-cdn.alpinelinux.org/alpine/latest-stable/main && \
+      xx-apk add --arch arm64 \
+        gcc \
+        musl-dev \
+        python3-dev \
+        py3-pip \
+        --repository http://dl-cdn.alpinelinux.org/alpine/latest-stable/main \
+        --repository http://dl-cdn.alpinelinux.org/alpine/latest-stable/community; \
+    else \
+      apk add --no-cache gcc musl-dev python3-dev py3-pip; \
+    fi
 
 # 安装 Python 依赖
 WORKDIR /app
 COPY alist-tgbot-py/requirements.txt .
-RUN echo "PIP_CMD is: $PIP_CMD" && \
-    $PIP_CMD install --no-cache-dir -r requirements.txt
+RUN xx-pip install --no-cache-dir -r requirements.txt
 
 # 构建二进制文件
-ARG PYINSTALLER_ARGS=--onefile --name alist-tgbot-py --workpath /app/build --distpath /out
 COPY alist-tgbot-py/tgbot.py .
-RUN mkdir -p /out && \
-    $PIP_CMD install pyinstaller && \
-    if [ "$TARGETARCH" = "arm64" ]; then \
-      xx-pyinstaller $PYINSTALLER_ARGS tgbot.py; \
+RUN mkdir -p /out
+
+# 安装 PyInstaller 并构建可执行文件
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      xx-pip install pyinstaller && \
+      xx-pyinstaller --onefile \
+        --name alist-tgbot-py \
+        --workpath /app/build \
+        --distpath /out \
+        tgbot.py; \
     else \
-      pyinstaller $PYINSTALLER_ARGS tgbot.py; \
+      pip install pyinstaller && \
+      pyinstaller --onefile \
+        --name alist-tgbot-py \
+        --workpath /app/build \
+        --distpath /out \
+        tgbot.py; \
     fi
 
-# 验证产物静态兼容性
+# 验证产物兼容性
 RUN xx-verify --static /out/alist-tgbot-py
 
 # 第二阶段：运行时镜像
