@@ -22,8 +22,11 @@ ENV VENV_PATH="/app/venv" \
 
 WORKDIR /app
 
-# 创建虚拟环境（无需 py3-venv 包）
-RUN python3 -m venv $VENV_PATH
+# 创建虚拟环境并获取 Python 版本
+RUN python3 -m venv $VENV_PATH && \
+    echo "Python 版本: $(python3 --version)" && \
+    export PYTHON_VER=$(python3 -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}')") && \
+    echo "Python 库路径: $VENV_PATH/lib/$PYTHON_VER/site-packages"
 
 # 复制并安装依赖
 COPY alist-tgbot-py/requirements.txt .
@@ -32,13 +35,14 @@ RUN pip install --no-cache-dir --no-deps -r requirements.txt
 # 复制源码
 COPY alist-tgbot-py/tgbot.py .
 
-# 静态编译二进制
+# 静态编译二进制（动态生成路径）
 RUN pip install pyinstaller && \
+    export PYTHON_VER=$(python3 -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}')") && \
     pyinstaller --onefile \
       --name alist-tgbot-py \
       --workpath /tmp/build \
       --distpath /app/dist \
-      --add-data "$VENV_PATH/lib/python3.11/site-packages:." \
+      --add-data "$VENV_PATH/lib/$PYTHON_VER/site-packages:." \
       tgbot.py
 
 # 第二阶段：最小化运行时镜像
