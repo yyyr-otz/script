@@ -1,6 +1,10 @@
 name: Linux Cross-Compile
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release版本号'
+        required: true
 jobs:
   build:
     runs-on: ubuntu-latest
