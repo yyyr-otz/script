@@ -11,7 +11,6 @@ jobs:
         include:
           - arch: amd64
             triplet: x86_64-linux-gnu
-            gcc_version: 11
           - arch: arm64
             triplet: aarch64-linux-gnu
       fail-fast: false
