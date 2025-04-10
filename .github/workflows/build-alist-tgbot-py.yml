@@ -8,15 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        arch: [amd64, arm64]
         include:
           - arch: amd64
             triplet: x86_64-linux-gnu
-            dpkg_arch: amd64
-            gcc_path: /usr/bin/x86_64-linux-gnu-gcc-11  # 实际存在的编译器路径
           - arch: arm64
             triplet: aarch64-linux-gnu
-            dpkg_arch: arm64
-            gcc_path: /usr/bin/aarch64-linux-gnu-gcc-11
       fail-fast: false
 
     steps:
@@ -28,32 +25,22 @@ jobs:
       - name: Setup Multiarch Toolchain
         run: |
           # 启用目标架构支持
-          sudo dpkg --add-architecture ${{ matrix.dpkg_arch }}
+          sudo dpkg --add-architecture ${{ matrix.arch }}
           sudo add-apt-repository -y universe
           sudo apt-get update
 
-          # 安装工具链（自动处理符号链接）
+          # 安装基础编译工具
           sudo apt-get install -y \
             build-essential \
-            crossbuild-essential-${{ matrix.dpkg_arch }} \
-            binutils-${{ matrix.triplet }} \
+            crossbuild-essential-${{ matrix.arch }} \
             musl-dev \
             patchelf \
             file \
             python3-dev
 
-          # 仅当目标编译器存在时配置alternatives
-          if [ -f "${{ matrix.gcc_path }}" ]; then
-            sudo update-alternatives --install \
-              /usr/bin/${{ matrix.triplet }}-gcc \
-              ${{ matrix.triplet }}-gcc \
-              ${{ matrix.gcc_path }} 100
-
-            sudo update-alternatives --install \
-              /usr/bin/${{ matrix.triplet }}-g++ \
-              ${{ matrix.triplet }}-g++ \
-              ${${ matrix.gcc_path }/gcc/g++} 100
-          fi
+          # 验证工具链安装
+          which ${{ matrix.triplet }}-gcc
+          which ${{ matrix.triplet }}-g++
 
       - name: Setup Python
         uses: actions/setup-python@v4
