@@ -29,8 +29,8 @@ ENV PATH="/app/venv/bin:$PATH"
 COPY requirements.txt .
 RUN pip install --no-cache-dir --no-deps -r requirements.txt && \
     pip install --no-cache-dir \
-        "pyinstaller==6.12.0" \  # 固定版本
-        "staticx==0.13.0"  # 使用稳定版本
+        "pyinstaller>=6.12.0" \  # 固定版本
+        "staticx>=0.13.0"  # 使用稳定版本
 
 # 复制源码并构建
 COPY tgbot.py .
