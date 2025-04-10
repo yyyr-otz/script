@@ -9,7 +9,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
+      - name: Install dependencies
+        run: |
+          pip install -r alist-tgbot/requirements.txt
+          pip install pyinstaller
+          
       - name: Set up musl toolchain
         run: |
           # 安装 musl 工具链和依赖
