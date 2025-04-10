@@ -26,9 +26,15 @@ jobs:
           outputs: type=local,dest=./dist
 
       - name: Upload to Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag: ${{ matrix.arch }}
-          files: dist/alist-tgbot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 生成唯一 Release 标题
+          RELEASE_TAG="${{ matrix.arch }}"
+          BINARY_PATH="dist/linux_${{ matrix.arch }}/alist-tgbot"
+          
+          # 创建或更新 Release
+          gh release create $RELEASE_TAG \
+            --title "Build for $RELEASE_TAG" \
+            --notes "Static build for ${{ matrix.arch }} architecture" \
+            $BINARY_PATH
