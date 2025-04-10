@@ -1,4 +1,5 @@
 name: Static Build
+
 on:
   workflow_dispatch:
 
@@ -8,7 +9,6 @@ jobs:
     strategy:
       matrix:
         arch: [amd64, arm64]
-        alpine_version: ["3.21"]
       fail-fast: false
 
     steps:
@@ -32,11 +32,10 @@ jobs:
         with:
           platforms: linux/${{ matrix.arch }}
           context: .
-          file: alist-tgbot-py/Dockerfile
+          file: Dockerfile  # 修改为正确的 Dockerfile 路径
           outputs: type=local,dest=./dist/linux_${{ matrix.arch }}
           build-args: |
             TARGETPLATFORM=linux/${{ matrix.arch }}
-            ALPINE_VERSION=${{ matrix.alpine_version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -44,8 +43,9 @@ jobs:
         run: |
           echo "二进制文件架构:"
           file ./dist/linux_${{ matrix.arch }}/alist-tgbot-py
-          echo "动态链接检查:"
-          ldd ./dist/linux_${{ matrix.arch }}/alist-tgbot-py || true
+          echo "依赖检查:"
+          # 静态二进制应该显示 "not a dynamic executable"
+          ldd ./dist/linux_${{ matrix.arch }}/alist-tgbot-py 2>&1 || true
 
       - name: Upload to Release
         env:
