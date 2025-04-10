@@ -10,21 +10,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up static build environment
+      - name: Set up musl toolchain
         run: |
-          # 安装 musl 工具链
-          sudo apt-get install -y musl-tools
+          # 安装 musl 工具链和依赖
+          sudo apt-get update
+          sudo apt-get install -y musl-tools python3-pip
 
       - name: Build with static linking
         run: |
-          # 使用 musl-gcc 替代默认 gcc
+          # 使用 musl-gcc 替代默认 GCC
           export CC=musl-gcc
-          pip install --user pyinstaller
+
+          # 确保将 libc.so 复制到相对路径
+          mkdir -p lib
+          cp /usr/lib/x86_64-linux-musl/libc.so lib/
+
+          # 静态编译并修正路径
           pyinstaller --onefile \
             --name alist-tgbot \
+            --add-binary "lib/libc.so:." \  # 使用相对路径
             --workpath build \
             --distpath dist \
-            --add-binary "/usr/lib/x86_64-linux-musl/libc.so:/lib" \
             alist-tgbot/tgbot.py
 
       - name: Verify static binary
