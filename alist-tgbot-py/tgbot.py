@@ -21,7 +21,11 @@ from telegram import Update
 from telegram.constants import ParseMode, ChatAction
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 # 加载 .env 文件中的环境变量
-load_dotenv()
+#load_dotenv()
+from pathlib import Path
+script_dir = Path(__file__).parent.absolute()
+env_path = script_dir / '.env'
+load_dotenv(env_path)
 # 配置日志
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
