@@ -61,7 +61,13 @@ jobs:
           CFLAGS: "-static -fstack-protector-strong"
         run: |
           cd alist-tgbot-py
-          
+          # 确保使用正确的Python解释器
+          source ../venv/bin/activate
+          which python
+          python --version
+
+          # 显式使用虚拟环境的pip安装Nuitka
+          python -m pip install --upgrade nuitka staticx
           # 显式设置编译器路径
           export PATH="/usr/bin:$PATH"
           
@@ -76,7 +82,7 @@ jobs:
             --standalone \
             --assume-yes-for-downloads \
             --output-dir=./build \
-            --lto=no \  # 禁用LTO优化避免兼容问题
+            --lto=no \
             tgbot.py
 
           # 静态化处理
