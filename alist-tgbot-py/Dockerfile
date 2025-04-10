@@ -1,54 +1,53 @@
 # syntax=docker/dockerfile:1.4
 # 第一阶段：构建环境
-FROM --platform=$TARGETPLATFORM ubuntu:24.04 AS builder
+FROM --platform=$TARGETPLATFORM alpine:3.21 AS builder
 
-# 安装核心依赖
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc \
+# 安装 Zig 编译器和构建工具
+RUN apk add --no-cache \
+    build-base \
     python3-dev \
-    python3-venv \
-    python3-pip \
-    zlib1g-dev \
-    libjpeg-dev \
+    py3-pip \
+    zlib-dev \
     libffi-dev \
-    && rm -rf /var/lib/apt/lists/*
+    jpeg-dev \
+    openssl-dev \
+    musl-dev \
+    zig
 
-# 配置虚拟环境和静态编译
-ENV VENV_PATH="/app/venv" \
-    PATH="/app/venv/bin:$PATH" \
-    PYTHONUNBUFFERED=1 \
-    LDFLAGS="-static"
+# 配置 Zig 为默认编译器
+ENV CC="zig cc" \
+    CXX="zig c++" \
+    LDFLAGS="-static" \
+    CFLAGS="-static" \
+    PYTHONUNBUFFERED=1
 
-WORKDIR /app
+# 创建隔离的虚拟环境
+RUN python3 -m venv /app/venv
+ENV PATH="/app/venv/bin:$PATH"
 
-# 创建虚拟环境并升级工具
-RUN python3 -m venv $VENV_PATH && \
-    pip install --upgrade pip wheel && \
-    echo "Python 版本: $(python3 --version)" && \
-    export PYTHON_VER=$(python3 -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}')") && \
-    echo "Python 库路径: $VENV_PATH/lib/$PYTHON_VER/site-packages"
-
-# 复制并安装依赖
-COPY alist-tgbot-py/requirements.txt .
+# 安装依赖
+COPY requirements.txt .
 RUN pip install --no-cache-dir --no-deps -r requirements.txt
 
-# 复制源码
-COPY alist-tgbot-py/tgbot.py .
+# 安装 PyInstaller 和静态加固工具
+RUN pip install --no-cache-dir \
+    "pyinstaller>=6.12.0" \
+    "staticx>=0.15.0"
 
-# 静态编译二进制
-RUN pip install "pyinstaller>=6.12.0" && \
-    export PYTHON_LIB_PATH=$(python3 -c "import sysconfig; print(sysconfig.get_path('purelib'))") && \
-    pyinstaller --onefile \
-                --name alist-tgbot-py \
-                --workpath /tmp/build \
-                --distpath /app/dist \
-                --add-data "$PYTHON_LIB_PATH:." \
-                --hidden-import='pkg_resources' \
-                tgbot.py
+# 复制源码并打包
+COPY tgbot.py .
+RUN pyinstaller --onefile \
+    --name alist-tgbot-py \
+    --workpath /tmp/build \
+    --distpath /app/dist \
+    --specpath /tmp/spec \
+    --clean \
+    tgbot.py
 
+# 二次静态加固
+RUN staticx /app/dist/alist-tgbot-py /app/dist/alist-tgbot-py-static
 
 # 第二阶段：最小化运行时镜像
 FROM scratch
-COPY --from=builder /app/dist/alist-tgbot-py /
-ENTRYPOINT ["/alist-tgbot-py"]
+COPY --from=builder /app/dist/alist-tgbot-py-static /
+ENTRYPOINT ["/alist-tgbot-py-static"]
