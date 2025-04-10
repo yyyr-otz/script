@@ -1,4 +1,4 @@
-name: Static Cross-Compile Build
+name: Nuitka Static Build
 
 on:
   workflow_dispatch:
@@ -26,86 +26,68 @@ jobs:
         uses: docker/setup-qemu-action@v3
         with:
           platforms: all
-          cache-image: true
 
-      - name: Setup Zig Compiler
+      - name: Setup Zig
         uses: mlugg/setup-zig@v1.2.1
         with:
           version: "0.12.0"
-          use-cache: true
 
-      - name: Install system dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             build-essential \
             python3-dev \
-            python3-pip \
-            python3-venv \
-            zlib1g-dev \
-            libffi-dev \
-            libjpeg-dev \
-            libssl-dev \
-            musl-tools \
             patchelf \
-            scons \
-            gcc \
-            g++ \
-            make
+            ccache \
+            zlib1g-dev
 
-      - name: Configure Python environment
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Python packages
         run: |
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
+          pip install nuitka staticx
           pip install -r alist-tgbot-py/requirements.txt
-          pip install "nuitka>=1.5.8" "staticx>=0.13.0" "zigpy>=0.12.0" "setuptools>=68.2.2"
-          pip install --force-reinstall --no-deps \
-            "urllib3>=2.0.7" \
-            "chardet>=5.2.0" \
-            "idna>=3.6"
 
-      - name: Build executable
+      - name: Build with Nuitka
         env:
           CC: "zig cc -target ${{ matrix.zig_target }}"
           CXX: "zig c++ -target ${{ matrix.zig_target }}"
           LDFLAGS: "-static"
           CFLAGS: "-static -fstack-protector-strong"
-          _PYTHON_HOST_PLATFORM: "linux-${{ matrix.arch }}"
         run: |
-          source venv/bin/activate
           cd alist-tgbot-py
-
-          # 使用Nuitka编译Python脚本
+          
+          # 使用Nuitka编译
           python -m nuitka \
             --onefile \
-            --enable-plugin=nuitka.plugins.PluginNoUnhashable \
+            --enable-plugin=pylint-warnings \
             --include-package=requests \
             --include-package=urllib3 \
             --include-package=chardet \
             --include-package=idna \
             --include-package=charset_normalizer \
-            --static-libraries \
+            --static-libpython=yes \
             --standalone \
-            --enable-unsupported-optimization \
+            --assume-yes-for-downloads \
+            --output-dir=./build \
             tgbot.py
 
           # 静态化处理
-          staticx --loglevel DEBUG \
-            --strip \
-            tgbot \
-            tgbot-static
+          staticx --strip ./build/tgbot ./build/tgbot-static
 
-          # 创建输出目录
-          mkdir -p ../dist/${{ matrix.arch }}/static
-          mv tgbot-static ../dist/${{ matrix.arch }}/static/alist-tgbot-py
+          # 准备输出目录
+          mkdir -p ../dist/${{ matrix.arch }}
+          mv ./build/tgbot-static ../dist/${{ matrix.arch }}/alist-tgbot-py
 
       - name: Verify binary
         run: |
-          echo "验证 ${{ matrix.arch }} 架构:"
-          readelf -h ./dist/${{ matrix.arch }}/static/alist-tgbot-py | grep 'Machine' | grep -E 'AArch64|Advanced Micro Devices X86-64'
-          file ./dist/${{ matrix.arch }}/static/alist-tgbot-py | grep "statically linked"
-          ldd ./dist/${{ matrix.arch }}/static/alist-tgbot-py 2>&1 | grep "not a dynamic executable"
+          file ./dist/${{ matrix.arch }}/alist-tgbot-py
+          ldd ./dist/${{ matrix.arch }}/alist-tgbot-py 2>&1 | grep "not a dynamic executable"
 
       - name: Upload to Release
         env:
