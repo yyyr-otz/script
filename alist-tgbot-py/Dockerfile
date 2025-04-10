@@ -12,6 +12,7 @@ RUN apk add --no-cache \
     openssl-dev \
     musl-dev \
     scons \
+    pachelf \
     zig
 
 # 配置静态编译环境
