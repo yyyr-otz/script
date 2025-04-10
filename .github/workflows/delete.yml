@@ -28,8 +28,8 @@ jobs:
       id: init
       run: |
         # 生成保护列表文件
-        echo "${{ inputs.whitelist }}" | tr ' ' '\n' > .safelist
-        echo -e "\n.git/\n.github/workflows/" >> .safelist
+        echo "${{ inputs.whitelist }}" | tr ' ' '\n' > .whitelist
+        echo -e "\n.git/\n.github/workflows/" >> .whitelist
 
     - name: 安全清理
       id: cleaner
@@ -54,7 +54,7 @@ jobs:
           # 执行删除
           count=0
           while IFS= read -r -d $'\0' path; do
-            if grep -qF "$path" .safelist; then
+            if grep -qF "$path" .whitelist; then
               echo "🛡️ 保护跳过: $path"
               continue
             fi
