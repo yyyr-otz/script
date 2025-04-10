@@ -4,16 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       targets:
-        description: '待清理路径（支持 glob 模式）'
+        description: '待清理路径（支持 glob 模式，逗号分隔）'
         required: true
       whitelist:
         description: '保护路径（空格分隔）'
-        default: 'README.md .github/'
+        default: '*.md .github/'
 
 permissions:
   contents: write
   pull-requests: write
-  checks: write
 
 jobs:
   secure_clean:
@@ -22,72 +21,94 @@ jobs:
     - name: 检出代码库
       uses: actions/checkout@v4
       with:
-        persist-credentials: false
+        persist-credentials: true
 
     - name: 初始化保护
       id: init
       run: |
-        # 生成保护列表文件
-        echo "${{ inputs.whitelist }}" | tr ' ' '\n' > .whitelist
-        echo -e "\n.git/\n.github/workflows/" >> .whitelist
+        # 转换白名单为标准化路径格式
+        echo "${{ github.event.inputs.whitelist }}" | tr ' ' '\n' | sed 's|^|./|; s|/*$|/|' > .whitelist
+        echo -e "./.git/\n./.github/workflows/" >> .whitelist
+        echo "🛡️ 生效白名单："
+        cat .whitelist
 
     - name: 安全清理
       id: cleaner
       env:
         GIT_TRACE: 0
-        GIT_CURL_VERBOSE: 0
       run: |
-        # 路径匹配函数
-        match_depth() {
-          local pattern=$1
-          pattern=${pattern//\*\//}
-          echo $(grep -o '/' <<< "$pattern" | wc -l)
-        }
-        # 主清理逻辑
+        # 增强路径安全处理
         total=0
-        IFS=',' read -ra patterns <<< "${{ inputs.targets }}"
+        IFS=',' read -ra patterns <<< "${{ github.event.inputs.targets }}"
+        
         for pattern in "${patterns[@]}"; do
-          echo "::group::🔍 扫描模式: $pattern"
-          # 计算匹配深度
-          depth=$(match_depth "$pattern")
+          [[ -z "$pattern" ]] && continue
+          echo "::group::🔍 扫描模式: ${pattern//'/'/\\/}"
+
+          # 智能路径深度计算
+          sanitized_pattern=${pattern//\/\*\//}
+          depth=$(grep -o '/' <<< "$sanitized_pattern" | wc -l)
           find_cmd="find . -maxdepth $((depth+1)) -path './$pattern'"
-          # 执行删除
+
+          # 带保护的删除操作
           count=0
           while IFS= read -r -d $'\0' path; do
-            if grep -qF "$path" .whitelist; then
-              echo "🛡️ 保护跳过: $path"
+            protected=$(grep -m1 -E "^${path%/}/?" .whitelist || true)
+            if [ -n "$protected" ]; then
+              echo "🛡️ 保护跳过: $path (匹配规则: $protected)"
               continue
             fi
-            rm -rf "$path"
-            echo "✅ 已删除: $path"
+
+            echo "🗑️ 删除: $path"
+            rm -rfv "$path" | sed 's/^/  → /'
             ((count++))
-          done < <(eval "$find_cmd -print0 2>/dev/null")
-          echo "处理完成，删除 $count 项"
+          done < <(eval "$find_cmd -print0 2>/dev/null || true")
+
+          echo "✅ 删除完成：共 $count 项"
           ((total+=count))
           echo "::endgroup::"
         done
         echo "total_deleted=$total" >> $GITHUB_OUTPUT
-        rm .whitelist
+        rm -f .whitelist
 
-    - name: 认证提交
+    - name: 智能提交
       if: success() || failure()
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # 配置安全凭据
-        git config --global http.https://github.com/.extraheader "Authorization: token ${GH_TOKEN}"
-        git config --global user.name "Automated Cleanup"
-        git config --global user.email "actions@github.com"
-        git remote set-url origin "https://${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-        # 执行提交
+        git config --global user.name "自动清理机器人"
+        git config --global user.email "auto-cleanup@users.noreply.github.com"
+        
+        # 安全提交机制
         if git status --porcelain | grep -q '^[MADRC]'; then
+          commit_msg="chore: 自动清理 (${{ steps.cleaner.outputs.total_deleted }}项)"
+          
           git add -A
-          git commit -m "chore: 自动清理 (${{ steps.cleaner.outputs.total_deleted }}项)"
-          # 安全推送（隐藏token）
-          { git push origin HEAD:${{ github.ref_name }} 2>&1 | sed "s/${GH_TOKEN}/***/g"; } || {
-            echo "::warning::推送失败，尝试创建PR"
-            gh pr create --title "清理变更" --body "自动生成" --base ${{ github.ref_name }}
-          }
+          if git commit -m "$commit_msg"; then
+            # 带重试的推送逻辑
+            max_retries=3
+            for i in $(seq 1 $max_retries); do
+              if git push origin HEAD:${{ github.ref_name }} 2>&1 | sed "s/$GH_TOKEN/***/g"; then
+                echo "✅ 推送成功"
+                break
+              else
+                echo "🔄 尝试第 $i 次推送失败，等待 3 秒后重试..."
+                sleep 3
+                git pull --rebase
+              fi
+            done
+
+            # 推送失败转 PR 方案
+            if [ $i -eq $max_retries ]; then
+              echo "::warning::推送失败，尝试创建 PR"
+              gh pr create \
+                --title "$commit_msg" \
+                --body "自动生成清理请求" \
+                --base ${{ github.ref_name }} \
+                --head ${{ github.ref_name }} \
+                --label "automated"
+            fi
+          fi
         else
-          echo "🟢 无变更需要提交"
+          echo "🟢 无文件变更"
         fi
