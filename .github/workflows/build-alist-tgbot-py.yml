@@ -56,7 +56,7 @@ jobs:
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r alist-tgbot-py/requirements.txt
-          pip install "pyinstaller==6.11.0" "staticx>=0.13.0" "zigpy>=0.12.0"
+          pip install "pyinstaller==5.13.2" "staticx>=0.13.0" "zigpy>=0.12.0" "pyinstaller-hooks-contrib==2023.10" "setuptools==68.2.2"
           pip install --force-reinstall --no-deps \
             "urllib3>=2.0.7" \
             "chardet>=5.2.0" \
@@ -68,11 +68,15 @@ jobs:
           CXX: "zig c++ -target ${{ matrix.zig_target }}"
           LDFLAGS: "-static"
           CFLAGS: "-static -fstack-protector-strong"
+          _PYTHON_HOST_PLATFORM: "linux-${{ matrix.arch }}"
         run: |
           source venv/bin/activate
           cd alist-tgbot-py
 
-          BOOTLOADER_PATH=$(python -c "from PyInstaller.bootstrap import run; print(run.__file__)")
+          # 手动定位 bootloader
+          BOOTLOADER_PATH=$(find ../venv/ -name 'run*' -path '*PyInstaller/bootloader/*' | grep linux)
+          echo "Bootloader path: $BOOTLOADER_PATH"
+          readelf -h $BOOTLOADER_PATH | grep 'Machine' | grep -E 'AArch64|x86-64' || exit 1
 
           pyinstaller \
             --onefile \
@@ -94,7 +98,6 @@ jobs:
             --bootloader $BOOTLOADER_PATH \
             tgbot.py
 
-          # Staticx 静态化处理
           staticx --loglevel DEBUG \
             --strip \
             ../dist/${{ matrix.arch }}/alist-tgbot-py \
