@@ -2,17 +2,23 @@ name: Nuitka Static Build
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
     strategy:
       matrix:
+        arch: [amd64, arm64]
         include:
           - arch: amd64
             triplet: x86_64-linux-gnu
+            dpkg_arch: amd64
           - arch: arm64
             triplet: aarch64-linux-gnu
+            dpkg_arch: arm64
       fail-fast: false
 
     steps:
@@ -23,13 +29,30 @@ jobs:
 
       - name: Setup Multiarch Toolchain
         run: |
-          sudo dpkg --add-architecture ${{ matrix.arch }}
+          # 启用目标架构支持
+          sudo dpkg --add-architecture ${{ matrix.dpkg_arch }}
           sudo add-apt-repository -y universe
           sudo apt-get update
+
+          # 安装基础编译工具
           sudo apt-get install -y \
-            crossbuild-essential-${{ matrix.arch }} \
-            binutils-${{ matrix.arch }} \
-            musl-dev
+            build-essential \
+            crossbuild-essential-${{ matrix.dpkg_arch }} \
+            musl-dev \
+            patchelf \
+            file \
+            python3-dev
+
+          # 配置工具链
+          sudo update-alternatives --install \
+            /usr/bin/${{ matrix.triplet }}-gcc \
+            ${{ matrix.triplet }}-gcc \
+            /usr/bin/${{ matrix.triplet }}-gcc 100
+
+          sudo update-alternatives --install \
+            /usr/bin/${{ matrix.triplet }}-g++ \
+            ${{ matrix.triplet }}-g++ \
+            /usr/bin/${{ matrix.triplet }}-g++ 100
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -51,7 +74,7 @@ jobs:
           LDFLAGS: "-static -Wl,--strip-all"
         run: |
           cd alist-tgbot-py
-          python -m nuitka \
+          ${{ env.pythonLocation }}/bin/python -m nuitka \
             --onefile \
             --include-package=requests \
             --include-package=urllib3 \
@@ -67,3 +90,20 @@ jobs:
           staticx --strip ./build/tgbot.dist/tgbot ./build/tgbot-static
           mkdir -p ../dist/${{ matrix.arch }}
           mv ./build/tgbot-static ../dist/${{ matrix.arch }}/alist-tgbot-py
+
+      - name: Binary Verification
+        run: |
+          # 架构验证
+          file ./dist/${{ matrix.arch }}/alist-tgbot-py | grep "${{ matrix.triplet }}"
+          # 静态链接检查
+          ! ldd ./dist/${{ matrix.arch }}/alist-tgbot-py 2>&1 | grep "=>"
+          # 文件属性检查
+          checksec --file=./dist/${{ matrix.arch }}/alist-tgbot-py
+
+      - name: Upload to Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_TAG="${{ matrix.arch }}"
+          BINARY_PATH="./dist/${{ matrix.arch }}/alist-tgbot-py"
+          gh release upload "$RELEASE_TAG" "$BINARY_PATH" --clobber
