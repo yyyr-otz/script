@@ -1,12 +1,13 @@
 # syntax=docker/dockerfile:1.4
 # 第一阶段：构建环境
-FROM --platform=$TARGETPLATFORM ubuntu:22.04 AS builder
+FROM --platform=$TARGETPLATFORM ubuntu:24.04 AS builder
 
-# 安装依赖
+# 安装核心依赖
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
     python3-dev \
+    python3-venv \
     python3-pip \
     zlib1g-dev \
     libjpeg-dev \
@@ -21,8 +22,9 @@ ENV VENV_PATH="/app/venv" \
 
 WORKDIR /app
 
-# 创建虚拟环境并获取 Python 版本
+# 创建虚拟环境并升级工具
 RUN python3 -m venv $VENV_PATH && \
+    pip install --upgrade pip wheel && \
     echo "Python 版本: $(python3 --version)" && \
     export PYTHON_VER=$(python3 -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}')") && \
     echo "Python 库路径: $VENV_PATH/lib/$PYTHON_VER/site-packages"
