@@ -42,7 +42,7 @@ on:
         required: false
 
   schedule:
-    - cron: '0 22 */3 * *'
+    - cron: '30 21 */4 * *'
 
 jobs:
   delete_runs:
