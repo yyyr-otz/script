@@ -1,18 +1,17 @@
 # syntax=docker/dockerfile:1.4
-
 # 第一阶段：构建环境
-FROM --platform=$TARGETPLATFORM alpine:3.21 AS builder
+FROM --platform=$TARGETPLATFORM ubuntu:22.04 AS builder
 
-# 安装编译依赖（兼容多架构）
-RUN apk update && \
-    apk add --no-cache \
-    musl-dev \
+# 安装依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     gcc \
     python3-dev \
-    py3-pip \
-    zlib-dev \
-    jpeg-dev \
-    libffi-dev
+    python3-pip \
+    zlib1g-dev \
+    libjpeg-dev \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # 配置虚拟环境和静态编译
 ENV VENV_PATH="/app/venv" \
@@ -35,15 +34,14 @@ RUN pip install --no-cache-dir --no-deps -r requirements.txt
 # 复制源码
 COPY alist-tgbot-py/tgbot.py .
 
-# 静态编译二进制（动态生成路径）
+# 静态编译二进制
 RUN pip install pyinstaller && \
-    export PYTHON_VER=$(python3 -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}')") && \
     pyinstaller --onefile \
-      --name alist-tgbot-py \
-      --workpath /tmp/build \
-      --distpath /app/dist \
-      --add-data "$VENV_PATH/lib/$PYTHON_VER/site-packages:." \
-      tgbot.py
+                --name alist-tgbot-py \
+                --workpath /tmp/build \
+                --distpath /app/dist \
+                --add-data "$VENV_PATH/lib/$PYTHON_VER/site-packages:." \
+                tgbot.py
 
 # 第二阶段：最小化运行时镜像
 FROM scratch
