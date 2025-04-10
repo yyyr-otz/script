@@ -1,4 +1,4 @@
-name: 安全删除
+name: 删除指定文件
 run-name: ${{ github.actor }} 正在删除指定文件
 on:
   workflow_dispatch:
