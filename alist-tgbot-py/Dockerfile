@@ -32,7 +32,7 @@ RUN pip install --no-cache-dir --no-deps -r requirements.txt
 # 安装 PyInstaller 和静态加固工具
 RUN pip install --no-cache-dir \
     "pyinstaller>=6.12.0" \
-    "staticx>=0.15.0"
+    "staticx>=0.14.1"
 
 # 复制源码并打包
 COPY alist-tgbot-py/tgbot.py .
