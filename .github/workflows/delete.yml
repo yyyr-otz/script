@@ -1,4 +1,5 @@
-name: 安全文件清理
+name: 自动文件清理
+run-name: ${{ github.actor }} 正在删除指定文件
 on:
   workflow_dispatch:
     inputs:
@@ -6,93 +7,99 @@ on:
         description: '待清理路径（支持 glob 模式）'
         required: true
       whitelist:
-        description: '保护路径（空格分隔，支持通配符）'
-        default: '*.md LICENSE .github/'
+        description: '保护路径（空格分隔）'
+        default: 'README.md .github/'
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  clean:
+  secure_clean:
     runs-on: ubuntu-latest
     steps:
-    - name: 检出仓库
+    - name: 检出代码库
       uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        persist-credentials: true
+        persist-credentials: false
 
-    - name: 设置保护列表
-      id: whitelist
+    - name: 初始化保护
+      id: init
       run: |
-        # 标准化白名单格式
-        echo "::group::🛡️ 白名单配置"
-        mkdir -p .github/artifacts
-        # 转换输入为每行一个模式
-        echo "${{ inputs.whitelist }}" | tr ' ' '\n' > .whitelist
-        # 添加默认保护项
-        echo -e ".git/\n.github/workflows/" >> .whitelist
-        echo "有效保护模式："
-        cat .whitelist
-        echo "::endgroup::"
+        # 生成保护列表文件
+        echo "${{ inputs.whitelist }}" | tr ' ' '\n' > .safelist
+        echo -e "\n.git/\n.github/workflows/" >> .safelist
 
-    - name: 精确清理
+    - name: 安全清理
+      id: cleaner
+      env:
+        GIT_TRACE: 0
+        GIT_CURL_VERBOSE: 0
       run: |
-        set -eo pipefail
-        # 路径检查函数
-        is_protected() {
-          local target_path=$1
-          # 标准化路径格式
-          clean_path="${target_path#./}"
-          clean_path="${clean_path%/}"
-
-          while IFS= read -r pattern; do
-            case "$clean_path" in
-              $pattern) 
-                echo "🛡️ 保护跳过: $clean_path (匹配模式: $pattern)"
-                return 0
-                ;;
-            esac
-          done < .whitelist
-          return 1
+        # 路径匹配函数
+        match_depth() {
+          local pattern=$1
+          pattern=${pattern//\*\//}
+          echo $(grep -o '/' <<< "$pattern" | wc -l)
         }
 
         # 主清理逻辑
+        total=0
         IFS=',' read -ra patterns <<< "${{ inputs.targets }}"
         for pattern in "${patterns[@]}"; do
-          echo "::group::🗑️ 处理模式: $pattern"
+          echo "::group::🔍 扫描模式: $pattern"
           
-          # 生成find参数
-          find_cmd="find . -path './${pattern}'"
-          if [[ $pattern != *"**"* ]]; then
-            depth=$(tr -dc '/' <<< "$pattern" | wc -c)
-            find_cmd+=" -maxdepth $((depth+1))"
-          fi
+          # 计算匹配深度
+          depth=$(match_depth "$pattern")
+          find_cmd="find . -maxdepth $((depth+1)) -path './$pattern'"
 
-          # 执行清理
+          # 执行删除
+          count=0
           while IFS= read -r -d $'\0' path; do
-            if is_protected "$path"; then
+            if grep -qF "$path" .safelist; then
+              echo "🛡️ 保护跳过: $path"
               continue
             fi
 
-            if [ -e "$path" ]; then
-              echo "✅ 删除: $path"
-              rm -rf "$path"
-            else
-              echo "⚠️ 路径不存在: $path"
-            fi
-          done < <(eval "$find_cmd -print0")
+            rm -rf "$path"
+            echo "✅ 已删除: $path"
+            ((count++))
+          done < <(eval "$find_cmd -print0 2>/dev/null")
           
+          echo "处理完成，删除 $count 项"
+          ((total+=count))
           echo "::endgroup::"
         done
 
-    - name: 提交变更
+        echo "total_deleted=$total" >> $GITHUB_OUTPUT
+
+    - name: 认证提交
+      if: success() || failure()
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        git config --global user.name "GitHub Actions"
+        # 配置安全凭据
+        git config --global http.https://github.com/.extraheader "Authorization: token ${GH_TOKEN}"
+        git config --global user.name "Automated Cleanup"
         git config --global user.email "actions@github.com"
-        
-        if ! git diff --quiet; then
+        git remote set-url origin "https://${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+        # 执行提交
+        if git status --porcelain | grep -q '^[MADRC]'; then
           git add -A
-          git commit -m "chore: 自动清理"
-          git push
-          echo "变更已提交"
+          git commit -m "chore: 自动清理 (${{ steps.cleaner.outputs.total_deleted }}项)"
+          
+          # 安全推送（隐藏token）
+          { git push origin HEAD:${{ github.ref_name }} 2>&1 | sed "s/${GH_TOKEN}/***/g"; } || {
+            echo "::warning::推送失败，尝试创建PR"
+            gh pr create --title "清理变更" --body "自动生成" --base ${{ github.ref_name }}
+          }
         else
-          echo "无文件变更"
+          echo "🟢 无变更需要提交"
         fi
+
+    - name: 事后清理
+      if: always()
+      run: |
+        rm -f .safelist
+        git config --unset-all http.https://github.com/.extraheader
