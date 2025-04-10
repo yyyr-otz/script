@@ -46,5 +46,5 @@ RUN pyinstaller --onefile \
 
 # 最终镜像
 FROM scratch
-COPY --from=builder /app/dist/alist-tgbot-py-static /
+COPY --from=builder /app/dist/alist-tgbot-py-static /alist-tgbot-py
 ENTRYPOINT ["/alist-tgbot-py-static"]
