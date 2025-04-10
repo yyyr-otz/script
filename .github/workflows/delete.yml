@@ -1,162 +1,48 @@
-name: 智能文件清理
-run-name: ${{ github.actor }} 执行深度清理
+name: 安全删除
+run-name: ${{ github.actor }} 正在删除指定文件
 on:
   workflow_dispatch:
     inputs:
       targets:
-        description: '待清理路径 (支持 glob 模式，逗号分隔)'
+        description: '要删除的路径（多个用逗号分隔）'
         required: true
-      whitelist:
-        description: '保护路径 (空格分隔)'
-        default: 'README.md .github/'
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
-  secure_clean:
+  execute:
     runs-on: ubuntu-latest
     steps:
-    - name: 🛠️ 深度代码检出
+    - name: 🛠️ 完全检出代码
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.ref }}
-        fetch-depth: 0  # 获取完整提交历史
-        persist-credentials: true
-        sparse-checkout: .  # 防止部分检出问题
+        fetch-depth: 0  # 关键参数：完整克隆仓库
 
-    - name: 🛡️ 安全屏障初始化
-      id: init
+    - name: 🔥 执行删除
       run: |
-        # 生成标准化的保护清单
-        {
-          echo "${{ github.event.inputs.whitelist }}" | tr ' ' '\n' | sed 's|^|./|; s|/*$|/|';
-          echo -e "./.git/\n./.github/workflows/";
-        } | sort -u > .safeguard
-
-        echo "=== 生效保护列表 ==="
-        column -t .safeguard
-
-    - name: 🧹 智能清理引擎
-      id: cleaner
-      env:
-        GIT_TRACE: 1  # 调试用
-      run: |
-        # 禁用严格错误模式
-        set +eo pipefail
-
-        total_cleaned=0
-        IFS=',' read -ra patterns <<< "${{ github.event.inputs.targets }}"
-
-        for pattern in "${patterns[@]}"; do
-          [[ -z "$pattern" ]] && continue
-
-          echo "::group::🔍 深度扫描模式: ${pattern}"
-          sanitized_pattern=$(echo "$pattern" | sed 's/\/\*\///g')
-          depth=$(awk -F/ '{print NF-1}' <<< "$sanitized_pattern")
-
-          # 构建精准查找指令
-          find_cmd="find . -maxdepth $((depth+1)) -path './${pattern}'"
-
-          # 执行清理操作
-          count=0
-          while IFS= read -r -d $'\0' path; do
-            # 保护机制校验
-            if grep -q -m1 -E "^${path%/}(/|$)?" .safeguard; then
-              echo "🛡️ 系统保护: ${path} (匹配白名单规则)"
-              continue
-            fi
-
-            # 双重删除机制
-            if git rm -r --cached --quiet "$path" 2>/dev/null; then
-              echo "✅ 索引删除: ${path}"
-              ((count++)) || true
-            fi
-            if rm -rfv "$path" 2>/dev/null; then
-              echo "✅ 物理删除: ${path}"
-              ((count++)) || true
-            fi
-          done < <(eval "$find_cmd -print0 2>/dev/null" || true)
-
-          echo "🔄 本批次清理完成: ${count} 个对象"
-          ((total_cleaned += count))
-          echo "::endgroup::"
+        # 转换输入为数组
+        IFS=',' read -ra targets <<< "${{ inputs.targets }}"
+        
+        # 执行删除并记录变更
+        for pattern in "${targets[@]}"; do
+          find . -path "./$pattern" -exec git rm --cached -rq {} \; -exec rm -rf {} \; || true
         done
 
-        # 强制更新索引状态
-        git add -u . 2>/dev/null || true
-        git reset --hard HEAD 2>/dev/null || true
+        # 强制更新索引
+        git add -u . || true
 
-        echo "total_cleaned=${total_cleaned}" >> $GITHUB_OUTPUT
-        rm -f .safeguard
-
-    - name: 🚀 智能提交系统
-      if: always()
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: 🚀 提交变更
+      if: success()
       run: |
-        # 配置智能身份
-        git config --global user.name "GitHub 清理机器人"
-        git config --global user.email "ai-cleaner@github.com"
-        git config --global http.https://github.com/.extraheader "AUTHORIZATION: token ${GH_TOKEN}"
+        # 配置身份（使用GitHub官方身份）
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
 
-        # 三维状态检测
-        echo "::group::📊 系统状态诊断"
-        {
-          echo "=== 工作区状态 ==="
-          git status --porcelain -v
-          echo "=== 索引差异 ===" 
-          git diff --cached --name-status
-          echo "=== 物理文件校验 ==="
-          find . -path './*' | grep -vFf .safeguard 2>/dev/null || true
-        } | tee system-status.log
-        echo "::endgroup::"
-
-        # 动态提交逻辑
-        if git diff-index --quiet HEAD -- 2>/dev/null; then
-          echo "🟢 系统状态：无有效变更"
+        # 智能提交
+        if ! git diff-index --quiet HEAD --; then
+          git commit -m "删除: ${{ inputs.targets }}"
+          git push
         else
-          commit_msg="chore(自动清理): 移除 ${{ steps.cleaner.outputs.total_cleaned }} 个冗余对象"
-
-          # 原子提交操作
-          git add --all --force
-          if git commit -m "${commit_msg}"; then
-            echo "🔗 提交成功：${commit_msg}"
-
-            # 智能推送系统
-            max_retries=3
-            for ((i=1; i<=max_retries; i++)); do
-              if git push origin HEAD:${{ github.ref_name }} 2>&1 | sed "s/${GH_TOKEN}/***/g"; then
-                echo "🚀 推送成功 (第 ${i} 次尝试)"
-                break
-              else
-                echo "🔄 尝试 ${i}/${max_retries}: 推送失败，执行状态修复..."
-                git pull --rebase --autostash
-                sleep $((i * 2))
-              fi
-            done
-
-            # 应急 PR 机制
-            if [ $i -gt $max_retries ]; then
-              echo "⚠️ 推送失败，启动 PR 应急方案"
-              gh pr create \
-                --title "${commit_msg}" \
-                --body "自动生成清理请求" \
-                --base "${{ github.ref_name }}" \
-                --head "${{ github.ref_name }}" \
-                --label "automated-cleanup" \
-                --assignee "${{ github.actor }}"
-            fi
-          fi
+          echo "ℹ️ 无实际文件变更"
         fi
-
-    - name: 📜 生成清理报告
-      if: always()
-      run: |
-        echo "::group::📄 最终清理报告"
-        echo "本次操作共清理 ${{ steps.cleaner.outputs.total_cleaned }} 个对象"
-        echo "保护路径清单："
-        cat .safeguard 2>/dev/null || echo "无有效保护路径"
-        echo "系统耗时：${{ job.status }}"
-        echo "::endgroup::"
