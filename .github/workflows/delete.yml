@@ -37,7 +37,8 @@ jobs:
       env:
         GIT_TRACE: 0
       run: |
-        # 增强路径安全处理
+        set +eo pipefail  # 禁用所有错误中断
+        
         total=0
         IFS=',' read -ra patterns <<< "${{ github.event.inputs.targets }}"
         
@@ -45,12 +46,10 @@ jobs:
           [[ -z "$pattern" ]] && continue
           echo "::group::🔍 扫描模式: ${pattern//'/'/\\/}"
 
-          # 智能路径深度计算
           sanitized_pattern=${pattern//\/\*\//}
           depth=$(grep -o '/' <<< "$sanitized_pattern" | wc -l)
           find_cmd="find . -maxdepth $((depth+1)) -path './$pattern'"
 
-          # 带保护的删除操作
           count=0
           while IFS= read -r -d $'\0' path; do
             protected=$(grep -m1 -E "^${path%/}/?" .whitelist || true)
@@ -59,21 +58,24 @@ jobs:
               continue
             fi
 
-            echo "🗑️ 删除: $path"
-            if rm -rfv "$path"; then
+            if rm -rf "$path" &>/dev/null; then
               echo "✅ 删除成功: $path"
-              ((count++))
+              ((count++)) || true
             else
-              echo "⚠️ 删除失败: $path (忽略错误)"
+              echo "⚠️ 静默忽略删除失败: $path"
             fi
-          done < <(eval "$find_cmd -print0 2>/dev/null || true")
+          done < <(eval "$find_cmd -print0 2>/dev/null" || true)
 
           echo "✅ 删除完成：共 $count 项"
-          ((total+=count))
+          ((total+=count)) || true
           echo "::endgroup::"
         done
+        
         echo "total_deleted=$total" >> $GITHUB_OUTPUT
         rm -f .whitelist
+        
+        exit 0  # 强制返回成功状态
+
 
     - name: 智能提交
       if: success() || failure()
