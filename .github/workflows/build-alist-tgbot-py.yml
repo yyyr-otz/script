@@ -31,8 +31,8 @@ jobs:
           echo "验证文件路径:"
           find ./dist -name alist-tgbot
 
-      #- name: Install GitHub CLI
-      #  uses: actions/setup-gh-cli@v1  # 关键修复：必须安装CLI工具
+      - name: Install GitHub CLI
+        uses: actions/setup-gh-cli@v1
 
       - name: Upload to Release
         env:
