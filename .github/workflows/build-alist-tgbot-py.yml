@@ -33,14 +33,14 @@ jobs:
           sudo apt-get install -y \
             build-essential \
             gcc-12 g++-12 \
-            gcc-12-${matrix.triplet} g++-12-${matrix.triplet} \
+            gcc-12-${{ matrix.triplet }} g++-12-${{ matrix.triplet }} \
             musl-tools \
             patchelf \
             file
 
           # 配置交叉编译工具链
-          sudo update-alternatives --install /usr/bin/${matrix.triplet}-gcc ${matrix.triplet}-gcc /usr/bin/${matrix.triplet}-gcc-12 50
-          sudo update-alternatives --install /usr/bin/${matrix.triplet}-g++ ${matrix.triplet}-g++ /usr/bin/${matrix.triplet}-g++-12 50
+          sudo update-alternatives --install /usr/bin/${{ matrix.triplet }}-gcc ${{ matrix.triplet }}-gcc /usr/bin/${{ matrix.triplet }}-gcc-12 50
+          sudo update-alternatives --install /usr/bin/${{ matrix.triplet }}-g++ ${{ matrix.triplet }}-g++ /usr/bin/${{ matrix.triplet }}-g++-12 50
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -56,8 +56,8 @@ jobs:
 
       - name: Build with Nuitka
         env:
-          CC: "/usr/bin/${matrix.triplet}-gcc"
-          CXX: "/usr/bin/${matrix.triplet}-g++"
+          CC: "/usr/bin/${{ matrix.triplet }}-gcc"
+          CXX: "/usr/bin/${{ matrix.triplet }}-g++"
           CFLAGS: "-static -Os ${matrix.cflags} -fstack-protector-strong"
           LDFLAGS: "-static -Wl,--strip-all"
         run: |
@@ -78,17 +78,17 @@ jobs:
 
           # 增强静态化处理
           staticx --strip ./build/tgbot.dist/tgbot ./build/tgbot-static
-          mkdir -p ../dist/${matrix.arch}
-          mv ./build/tgbot-static ../dist/${matrix.arch}/alist-tgbot-py
+          mkdir -p ../dist/${{ matrix.arch }}
+          mv ./build/tgbot-static ../dist/${{ matrix.arch }}/alist-tgbot-py
 
       - name: Binary Verification
         run: |
           # 架构验证
-          file ./dist/${matrix.arch}/alist-tgbot-py | grep "${matrix.triplet}"
+          file ./dist/${{ matrix.arch }}/alist-tgbot-py | grep "${{ matrix.triplet }}"
           # 静态链接检查
-          ! ldd ./dist/${matrix.arch}/alist-tgbot-py 2>&1 | grep "=>"
+          ! ldd ./dist/${{ matrix.arch }}/alist-tgbot-py 2>&1 | grep "=>"
           # 安全加固检查
-          checksec --file=./dist/${matrix.arch}/alist-tgbot-py
+          checksec --file=./dist/${{ matrix.arch }}/alist-tgbot-py
 
       - name: Upload to Release
         env:
