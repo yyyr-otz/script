@@ -53,7 +53,12 @@ RUN pyinstaller --onefile \
     --specpath /tmp/spec \
     --clean \
     tgbot.py
-    staticx /app/dist/alist-tgbot-py /app/dist/alist-tgbot-py-static
+
+RUN staticx \
+    --loglevel debug \
+    --strip \
+    /app/dist/alist-tgbot-py \
+    /app/dist/alist-tgbot-py-static
 
 # 最终镜像
 FROM scratch
