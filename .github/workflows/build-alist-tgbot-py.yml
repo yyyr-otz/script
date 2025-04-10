@@ -13,10 +13,8 @@ jobs:
         include:
           - arch: amd64
             triplet: x86_64-linux-gnu
-            host_arch: amd64
           - arch: arm64
             triplet: aarch64-linux-gnu
-            host_arch: arm64
       fail-fast: false
 
     steps:
@@ -27,8 +25,8 @@ jobs:
 
       - name: Setup Multiarch Toolchain
         run: |
-          # 启用目标架构支持
-          sudo dpkg --add-architecture $(echo "${{ matrix.triplet }}" | cut -d'-' -f1)
+          # 启用目标架构支持（使用正确的dpkg架构名称）
+          sudo dpkg --add-architecture ${{ matrix.arch }}
           sudo add-apt-repository -y universe
           sudo apt-get update
 
