@@ -111,6 +111,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          RELEASE_TAG="${{ matrix.release_tag }}"
+          RELEASE_TAG="${{ matrix.arch }}"
           BINARY_PATH="./dist/${{ matrix.arch }}/static/alist-tgbot-py"
           gh release upload "$RELEASE_TAG" "$BINARY_PATH" --clobber
