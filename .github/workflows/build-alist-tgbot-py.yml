@@ -31,7 +31,7 @@ jobs:
       - name: Setup Zig Compiler
         uses: mlugg/setup-zig@v1.2.1
         with:
-          version: "0.14.0"
+          version: "0.12.0"
           use-cache: true
 
       - name: Install system dependencies
@@ -56,11 +56,11 @@ jobs:
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r alist-tgbot-py/requirements.txt
-          pip install "pyinstaller==6.12.0" "staticx==0.13.0"
+          pip install "pyinstaller>=6.12.0" "staticx>=0.13.0" "zigpy>=0.12.0"
           pip install --force-reinstall --no-deps \
-            "urllib3==2.0.7" \
-            "chardet==5.2.0" \
-            "idna==3.6"
+            "urllib3>=2.0.7" \
+            "chardet>=5.2.0" \
+            "idna>=3.6"
 
       - name: Build executable
         env:
@@ -72,8 +72,14 @@ jobs:
           source venv/bin/activate
           cd alist-tgbot-py
 
-          # PyInstaller 构建
-          pyinstaller --onefile \
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+              PYI_BOOTLOADER_ARCH=aarch64
+          else
+              PYI_BOOTLOADER_ARCH=x86_64
+          fi
+
+          pyinstaller \
+            --onefile \
             --name alist-tgbot-py \
             --hidden-import urllib3 \
             --hidden-import chardet \
@@ -88,6 +94,8 @@ jobs:
             --distpath ../dist/${{ matrix.arch }} \
             --specpath /tmp/spec \
             --clean \
+            --runtime-tmpdir . \
+            --bootloader-arch $PYI_BOOTLOADER_ARCH \
             tgbot.py
 
           # Staticx 静态化处理
@@ -101,6 +109,7 @@ jobs:
 
       - name: Verify binary
         run: |
+          readelf -h ./dist/${{ matrix.arch }}/static/alist-tgbot-py | grep 'Machine' | grep -E 'AArch64|Advanced Micro Devices X86-64'
           file ./dist/${{ matrix.arch }}/static/alist-tgbot-py | grep "statically linked"
           ldd ./dist/${{ matrix.arch }}/static/alist-tgbot-py 2>&1 | grep "not a dynamic executable"
 
