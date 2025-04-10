@@ -51,8 +51,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "v$(date +%Y%m%d)" \
-            --title "Static Build $(date +%F)" \
-            --notes "Multi-arch static binaries" \
-            ./dist/linux_${{ matrix.arch }}/alist-tgbot-py \
-            --clobber
+          RELEASE_TAG="${{ matrix.arch }}"
+          BINARY_PATH="./dist/linux_${{ matrix.arch }}/alist-tgbot-py"
+
+          #if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+          #  gh release create "$RELEASE_TAG" \
+          #    --title "AList-TGBot-Py ($RELEASE_TAG)" \
+          #    --notes "Static build for $RELEASE_TAG"
+          #fi
+
+          gh release upload "$RELEASE_TAG" "$BINARY_PATH" --clobber
