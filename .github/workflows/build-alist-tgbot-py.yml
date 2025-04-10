@@ -13,19 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup QEMU (ARM64 only)
-        if: matrix.arch == 'arm64'
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: arm64
-
-      - name: Setup Docker Buildx
+      - name: Setup Buildx
         uses: docker/setup-buildx-action@v2
         with:
           driver-opts: |
             network=host
 
-      - name: Build static binary
+      - name: Build for ${{ matrix.arch }}
         uses: docker/build-push-action@v4
         with:
           platforms: linux/${{ matrix.arch }}
@@ -34,6 +28,8 @@ jobs:
           outputs: type=local,dest=./dist/linux_${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            TARGETPLATFORM=linux/${{ matrix.arch }}
 
       - name: Verify build output
         run: |
