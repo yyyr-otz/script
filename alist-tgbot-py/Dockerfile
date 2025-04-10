@@ -1,61 +1,51 @@
 # syntax=docker/dockerfile:1.4
 
-# 第一阶段：交叉编译基础环境
-ARG PY_VERSION=3.11
-FROM --platform=$BUILDPLATFORM tonistiigi/xx:1.4.0 AS xx
+# 第一阶段：构建环境
+FROM --platform=$TARGETPLATFORM alpine:3.21 AS builder
 
-FROM --platform=$BUILDPLATFORM python:${PY_VERSION}-alpine AS builder
+# 安装编译依赖（兼容多架构）
+RUN <<EOF
+  apk update
+  apk add --no-cache \
+    musl-dev \
+    gcc \
+    python3-dev \
+    py3-pip \
+    py3-setuptools \
+    zlib-dev \
+    jpeg-dev \
+    libffi-dev
+EOF
 
-# 初始化交叉编译环境
-COPY --from=xx / /
-ARG TARGETPLATFORM
-ENV XX_TARGETPLATFORM=$TARGETPLATFORM
+# 配置静态编译环境
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    LDFLAGS="-static" \
+    CFLAGS="-static"
 
-# 安装基础依赖
-RUN if [ "$TARGETARCH" = "arm64" ]; then \
-      xx-apk update --arch arm64 --repository http://dl-cdn.alpinelinux.org/alpine/latest-stable/main && \
-      xx-apk add --arch arm64 \
-        gcc \
-        musl-dev \
-        python3-dev \
-        py3-pip \
-        --repository http://dl-cdn.alpinelinux.org/alpine/latest-stable/main \
-        --repository http://dl-cdn.alpinelinux.org/alpine/latest-stable/community; \
-    else \
-      apk add --no-cache gcc musl-dev python3-dev py3-pip; \
-    fi
+WORKDIR /app
 
 # 安装 Python 依赖
-WORKDIR /app
 COPY alist-tgbot-py/requirements.txt .
-RUN xx-pip install --no-cache-dir -r requirements.txt
+RUN pip install --user --no-deps -r requirements.txt
 
-# 构建二进制文件
+# 复制源码
 COPY alist-tgbot-py/tgbot.py .
-RUN mkdir -p /out
 
-# 安装 PyInstaller 并构建可执行文件
-RUN if [ "$TARGETARCH" = "arm64" ]; then \
-      xx-pip install pyinstaller && \
-      xx-pyinstaller --onefile \
-        --name alist-tgbot-py \
-        --workpath /app/build \
-        --distpath /out \
-        tgbot.py; \
-    else \
-      pip install pyinstaller && \
-      pyinstaller --onefile \
-        --name alist-tgbot-py \
-        --workpath /app/build \
-        --distpath /out \
-        tgbot.py; \
-    fi
+# 静态编译二进制
+RUN <<EOF
+  pip install --user pyinstaller
+  ~/.local/bin/pyinstaller \
+    --onefile \
+    --name alist-tgbot-py \
+    --workpath /tmp/build \
+    --distpath /app/dist \
+    --add-data "/usr/lib/python3.11/site-packages:." \
+    tgbot.py
+EOF
 
-# 验证产物兼容性
-RUN xx-verify --static /out/alist-tgbot-py
-
-# 第二阶段：运行时镜像
-FROM --platform=$TARGETPLATFORM alpine:3.19 AS runner
-RUN apk add --no-cache libstdc++
-COPY --from=builder /out/alist-tgbot-py /app/
-ENTRYPOINT ["/app/alist-tgbot-py"]
+# 第二阶段：最小化运行时镜像
+FROM scratch
+COPY --from=builder /app/dist/alist-tgbot-py /
+ENTRYPOINT ["/alist-tgbot-py"]
