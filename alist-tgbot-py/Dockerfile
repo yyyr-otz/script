@@ -40,14 +40,14 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then \
         --name alist-tgbot-py \
         --workpath /app/build \
         --distpath /out \  # 输出到 /out
-        tgbot.py; \
+        alist-tgbot-py/tgbot.py; \
     else \
       pip install pyinstaller && \
       pyinstaller --onefile \
         --name alist-tgbot-py \
         --workpath /app/build \
         --distpath /out \  # 输出到 /out
-        tgbot.py; \
+        alist-tgbot-py/tgbot.py; \
     fi
 
 # 验证产物兼容性
