@@ -1,0 +1,40 @@
+name: Linux Cross-Compile
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # 仅保留 Linux 目标
+        arch: [amd64, arm64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r alist-tgbot/requirements.txt
+          pip install pyinstaller
+
+      - name: Build binary
+        run: |
+          pyinstaller --onefile \
+            --name alist-tgbot-linux-${{ matrix.arch }} \
+            --workpath build/linux-${{ matrix.arch }} \
+            --distpath dist/linux-${{ matrix.arch }} \
+            alist-tgbot/tgbot.py
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag: ${{ matrix.arch }}  # 直接使用 arch 作为 Tag（amd64/arm64）
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            dist/linux-${{ matrix.arch }}/alist-tgbot-linux-${{ matrix.arch }}
+          replace: true
