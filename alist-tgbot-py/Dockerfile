@@ -11,7 +11,7 @@ RUN apk add --no-cache \
     jpeg-dev \
     openssl-dev \
     musl-dev \
-    scons \  # 关键：添加 scons
+    scons \
     zig
 
 # 配置静态编译环境
