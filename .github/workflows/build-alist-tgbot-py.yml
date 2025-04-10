@@ -12,8 +12,10 @@ jobs:
         include:
           - arch: amd64
             zig_target: x86_64-linux-musl
+            release_tag: linux-amd64
           - arch: arm64
             zig_target: aarch64-linux-musl
+            release_tag: linux-arm64
       fail-fast: false
 
     steps:
@@ -23,13 +25,19 @@ jobs:
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: arm64
+          platforms: all
+          cache-image: true
+
+      - name: Setup Zig Compiler
+        uses: mlugg/setup-zig@v1.2.1
+        with:
+          version: "0.14.0"
+          use-cache: true
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            qemu-user-static \
             build-essential \
             python3-dev \
             python3-pip \
@@ -40,7 +48,6 @@ jobs:
             libssl-dev \
             musl-tools \
             patchelf \
-            zig \
             scons
 
       - name: Configure Python environment
@@ -49,23 +56,23 @@ jobs:
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r alist-tgbot-py/requirements.txt
-          pip install "pyinstaller>=6.12.0" "staticx>=0.13.0"
+          pip install "pyinstaller==6.12.0" "staticx==0.13.0"
           pip install --force-reinstall --no-deps \
-            "urllib3>=2.0.7" \
-            "chardet>=5.2.0" \
-            "idna>3.6"
+            "urllib3==2.0.7" \
+            "chardet==5.2.0" \
+            "idna==3.6"
 
       - name: Build executable
         env:
           CC: "zig cc -target ${{ matrix.zig_target }}"
           CXX: "zig c++ -target ${{ matrix.zig_target }}"
           LDFLAGS: "-static"
-          CFLAGS: "-static"
-          PYTHONUNBUFFERED: "1"
+          CFLAGS: "-static -fstack-protector-strong"
         run: |
           source venv/bin/activate
           cd alist-tgbot-py
 
+          # PyInstaller 构建
           pyinstaller --onefile \
             --name alist-tgbot-py \
             --hidden-import urllib3 \
@@ -83,6 +90,7 @@ jobs:
             --clean \
             tgbot.py
 
+          # Staticx 静态化处理
           staticx --loglevel DEBUG \
             --strip \
             ../dist/${{ matrix.arch }}/alist-tgbot-py \
