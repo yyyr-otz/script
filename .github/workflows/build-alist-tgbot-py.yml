@@ -32,7 +32,7 @@ jobs:
         with:
           platforms: linux/${{ matrix.arch }}
           context: .
-          file: Dockerfile  # 修改为正确的 Dockerfile 路径
+          file: alist-tgbot-py/Dockerfile
           outputs: type=local,dest=./dist/linux_${{ matrix.arch }}
           build-args: |
             TARGETPLATFORM=linux/${{ matrix.arch }}
