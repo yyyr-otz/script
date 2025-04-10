@@ -37,13 +37,16 @@ RUN pip install --no-cache-dir --no-deps -r requirements.txt
 COPY alist-tgbot-py/tgbot.py .
 
 # 静态编译二进制
-RUN pip install pyinstaller && \
+RUN pip install "pyinstaller>=6.13.0" && \
+    export PYTHON_LIB_PATH=$(python3 -c "import sysconfig; print(sysconfig.get_path('purelib'))") && \
     pyinstaller --onefile \
                 --name alist-tgbot-py \
                 --workpath /tmp/build \
                 --distpath /app/dist \
-                --add-data "$VENV_PATH/lib/$PYTHON_VER/site-packages:." \
+                --add-data "$PYTHON_LIB_PATH:." \
+                --hidden-import='pkg_resources' \
                 tgbot.py
+
 
 # 第二阶段：最小化运行时镜像
 FROM scratch
