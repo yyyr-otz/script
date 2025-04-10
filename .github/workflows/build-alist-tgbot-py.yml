@@ -1,4 +1,4 @@
-name: Static Build
+name: Universal Build
 
 on:
   workflow_dispatch:
@@ -12,52 +12,34 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Buildx
-        uses: docker/setup-buildx-action@v2
-        with:
-          driver-opts: |
-            network=host
+    - name: Setup Buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: Setup QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: ${{ matrix.arch }}
-          image: tonistiigi/binfmt:qemu-v9.2.2
+    - name: Build for ${{ matrix.arch }}
+      uses: docker/build-push-action@v5
+      with:
+        platforms: linux/${{ matrix.arch }}
+        context: .
+        file: alist-tgbot-py/Dockerfile
+        outputs: type=local,dest=./dist/linux_${{ matrix.arch }}
+        build-args: |
+          TARGETPLATFORM=linux/${{ matrix.arch }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
-      - name: Build for ${{ matrix.arch }}
-        uses: docker/build-push-action@v4
-        with:
-          platforms: linux/${{ matrix.arch }}
-          context: .
-          file: alist-tgbot-py/Dockerfile
-          outputs: type=local,dest=./dist/linux_${{ matrix.arch }}
-          build-args: |
-            TARGETPLATFORM=linux/${{ matrix.arch }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    - name: Validate Binary
+      run: |
+        file ./dist/linux_${{ matrix.arch }}/alist-tgbot-py-static | grep "statically linked"
+        ldd ./dist/linux_${{ matrix.arch }}/alist-tgbot-py-static 2>&1 | grep "not a dynamic executable"
 
-      - name: Verify build output
-        run: |
-          echo "二进制文件架构:"
-          file ./dist/linux_${{ matrix.arch }}/alist-tgbot-py
-          echo "依赖检查:"
-          # 静态二进制应该显示 "not a dynamic executable"
-          ldd ./dist/linux_${{ matrix.arch }}/alist-tgbot-py 2>&1 || true
 
-      - name: Upload to Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          RELEASE_TAG="${{ matrix.arch }}"
-          BINARY_PATH="./dist/linux_${{ matrix.arch }}/alist-tgbot-py"
-
-          #if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-          #  gh release create "$RELEASE_TAG" \
-          #    --title "AList-TGBot-Py ($RELEASE_TAG)" \
-          #    --notes "Static build for $RELEASE_TAG"
-          #fi
-
-          gh release upload "$RELEASE_TAG" "$BINARY_PATH" --clobber
+    - name: Upload to Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        RELEASE_TAG="${{ matrix.arch }}"
+        BINARY_PATH="./dist/linux_${{ matrix.arch }}/alist-tgbot-py"
+        gh release upload "$RELEASE_TAG" "$BINARY_PATH" --clobber
