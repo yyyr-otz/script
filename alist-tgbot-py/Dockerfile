@@ -8,8 +8,6 @@ FROM --platform=$BUILDPLATFORM python:${PY_VERSION}-alpine AS builder
 
 # 初始化交叉编译环境
 COPY --from=xx / /
-
-# 设置目标平台环境变量
 ARG TARGETPLATFORM
 ENV XX_TARGETPLATFORM=$TARGETPLATFORM
 
@@ -27,38 +25,36 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then \
       apk add --no-cache gcc musl-dev python3-dev py3-pip; \
     fi
 
-# 验证交叉编译环境
-RUN xx-verify --static /usr/bin/xx-pip
-RUN which xx-pip
-RUN xx-env
-
 # 安装 Python 依赖
 WORKDIR /app
 COPY alist-tgbot-py/requirements.txt .
 RUN xx-pip install --no-cache-dir -r requirements.txt
 
-# 构建二进制文件
+# 构建二进制文件（关键调整点：指定输出到 /out）
 COPY alist-tgbot-py/tgbot.py .
-RUN mkdir -p /app/dist
+RUN mkdir -p /out  # 创建统一输出目录
 
 RUN if [ "$TARGETARCH" = "arm64" ]; then \
       xx-pip install pyinstaller && \
       xx-pyinstaller --onefile \
         --name alist-tgbot-py \
         --workpath /app/build \
-        --distpath /app/dist \
+        --distpath /out \  # 输出到 /out
         tgbot.py; \
     else \
       pip install pyinstaller && \
       pyinstaller --onefile \
         --name alist-tgbot-py \
         --workpath /app/build \
-        --distpath /app/dist \
+        --distpath /out \  # 输出到 /out
         tgbot.py; \
     fi
 
-# 第二阶段：运行时镜像
+# 验证产物兼容性
+RUN xx-verify --static /out/alist-tgbot-py
+
+# 第二阶段：运行时镜像（仅用于调试）
 FROM --platform=$TARGETPLATFORM alpine:3.19 AS runner
 RUN apk add --no-cache libstdc++
-COPY --from=builder /app/dist/alist-tgbot-py /app/
+COPY --from=builder /out/alist-tgbot-py /app/
 ENTRYPOINT ["/app/alist-tgbot-py"]
