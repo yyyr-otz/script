@@ -37,7 +37,7 @@ RUN pip install --no-cache-dir --no-deps -r requirements.txt
 COPY alist-tgbot-py/tgbot.py .
 
 # 静态编译二进制
-RUN pip install "pyinstaller>=6.13.0" && \
+RUN pip install "pyinstaller>=6.12.0" && \
     export PYTHON_LIB_PATH=$(python3 -c "import sysconfig; print(sysconfig.get_path('purelib'))") && \
     pyinstaller --onefile \
                 --name alist-tgbot-py \
