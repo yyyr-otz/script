@@ -21,29 +21,41 @@ jobs:
         with:
           platforms: linux/${{ matrix.arch }}
           file: |
-            # 第一阶段：基于Alpine构建Python环境
+            # 第一阶段：构建Python环境
             FROM --platform=$TARGETPLATFORM alpine:3.18 AS builder
+            WORKDIR /app
             RUN apk add --no-cache \
                 musl-dev \
                 gcc \
                 python3-dev \
                 py3-pip
-            WORKDIR /app
             COPY alist-tgbot/requirements.txt .
             RUN pip install --user --no-compile -r requirements.txt
-
+            COPY alist-tgbot .
+            
             # 第二阶段：静态编译
             FROM --platform=$TARGETPLATFORM alpine:3.18
+            WORKDIR /app
             COPY --from=builder /root/.local /usr/local
-            COPY alist-tgbot/tgbot.py .
+            COPY --from=builder /app/tgbot.py .
+            
+            # 安装pyinstaller
             RUN apk add --no-cache py3-pip && \
-                pip install pyinstaller && \
-                pyinstaller --onefile \
-                  --name alist-tgbot \
-                  --workpath build \
-                  --distpath dist \
-                  tgbot.py
+                pip install pyinstaller
+            
+            # 验证文件存在性
+            RUN ls -l tgbot.py
+            
+            # 使用pyinstaller生成可执行文件
+            RUN pyinstaller --onefile \
+                --name alist-tgbot \
+                --workpath build \
+                --distpath dist \
+                tgbot.py
 
+            # 指定输出路径
+            WORKDIR /app/dist
+            
           outputs: type=local,dest=./dist
 
       - name: Verify binary
