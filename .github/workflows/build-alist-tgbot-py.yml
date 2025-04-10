@@ -1,0 +1,105 @@
+name: Static Cross-Compile Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            zig_target: x86_64-linux-musl
+          - arch: arm64
+            zig_target: aarch64-linux-musl
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            qemu-user-static \
+            build-essential \
+            python3-dev \
+            python3-pip \
+            python3-venv \
+            zlib1g-dev \
+            libffi-dev \
+            libjpeg-dev \
+            libssl-dev \
+            musl-tools \
+            patchelf \
+            zig \
+            scons
+
+      - name: Configure Python environment
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r alist-tgbot-py/requirements.txt
+          pip install "pyinstaller>=6.12.0" "staticx>=0.13.0"
+          pip install --force-reinstall --no-deps \
+            "urllib3>=2.0.7" \
+            "chardet>=5.2.0" \
+            "idna>3.6"
+
+      - name: Build executable
+        env:
+          CC: "zig cc -target ${{ matrix.zig_target }}"
+          CXX: "zig c++ -target ${{ matrix.zig_target }}"
+          LDFLAGS: "-static"
+          CFLAGS: "-static"
+          PYTHONUNBUFFERED: "1"
+        run: |
+          source venv/bin/activate
+          cd alist-tgbot-py
+
+          pyinstaller --onefile \
+            --name alist-tgbot-py \
+            --hidden-import urllib3 \
+            --hidden-import chardet \
+            --hidden-import idna \
+            --hidden-import charset_normalizer \
+            --collect-all requests \
+            --collect-all urllib3 \
+            --collect-all chardet \
+            --collect-all idna \
+            --add-data "$(python -c 'import requests; print(requests.__path__[0])'):requests" \
+            --workpath /tmp/build \
+            --distpath ../dist/${{ matrix.arch }} \
+            --specpath /tmp/spec \
+            --clean \
+            tgbot.py
+
+          staticx --loglevel DEBUG \
+            --strip \
+            ../dist/${{ matrix.arch }}/alist-tgbot-py \
+            ../dist/${{ matrix.arch }}/alist-tgbot-py-static
+            
+          mkdir -p ../dist/${{ matrix.arch }}/static
+          mv ../dist/${{ matrix.arch }}/alist-tgbot-py-static ../dist/${{ matrix.arch }}/static/alist-tgbot-py
+
+      - name: Verify binary
+        run: |
+          file ./dist/${{ matrix.arch }}/static/alist-tgbot-py | grep "statically linked"
+          ldd ./dist/${{ matrix.arch }}/static/alist-tgbot-py 2>&1 | grep "not a dynamic executable"
+
+      - name: Upload to Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_TAG="${{ matrix.arch }}"
+          BINARY_PATH="./dist/${{ matrix.arch }}/static/alist-tgbot-py"
+          gh release upload "$RELEASE_TAG" "$BINARY_PATH" --clobber
