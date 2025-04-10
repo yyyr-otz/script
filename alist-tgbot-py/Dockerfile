@@ -1,8 +1,7 @@
 # syntax=docker/dockerfile:1.4
-# 第一阶段：构建环境
 FROM --platform=$TARGETPLATFORM alpine:3.21 AS builder
 
-# 安装 Zig 编译器和构建工具
+# 添加 scons 和完整构建工具链
 RUN apk add --no-cache \
     build-base \
     python3-dev \
@@ -12,42 +11,39 @@ RUN apk add --no-cache \
     jpeg-dev \
     openssl-dev \
     musl-dev \
+    scons \  # 关键：添加 scons
     zig
 
-# 配置 Zig 为默认编译器
+# 配置静态编译环境
 ENV CC="zig cc" \
     CXX="zig c++" \
     LDFLAGS="-static" \
     CFLAGS="-static" \
     PYTHONUNBUFFERED=1
 
-# 创建隔离的虚拟环境
+# 创建虚拟环境
 RUN python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
-# 安装依赖
-COPY alist-tgbot-py/requirements.txt .
-RUN pip install --no-cache-dir --no-deps -r requirements.txt
+# 安装依赖（固定版本避免兼容性问题）
+COPY requirements.txt .
+RUN pip install --no-cache-dir --no-deps -r requirements.txt && \
+    pip install --no-cache-dir \
+        "pyinstaller==6.12.0" \  # 固定版本
+        "staticx==0.13.0"  # 使用稳定版本
 
-# 安装 PyInstaller 和静态加固工具
-RUN pip install --no-cache-dir \
-    "pyinstaller>=6.12.0" \
-    "staticx>=0.14.1"
-
-# 复制源码并打包
-COPY alist-tgbot-py/tgbot.py .
+# 复制源码并构建
+COPY tgbot.py .
 RUN pyinstaller --onefile \
     --name alist-tgbot-py \
     --workpath /tmp/build \
     --distpath /app/dist \
     --specpath /tmp/spec \
     --clean \
-    tgbot.py
+    tgbot.py && \
+    staticx /app/dist/alist-tgbot-py /app/dist/alist-tgbot-py-static
 
-# 二次静态加固
-RUN staticx /app/dist/alist-tgbot-py /app/dist/alist-tgbot-py-static
-
-# 第二阶段：最小化运行时镜像
+# 最终镜像
 FROM scratch
 COPY --from=builder /app/dist/alist-tgbot-py-static /
 ENTRYPOINT ["/alist-tgbot-py-static"]
