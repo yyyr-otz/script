@@ -32,6 +32,7 @@ RUN pip install --user --no-deps -r requirements.txt
 
 # 复制源码
 COPY alist-tgbot-py/tgbot.py .
+COPY alist-tgbot-py/requirements.txt .
 
 # 静态编译二进制
 RUN <<EOF
