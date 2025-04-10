@@ -1,4 +1,4 @@
-name: Static Build
+name: Static Cross-Compile
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [amd64, arm64v8]
+        arch: [amd64, arm64]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,52 +16,39 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build static binary
+      - name: Static Build with Alpine
         uses: docker/build-push-action@v4
+        id: static-build
         with:
           platforms: linux/${{ matrix.arch }}
           file: |
-            # 第一阶段：构建Python环境
+            # 第一阶段：构建环境
             FROM --platform=$TARGETPLATFORM alpine:3.18 AS builder
             WORKDIR /app
-            RUN apk add --no-cache \
-                musl-dev \
-                gcc \
-                python3-dev \
-                py3-pip
+            RUN apk add --no-cache musl-dev gcc python3-dev py3-pip
             COPY alist-tgbot/requirements.txt .
-            RUN pip install --user --no-compile -r requirements.txt
-            COPY alist-tgbot .
-            
-            # 第二阶段：静态编译
-            FROM --platform=$TARGETPLATFORM alpine:3.18
-            WORKDIR /app
-            COPY --from=builder /root/.local /usr/local
-            COPY --from=builder /app/tgbot.py .
-            
-            # 安装pyinstaller
-            RUN apk add --no-cache py3-pip && \
-                pip install pyinstaller
-            
-            # 验证文件存在性
-            RUN ls -l tgbot.py
-            
-            # 使用pyinstaller生成可执行文件
-            RUN pyinstaller --onefile \
-                --name alist-tgbot \
-                --workpath build \
-                --distpath dist \
-                tgbot.py
+            RUN pip install --user -r requirements.txt
+            COPY alist-tgbot/tgbot.py .
+            RUN pip install pyinstaller && \
+                pyinstaller --onefile \
+                  --name alist-tgbot \
+                  --workpath /app/build \
+                  --distpath /app/dist \
+                  tgbot.py
 
-            # 指定输出路径
-            WORKDIR /app/dist
-            
+            # 第二阶段：提取二进制文件
+            FROM scratch
+            COPY --from=builder /app/dist/alist-tgbot /
           outputs: type=local,dest=./dist
 
-      - name: Verify binary
+      - name: Verify Binary
         run: |
-          file dist/linux_${{ matrix.arch }}/alist-tgbot
-          ldd dist/linux_${{ matrix.arch }}/alist-tgbot | grep "not a dynamic executable"
+          # 检查文件是否存在
+          ls -lh ./dist/linux_${{ matrix.arch }}/alist-tgbot
+          # 验证静态链接
+          file ./dist/linux_${{ matrix.arch }}/alist-tgbot | grep "statically linked"
+          # 确认无动态依赖
+          ldd ./dist/linux_${{ matrix.arch }}/alist-tgbot | grep "not a dynamic executable"
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
