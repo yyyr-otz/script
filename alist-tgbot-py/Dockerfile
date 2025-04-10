@@ -10,7 +10,6 @@ RUN apk update && \
     gcc \
     python3-dev \
     py3-pip \
-    py3-venv \
     zlib-dev \
     jpeg-dev \
     libffi-dev
@@ -23,7 +22,7 @@ ENV VENV_PATH="/app/venv" \
 
 WORKDIR /app
 
-# 创建虚拟环境
+# 创建虚拟环境（无需 py3-venv 包）
 RUN python3 -m venv $VENV_PATH
 
 # 复制并安装依赖
