@@ -72,11 +72,7 @@ jobs:
           source venv/bin/activate
           cd alist-tgbot-py
 
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-              PYI_BOOTLOADER_ARCH=aarch64
-          else
-              PYI_BOOTLOADER_ARCH=x86_64
-          fi
+          BOOTLOADER_PATH=$(python -c "from PyInstaller.bootstrap import run; print(run.__file__)")
 
           pyinstaller \
             --onefile \
@@ -95,7 +91,7 @@ jobs:
             --specpath /tmp/spec \
             --clean \
             --runtime-tmpdir . \
-            --bootloader-arch $PYI_BOOTLOADER_ARCH \
+            --bootloader $BOOTLOADER_PATH \
             tgbot.py
 
           # Staticx 静态化处理
