@@ -13,14 +13,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup cross-compile tools
+      - name: Enable multiarch support
         run: |
+          # 关键修复：启用多架构支持
+          sudo dpkg --add-architecture arm64
           sudo apt-get update
+
+      - name: Install cross-compile tools
+        run: |
           sudo apt-get install -y \
             musl-tools \
             gcc-aarch64-linux-gnu \
             gcc-x86-64-linux-gnu \
-            qemu-user-static  # 启用ARM64二进制模拟
+            musl-dev:arm64 \        # 显式安装ARM64 musl库
+            qemu-user-static
 
       - name: Prepare musl libc
         run: |
@@ -35,24 +41,26 @@ jobs:
 
           mkdir -p lib
           echo "Copying musl libc from: $MUSL_PATH"
-          cp $MUSL_PATH lib/
+          ls -l $MUSL_PATH  # 新增路径验证
+          cp -v $MUSL_PATH lib/
 
-      - name: Verify musl path
+      - name: Set compiler flags
+        id: set-env
         run: |
-          ls -l lib/libc.so
-          file lib/libc.so
+          # ARM64需要指定库搜索路径
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            echo "C_INCLUDE_PATH=/usr/aarch64-linux-musl/include" >> $GITHUB_ENV
+            echo "LIBRARY_PATH=/usr/aarch64-linux-musl/lib" >> $GITHUB_ENV
+          fi
 
       - name: Static build
         env:
           CC: |
-            if [ "${{ matrix.arch }}" = "amd64" ]; then
-              echo "x86_64-linux-musl-gcc"
-            else
-              echo "aarch64-linux-musl-gcc"
-            fi
+            ${{ matrix.arch == 'amd64' && 'x86_64-linux-musl-gcc' || 'aarch64-linux-musl-gcc -B /usr/aarch64-linux-musl/lib' }}
         run: |
           pip install -r alist-tgbot/requirements.txt
-          pyinstaller --onefile \
+          pyinstaller \
+            --onefile \
             --name alist-tgbot \
             --add-binary "lib/libc.so:." \
             --workpath build \
