@@ -12,10 +12,8 @@ jobs:
         include:
           - arch: amd64
             zig_target: x86_64-linux-musl
-            release_tag: linux-amd64
           - arch: arm64
             zig_target: aarch64-linux-musl
-            release_tag: linux-arm64
       fail-fast: false
 
     steps:
@@ -87,12 +85,6 @@ jobs:
           file ./dist/${{ matrix.arch }}/alist-tgbot-py
           readelf -h ./dist/${{ matrix.arch }}/alist-tgbot-py | grep 'Machine'
           ldd ./dist/${{ matrix.arch }}/alist-tgbot-py 2>&1 | grep "not a dynamic executable"
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: alist-tgbot-${{ matrix.arch }}
-          path: ./dist/${{ matrix.arch }}/alist-tgbot-py
 
       - name: Upload to Release
         env:
