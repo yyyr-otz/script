@@ -35,8 +35,7 @@ RUN pip install --no-cache-dir \
     pip install --force-reinstall --no-deps \
     urllib3>=2.0.7 \
     chardet>=5.2.0 \
-    idna>=3.6 \
-    pathlib
+    idna>=3.6
 
 # 复制源码并构建
 COPY alist-tgbot-py/tgbot.py .
