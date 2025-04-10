@@ -45,6 +45,7 @@ CmVjaG8gLWUgIlxlWzE7OTZtUnVubmluZyBkb25lIVxlWzBtIgplY2hvIC1lICJc
 ZVsxOzk2bVRoYW5rIHlvdSBmb3IgdXNpbmcgdGhpcyBzY3JpcHQsZW5qb3khXGVb
 MG0iCnNsZWVwIDE1CmNsZWFy" | base64 -d | bash
 
-chmod +x ${GAME_FILE} && ./${GAME_FILE} -batchmode -nographics -bind 0.0.0.0 -port 25634 -GSLT -Name "MCST Hosted Unturned Server" -Password +InternetServer/MCSTUnturned
+#java -jar ${GAME_FILE}
+#chmod +x ${GAME_FILE} && ./${GAME_FILE} -batchmode -nographics -bind 0.0.0.0 -port 25634 -GSLT -Name "MCST Hosted Unturned Server" -Password +InternetServer/MCSTUnturned
 
 tail -f /dev/null
