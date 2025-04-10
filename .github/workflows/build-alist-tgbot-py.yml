@@ -48,7 +48,10 @@ jobs:
             libssl-dev \
             musl-tools \
             patchelf \
-            scons
+            scons \
+            gcc \
+            g++ \
+            make
 
       - name: Configure Python environment
         run: |
@@ -56,7 +59,7 @@ jobs:
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r alist-tgbot-py/requirements.txt
-          pip install "pyinstaller==5.13.2" "staticx>=0.13.0" "zigpy>=0.12.0" "pyinstaller-hooks-contrib==2023.10" "setuptools==68.2.2"
+          pip install "nuitka>=1.5.8" "staticx>=0.13.0" "zigpy>=0.12.0" "setuptools>=68.2.2"
           pip install --force-reinstall --no-deps \
             "urllib3>=2.0.7" \
             "chardet>=5.2.0" \
@@ -73,41 +76,33 @@ jobs:
           source venv/bin/activate
           cd alist-tgbot-py
 
-          # 手动定位 bootloader
-          BOOTLOADER_PATH=$(find ../venv/ -name 'run*' -path '*PyInstaller/bootloader/*' | grep linux)
-          echo "Bootloader path: $BOOTLOADER_PATH"
-          readelf -h $BOOTLOADER_PATH | grep 'Machine' | grep -E 'AArch64|x86-64' || exit 1
-
-          pyinstaller \
+          # 使用Nuitka编译Python脚本
+          python -m nuitka \
             --onefile \
-            --name alist-tgbot-py \
-            --hidden-import urllib3 \
-            --hidden-import chardet \
-            --hidden-import idna \
-            --hidden-import charset_normalizer \
-            --collect-all requests \
-            --collect-all urllib3 \
-            --collect-all chardet \
-            --collect-all idna \
-            --add-data "$(python -c 'import requests; print(requests.__path__[0])'):requests" \
-            --workpath /tmp/build \
-            --distpath ../dist/${{ matrix.arch }} \
-            --specpath /tmp/spec \
-            --clean \
-            --runtime-tmpdir . \
-            --bootloader $BOOTLOADER_PATH \
+            --enable-plugin=nuitka.plugins.PluginNoUnhashable \
+            --include-package=requests \
+            --include-package=urllib3 \
+            --include-package=chardet \
+            --include-package=idna \
+            --include-package=charset_normalizer \
+            --static-libraries \
+            --standalone \
+            --enable-unsupported-optimization \
             tgbot.py
 
+          # 静态化处理
           staticx --loglevel DEBUG \
             --strip \
-            ../dist/${{ matrix.arch }}/alist-tgbot-py \
-            ../dist/${{ matrix.arch }}/alist-tgbot-py-static
-            
+            tgbot \
+            tgbot-static
+
+          # 创建输出目录
           mkdir -p ../dist/${{ matrix.arch }}/static
-          mv ../dist/${{ matrix.arch }}/alist-tgbot-py-static ../dist/${{ matrix.arch }}/static/alist-tgbot-py
+          mv tgbot-static ../dist/${{ matrix.arch }}/static/alist-tgbot-py
 
       - name: Verify binary
         run: |
+          echo "验证 ${{ matrix.arch }} 架构:"
           readelf -h ./dist/${{ matrix.arch }}/static/alist-tgbot-py | grep 'Machine' | grep -E 'AArch64|Advanced Micro Devices X86-64'
           file ./dist/${{ matrix.arch }}/static/alist-tgbot-py | grep "statically linked"
           ldd ./dist/${{ matrix.arch }}/static/alist-tgbot-py 2>&1 | grep "not a dynamic executable"
@@ -116,6 +111,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          RELEASE_TAG="${{ matrix.arch }}"
+          RELEASE_TAG="${{ matrix.release_tag }}"
           BINARY_PATH="./dist/${{ matrix.arch }}/static/alist-tgbot-py"
           gh release upload "$RELEASE_TAG" "$BINARY_PATH" --clobber
