@@ -57,7 +57,7 @@ RUN pyinstaller --onefile \
     tgbot.py
 
 RUN staticx \
-    --loglevel debug \
+    --loglevel DEBUG \
     --strip \
     /app/dist/alist-tgbot-py \
     /app/dist/alist-tgbot-py-static
