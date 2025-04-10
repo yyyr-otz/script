@@ -1,3 +1,10 @@
+def _ensure_dependencies():
+    import urllib3
+    import chardet
+    import idna
+    import charset_normalizer
+    from requests.packages import urllib3 as req_urllib3
+_ensure_dependencies()
 import requests
 import sys
 import re
