@@ -26,7 +26,7 @@ RUN python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
 # 安装依赖
-COPY requirements.txt .
+COPY alist-tgbot-py/requirements.txt .
 RUN pip install --no-cache-dir --no-deps -r requirements.txt
 
 # 安装 PyInstaller 和静态加固工具
@@ -35,7 +35,7 @@ RUN pip install --no-cache-dir \
     "staticx>=0.15.0"
 
 # 复制源码并打包
-COPY tgbot.py .
+COPY alist-tgbot-py/tgbot.py .
 RUN pyinstaller --onefile \
     --name alist-tgbot-py \
     --workpath /tmp/build \
