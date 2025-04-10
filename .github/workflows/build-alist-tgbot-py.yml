@@ -35,8 +35,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             build-essential \
-            gcc-aarch64-linux-gnu \  # ARM64交叉编译器
-            gcc-x86-64-linux-gnu \   # AMD64交叉编译器
+            gcc-aarch64-linux-gnu \
+            gcc-x86-64-linux-gnu \
             scons \
             patchelf \
             zlib1g-dev
