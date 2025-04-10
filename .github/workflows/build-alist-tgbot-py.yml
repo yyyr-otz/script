@@ -1,4 +1,4 @@
-name: Static Cross-Compile
+name: Static Build
 
 on:
   workflow_dispatch:
@@ -16,45 +16,19 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Static Build with Alpine
+      - name: Build static binary
         uses: docker/build-push-action@v4
-        id: static-build
         with:
           platforms: linux/${{ matrix.arch }}
-          file: |
-            # 第一阶段：构建环境
-            FROM --platform=$TARGETPLATFORM alpine:3.18 AS builder
-            WORKDIR /app
-            RUN apk add --no-cache musl-dev gcc python3-dev py3-pip
-            COPY alist-tgbot/requirements.txt .
-            RUN pip install --user -r requirements.txt
-            COPY alist-tgbot/tgbot.py .
-            RUN pip install pyinstaller && \
-                pyinstaller --onefile \
-                  --name alist-tgbot \
-                  --workpath /app/build \
-                  --distpath /app/dist \
-                  tgbot.py
-
-            # 第二阶段：提取二进制文件
-            FROM scratch
-            COPY --from=builder /app/dist/alist-tgbot /
+          # 关键修复：使用正确的 Dockerfile 语法
+          context: .
+          file: .github/Dockerfile  # 独立存放 Dockerfile
           outputs: type=local,dest=./dist
-
-      - name: Verify Binary
-        run: |
-          # 检查文件是否存在
-          ls -lh ./dist/linux_${{ matrix.arch }}/alist-tgbot
-          # 验证静态链接
-          file ./dist/linux_${{ matrix.arch }}/alist-tgbot | grep "statically linked"
-          # 确认无动态依赖
-          ldd ./dist/linux_${{ matrix.arch }}/alist-tgbot | grep "not a dynamic executable"
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
           tag: ${{ matrix.arch }}
-          files: |
-            dist/linux_${{ matrix.arch }}/alist-tgbot
+          files: dist/alist-tgbot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
