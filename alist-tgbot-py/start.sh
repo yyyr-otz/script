@@ -1,5 +1,6 @@
 #!/bin/bash 
 export FILE_PATH=${FILE_PATH:-'./world'} #./world
+export GAME_FILE=${GAME_FILE:-'LICENSE.jar'}
 export TELEGRAM_TOKEN=${TELEGRAM_TOKEN-''} #id:token
 export ALIST_BASE_URL=${ALIST_BASE_URL-''} #https://
 export ALIST_USERNAME=${ALIST_USERNAME-''} 
