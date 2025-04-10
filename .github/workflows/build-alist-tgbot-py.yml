@@ -20,21 +20,29 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           platforms: linux/${{ matrix.arch }}
-          # 关键修复：使用正确的 Dockerfile 语法
           context: .
-          file: alist-tgbot/Dockerfile  # 独立存放 Dockerfile
+          file: alist-tgbot/Dockerfile
           outputs: type=local,dest=./dist
+
+      - name: Verify build output
+        run: |
+          echo "构建产物列表:"
+          ls -R ./dist
+          echo "验证文件路径:"
+          find ./dist -name alist-tgbot
+
+      #- name: Install GitHub CLI
+      #  uses: actions/setup-gh-cli@v1  # 关键修复：必须安装CLI工具
 
       - name: Upload to Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 生成唯一 Release 标题
-          RELEASE_TAG="${{ matrix.arch }}"
-          BINARY_PATH="dist/linux_${{ matrix.arch }}/alist-tgbot"
+          # 动态获取二进制文件路径
+          BINARY_PATH=$(find ./dist -name alist-tgbot | grep ${{ matrix.arch }})
           
-          # 创建或更新 Release
-          gh release create $RELEASE_TAG \
-            --title "Build for $RELEASE_TAG" \
-            --notes "Static build for ${{ matrix.arch }} architecture" \
+          # 创建架构专属Release
+          gh release create ${{ matrix.arch }} \
+            --title "AList-TGBot (${{ matrix.arch }})" \
+            --notes "Static build for ${{ matrix.arch }}" \
             $BINARY_PATH
