@@ -1,104 +1,99 @@
 name: Nuitka Static Build
 
-on: 
+on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
     strategy:
       matrix:
         arch: [amd64, arm64]
         include:
           - arch: amd64
-            zig_target: x86_64-linux-musl
+            triplet: x86_64-linux-gnu
+            cflags: "-march=x86-64-v3"
           - arch: arm64
-            zig_target: aarch64-linux-musl
+            triplet: aarch64-linux-gnu
+            cflags: "-march=armv8-a+crc"
       fail-fast: false
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Setup QEMU
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: all
+      - name: Setup Multiarch Toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            gcc-12 g++-12 \
+            gcc-12-${matrix.triplet} g++-12-${matrix.triplet} \
+            musl-tools \
+            patchelf \
+            file
 
-    - name: Setup Zig
-      uses: mlugg/setup-zig@v1.2.1
-      with:
-        version: "0.13.0"  # 升级至更稳定版本
+          # 配置交叉编译工具链
+          sudo update-alternatives --install /usr/bin/${matrix.triplet}-gcc ${matrix.triplet}-gcc /usr/bin/${matrix.triplet}-gcc-12 50
+          sudo update-alternatives --install /usr/bin/${matrix.triplet}-g++ ${matrix.triplet}-g++ /usr/bin/${matrix.triplet}-g++-12 50
 
-    - name: Install system compilers
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          gcc \
-          g++ \
-          make \
-          scons \
-          patchelf \
-          zlib1g-dev
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: pip
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-        cache: pip
+      - name: Install Python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install nuitka==2.6.9 staticx
+          pip install -r alist-tgbot-py/requirements.txt
 
-    - name: Install Python packages
-      run: |
-        python -m pip install --upgrade pip
-        pip install nuitka==2.6.9 staticx
-        pip install -r alist-tgbot-py/requirements.txt
+      - name: Build with Nuitka
+        env:
+          CC: "/usr/bin/${matrix.triplet}-gcc"
+          CXX: "/usr/bin/${matrix.triplet}-g++"
+          CFLAGS: "-static -Os ${matrix.cflags} -fstack-protector-strong"
+          LDFLAGS: "-static -Wl,--strip-all"
+        run: |
+          cd alist-tgbot-py
+          # 使用绝对路径确保环境正确
+          ${{ env.pythonLocation }}/bin/python -m nuitka \
+            --onefile \
+            --include-package=requests \
+            --include-package=urllib3 \
+            --include-package=chardet \
+            --include-package=idna \
+            --include-package=charset_normalizer \
+            --standalone \
+            --assume-yes-for-downloads \
+            --output-dir=./build \
+            --lto=no \
+            tgbot.py
 
-    - name: Build with Nuitka
-      env:
-        CC: "zig cc -target ${{ matrix.zig_target }}"
-        CXX: "zig c++ -target ${{ matrix.zig_target }}"
-        # 移除强制静态标志，由staticx处理最终静态化
-        LDFLAGS: ""
-        CFLAGS: "-fstack-protector-strong"
-      run: |
-        cd alist-tgbot-py
-        
-        # 生成动态链接的可执行文件
-        python -m nuitka \
-          --onefile \
-          --include-package=requests \
-          --include-package=urllib3 \
-          --include-package=chardet \
-          --include-package=idna \
-          --include-package=charset_normalizer \
-          --standalone \
-          --assume-yes-for-downloads \
-          --output-dir=./build \
-          --lto=no \
-          --clang \
-          tgbot.py
+          # 增强静态化处理
+          staticx --strip ./build/tgbot.dist/tgbot ./build/tgbot-static
+          mkdir -p ../dist/${matrix.arch}
+          mv ./build/tgbot-static ../dist/${matrix.arch}/alist-tgbot-py
 
-        # 使用staticx进行静态化
-        staticx --strip ./build/tgbot.bin ./build/tgbot-static
+      - name: Binary Verification
+        run: |
+          # 架构验证
+          file ./dist/${matrix.arch}/alist-tgbot-py | grep "${matrix.triplet}"
+          # 静态链接检查
+          ! ldd ./dist/${matrix.arch}/alist-tgbot-py 2>&1 | grep "=>"
+          # 安全加固检查
+          checksec --file=./dist/${matrix.arch}/alist-tgbot-py
 
-        # 组织输出文件
-        mkdir -p ../dist/${{ matrix.arch }}
-        mv ./build/tgbot-static ../dist/${{ matrix.arch }}/alist-tgbot-py
-
-    - name: Verify binary
-      run: |
-        echo "文件类型:"
-        file ./dist/${{ matrix.arch }}/alist-tgbot-py
-        echo -n "目标架构: " 
-        readelf -h ./dist/${{ matrix.arch }}/alist-tgbot-py | grep 'Machine'
-        echo "动态链接检查:"
-        ldd ./dist/${{ matrix.arch }}/alist-tgbot-py 2>&1 | grep "not a dynamic executable"
-
-    - name: Upload to Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        RELEASE_TAG="${{ matrix.arch }}"
-        BINARY_PATH="./dist/${{ matrix.arch }}/alist-tgbot-py"
-        gh release upload "$RELEASE_TAG" "$BINARY_PATH" --clobber
+      - name: Upload to Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_TAG="${{ matrix.arch }}"
+          BINARY_PATH="./dist/${{ matrix.arch }}/alist-tgbot-py"
+          gh release upload "$RELEASE_TAG" "$BINARY_PATH" --clobber
