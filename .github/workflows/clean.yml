@@ -1,5 +1,5 @@
-name: 清除工作流运行记录
-run-name: ${{ github.actor }} 正在执行清理
+name: 清除工作流
+run-name: ${{ github.actor }} 正在清理工作流记录
 on:
   workflow_dispatch:
     inputs:
