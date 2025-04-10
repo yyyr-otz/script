@@ -46,7 +46,7 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then \
     fi
 
 # 第二阶段：按架构优化的最终镜像
-FROM --platform=$TARGETPLATFORM alpine:3.23 AS runtime
+FROM --platform=$TARGETPLATFORM alpine:latest AS runner
 
 # 安装最小运行时依赖
 RUN apk add --no-cache libstdc++
