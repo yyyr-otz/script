@@ -13,6 +13,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  checks: write
 
 jobs:
   secure_clean:
@@ -42,17 +43,14 @@ jobs:
           pattern=${pattern//\*\//}
           echo $(grep -o '/' <<< "$pattern" | wc -l)
         }
-
         # 主清理逻辑
         total=0
         IFS=',' read -ra patterns <<< "${{ inputs.targets }}"
         for pattern in "${patterns[@]}"; do
           echo "::group::🔍 扫描模式: $pattern"
-          
           # 计算匹配深度
           depth=$(match_depth "$pattern")
           find_cmd="find . -maxdepth $((depth+1)) -path './$pattern'"
-
           # 执行删除
           count=0
           while IFS= read -r -d $'\0' path; do
@@ -60,17 +58,14 @@ jobs:
               echo "🛡️ 保护跳过: $path"
               continue
             fi
-
             rm -rf "$path"
             echo "✅ 已删除: $path"
             ((count++))
           done < <(eval "$find_cmd -print0 2>/dev/null")
-          
           echo "处理完成，删除 $count 项"
           ((total+=count))
           echo "::endgroup::"
         done
-
         echo "total_deleted=$total" >> $GITHUB_OUTPUT
 
     - name: 认证提交
@@ -83,12 +78,10 @@ jobs:
         git config --global user.name "Automated Cleanup"
         git config --global user.email "actions@github.com"
         git remote set-url origin "https://${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-
         # 执行提交
         if git status --porcelain | grep -q '^[MADRC]'; then
           git add -A
           git commit -m "chore: 自动清理 (${{ steps.cleaner.outputs.total_deleted }}项)"
-          
           # 安全推送（隐藏token）
           { git push origin HEAD:${{ github.ref_name }} 2>&1 | sed "s/${GH_TOKEN}/***/g"; } || {
             echo "::warning::推送失败，尝试创建PR"
@@ -97,9 +90,3 @@ jobs:
         else
           echo "🟢 无变更需要提交"
         fi
-
-    - name: 事后清理
-      if: always()
-      run: |
-        rm -f .safelist
-        git config --unset-all http.https://github.com/.extraheader
