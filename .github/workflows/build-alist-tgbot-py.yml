@@ -1,27 +1,17 @@
-name: Auto-Tag Release
+name: build-alist-tgbot-py
 
 on:
-  workflow_dispatch:  # 手动触发
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-and-upload:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [amd64, arm64]  # 定义目标架构
+        arch: [amd64, arm64]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          pip install -r alist-tgbot/requirements.txt
-          pip install pyinstaller
 
       - name: Build binary
         run: |
@@ -31,46 +21,20 @@ jobs:
             --distpath dist/${{ matrix.arch }} \
             alist-tgbot/tgbot.py
 
-      - name: Create or Update Release
-        id: release
+      - name: Create Release if missing
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 检查 Tag 是否存在
-          tag="${{ matrix.arch }}"
-          release_id=$(curl -s \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag" | jq -r '.id')
-
-          # 如果不存在，创建新 Release
-          if [ -z "$release_id" ] || [ "$release_id" == "null" ]; then
-            release_id=$(curl -s -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              -d "{\"tag_name\":\"$tag\",\"name\":\"$tag\"}" \
-              "https://api.github.com/repos/${{ github.repository }}/releases" | jq -r '.id')
+          if ! gh release view "${{ matrix.arch }}"; then
+            gh release create "${{ matrix.arch }}" \
+              --title "${{ matrix.arch }}" \
+              --notes "Auto-generated for ${{ matrix.arch }}"
           fi
 
-          # 输出 Release ID 供后续步骤使用
-          echo "release_id=$release_id" >> $GITHUB_OUTPUT
-
-      - name: Delete old asset (if exists)
+      - name: Upload Binary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 查找已存在的同名文件 ID
-          asset_id=$(curl -s \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/${{ steps.release.outputs.release_id }}/assets" | \
-            jq -r '.[] | select(.name == "alist-tgbot") | .id')
-
-          # 删除旧文件
-          if [ -n "$asset_id" ]; then
-            curl -X DELETE \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/releases/assets/$asset_id"
-          fi
-
-      - name: Upload binary
-        run: |
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary "@dist/${{ matrix.arch }}/alist-tgbot" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/${{ steps.release.outputs.release_id }}/assets?name=alist-tgbot"
+          gh release upload "${{ matrix.arch }}" \
+            "dist/${{ matrix.arch }}/alist-tgbot" \
+            --clobber
