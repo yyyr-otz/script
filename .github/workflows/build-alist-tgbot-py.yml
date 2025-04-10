@@ -22,7 +22,7 @@ jobs:
           platforms: linux/${{ matrix.arch }}
           # 关键修复：使用正确的 Dockerfile 语法
           context: .
-          file: .github/Dockerfile  # 独立存放 Dockerfile
+          file: .github/alist-tgbot/Dockerfile  # 独立存放 Dockerfile
           outputs: type=local,dest=./dist
 
       - name: Upload to Release
