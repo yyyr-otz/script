@@ -18,7 +18,14 @@ jobs:
         with:
           driver-opts: |
             network=host
-
+            
+      - name: Setup QEMU (ARM64 only)
+        if: matrix.arch == 'arm64'
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
+          image: tonistiigi/binfmt:qemu-v7.2.0
+          
       - name: Build for ${{ matrix.arch }}
         uses: docker/build-push-action@v4
         with:
@@ -26,10 +33,10 @@ jobs:
           context: .
           file: alist-tgbot-py/Dockerfile
           outputs: type=local,dest=./dist/linux_${{ matrix.arch }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           build-args: |
             TARGETPLATFORM=linux/${{ matrix.arch }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Verify build output
         run: |
