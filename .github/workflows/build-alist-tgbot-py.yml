@@ -2,6 +2,8 @@ name: Nuitka Static Build
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
 
 jobs:
   build:
@@ -13,8 +15,12 @@ jobs:
         include:
           - arch: amd64
             triplet: x86_64-linux-gnu
+            debian_arch: amd64
+            binutils_pkg: binutils-x86-64-linux-gnu
           - arch: arm64
             triplet: aarch64-linux-gnu
+            debian_arch: arm64
+            binutils_pkg: binutils-aarch64-linux-gnu
       fail-fast: false
 
     steps:
@@ -25,22 +31,24 @@ jobs:
 
       - name: Setup Multiarch Toolchain
         run: |
-          # 启用目标架构支持（使用正确的dpkg架构名称）
-          sudo dpkg --add-architecture ${{ matrix.arch }}
+          # 启用目标架构支持
+          sudo dpkg --add-architecture ${{ matrix.debian_arch }}
           sudo add-apt-repository -y universe
           sudo apt-get update
 
-          # 安装基础编译工具
+          # 安装编译工具链（修正包名）
           sudo apt-get install -y \
             build-essential \
-            crossbuild-essential-$(echo "${{ matrix.triplet }}" | cut -d'-' -f1) \
-            binutils-${{ matrix.triplet }} \
+            crossbuild-essential-${{ matrix.debian_arch }} \
+            ${{ matrix.binutils_pkg }} \
             musl-dev \
             patchelf \
             file \
-            python3-dev
+            python3-dev \
+            gcc-${{ matrix.triplet }} \
+            g++-${{ matrix.triplet }}
 
-          # 配置工具链
+          # 配置编译器优先级
           sudo update-alternatives --install \
             /usr/bin/${{ matrix.triplet }}-gcc \
             ${{ matrix.triplet }}-gcc \
@@ -90,11 +98,11 @@ jobs:
 
       - name: Binary Verification
         run: |
-          # 架构验证
-          file ./dist/${{ matrix.arch }}/alist-tgbot-py | grep "${{ matrix.triplet }}"
-          # 静态链接检查
+          echo "架构验证:"
+          file ./dist/${{ matrix.arch }}/alist-tgbot-py | grep -E "${{ matrix.triplet }}|statically linked"
+          echo "动态库检查:"
           ! ldd ./dist/${{ matrix.arch }}/alist-tgbot-py 2>&1 | grep "=>"
-          # 文件属性检查
+          echo "安全加固检查:"
           checksec --file=./dist/${{ matrix.arch }}/alist-tgbot-py
 
       - name: Upload to Release
