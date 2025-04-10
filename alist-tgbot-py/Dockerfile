@@ -36,6 +36,9 @@ RUN pip install --no-cache-dir --no-deps -r requirements.txt && \
 # 复制源码并构建
 COPY alist-tgbot-py/tgbot.py .
 RUN pyinstaller --onefile \
+    --hidden-import urllib3 \
+    --hidden-import chardet \
+    --hidden-import idna \
     --name alist-tgbot-py \
     --workpath /tmp/build \
     --distpath /app/dist \
