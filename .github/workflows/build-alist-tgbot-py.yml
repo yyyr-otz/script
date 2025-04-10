@@ -41,8 +41,8 @@ jobs:
 
     - name: Validate Binary
       run: |
-        file ./dist/linux_${{ matrix.arch }}/alist-tgbot-py-static | grep "statically linked"
-        ldd ./dist/linux_${{ matrix.arch }}/alist-tgbot-py-static 2>&1 | grep "not a dynamic executable"
+        file ./dist/linux_${{ matrix.arch }}/alist-tgbot-py | grep "statically linked"
+        ldd ./dist/linux_${{ matrix.arch }}/alist-tgbot-py 2>&1 | grep "not a dynamic executable"
 
 
     - name: Upload to Release
