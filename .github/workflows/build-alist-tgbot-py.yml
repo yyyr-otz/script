@@ -20,11 +20,11 @@ jobs:
           driver-opts: |
             network=host
             
-      - name: Setup QEMU (ARM64 only)
-        if: matrix.arch == 'arm64'
+      - name: Setup QEMU
+        #if: matrix.arch == 'arm64'
         uses: docker/setup-qemu-action@v2
         with:
-          platforms: arm64
+          platforms: ${{ matrix.arch }}
           image: tonistiigi/binfmt:qemu-v9.2.2
           
       - name: Build for ${{ matrix.arch }}
