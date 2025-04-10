@@ -24,7 +24,7 @@ jobs:
         uses: docker/setup-qemu-action@v2
         with:
           platforms: arm64
-          image: tonistiigi/binfmt:qemu-v7.2.0
+          image: tonistiigi/binfmt:qemu-v9.2.2
           
       - name: Build for ${{ matrix.arch }}
         uses: docker/build-push-action@v4
