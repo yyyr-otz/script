@@ -22,7 +22,7 @@ jobs:
           platforms: linux/${{ matrix.arch }}
           context: .
           file: alist-tgbot/Dockerfile
-          outputs: type=local,dest=./dist
+          outputs: type=local,dest=./dist/linux_${{ matrix.arch }}
 
       - name: Verify build output
         run: |
