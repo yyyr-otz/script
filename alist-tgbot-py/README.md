@@ -7,17 +7,3 @@
 
 
 说明文件不上传，只上传，app.py,requirements.txt,env三个文件，点击控制台的start即可。
-
-TELEGRAM_TOKEN="机器人TOKEN"
-
-ALIST_BASE_URL="http://127.0.0.1:5244"
-
-ALIST_USERNAME="用户名"
-
-ALIST_PASSWORD="密码"
-
-ALIST_OFFLINE_DIR="/thunderx"
-
-JAV_SEARCH_API="https://api.wwlww.org/v1/avcode/"
-
-ALLOWED_USER_IDS="你自己的用户ID以及其他人的，用英文逗号分割"
