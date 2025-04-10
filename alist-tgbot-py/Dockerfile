@@ -6,9 +6,9 @@ WORKDIR /app
 RUN apk add --no-cache musl-dev gcc python3-dev py3-pip
 
 # 复制代码
-COPY alist-tgbot/requirements.txt .
+COPY alist-tgbot-py/requirements.txt .
 RUN pip install --user -r requirements.txt
-COPY alist-tgbot/tgbot.py .
+COPY alist-tgbot-py/tgbot.py .
 
 # 关键修复：显式创建输出目录
 RUN mkdir -p /app/dist
@@ -16,11 +16,11 @@ RUN mkdir -p /app/dist
 # 编译二进制
 RUN pip install pyinstaller && \
     pyinstaller --onefile \
-      --name alist-tgbot \
+      --name alist-tgbot-py \
       --workpath /app/build \
       --distpath /app/dist \
       tgbot.py
 
 # 第二阶段：提取二进制文件
 FROM scratch
-COPY --from=builder /app/dist/alist-tgbot /
+COPY --from=builder /app/dist/alist-tgbot-py /
