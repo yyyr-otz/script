@@ -67,6 +67,7 @@ jobs:
           echo "::endgroup::"
         done
         echo "total_deleted=$total" >> $GITHUB_OUTPUT
+        rm .whitelist
 
     - name: 认证提交
       if: success() || failure()
