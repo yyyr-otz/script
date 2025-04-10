@@ -10,13 +10,10 @@ jobs:
       matrix:
         include:
           - arch: amd64
-            debian_arch: amd64
             triplet: x86_64-linux-gnu
             gcc_version: 11
           - arch: arm64
-            debian_arch: arm64
             triplet: aarch64-linux-gnu
-            gcc_version: 11
       fail-fast: false
 
     steps:
@@ -27,41 +24,13 @@ jobs:
 
       - name: Setup Multiarch Toolchain
         run: |
-          # 启用多架构支持
-          sudo dpkg --add-architecture ${{ matrix.debian_arch }}
+          sudo dpkg --add-architecture ${{ matrix.arch }}
           sudo add-apt-repository -y universe
-          sudo apt-get update -qq
-
-          # 安装交叉编译工具链（修正包名格式）
+          sudo apt-get update
           sudo apt-get install -y \
-            build-essential \
-            crossbuild-essential-${{ matrix.debian_arch }} \
+            crossbuild-essential-${{ matrix.arch }} \
             binutils-${{ matrix.triplet }} \
-            gcc-${{ matrix.gcc_version }}-${{ matrix.triplet }} \
-            g++-${{ matrix.gcc_version }}-${{ matrix.triplet }} \
-            musl-tools \
-            patchelf \
-            file
-
-          # 配置编译器优先级
-          sudo update-alternatives --install \
-            /usr/bin/${{ matrix.triplet }}-gcc \
-            ${{ matrix.triplet }}-gcc \
-            /usr/bin/${{ matrix.triplet }}-gcc-${{ matrix.gcc_version }} 100
-
-          sudo update-alternatives --install \
-            /usr/bin/${{ matrix.triplet }}-g++ \
-            ${{ matrix.triplet }}-g++ \
-            /usr/bin/${{ matrix.triplet }}-g++-${{ matrix.gcc_version }} 100
-
-      - name: Verify Toolchain
-        run: |
-          echo "Installed compilers:"
-          /usr/bin/${{ matrix.triplet }}-gcc --version
-          /usr/bin/${{ matrix.triplet }}-g++ --version
-          
-          echo "Binary tools:"
-          dpkg -L binutils-${{ matrix.triplet }}
+            musl-dev
 
       - name: Setup Python
         uses: actions/setup-python@v4
