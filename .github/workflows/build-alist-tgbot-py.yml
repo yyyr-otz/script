@@ -26,23 +26,23 @@ jobs:
 
       - name: Verify build output
         run: |
-          echo "构建产物列表:"
+          echo "构建产物路径结构:"
           ls -R ./dist
-          echo "验证文件路径:"
+          echo "确认二进制文件存在:"
           find ./dist -name alist-tgbot
-
-      - name: Install GitHub CLI
-        uses: actions/setup-gh-cli@v1
 
       - name: Upload to Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # 动态获取二进制文件路径
-          BINARY_PATH=$(find ./dist -name alist-tgbot | grep ${{ matrix.arch }})
+          BINARY_PATH="./dist/linux_${{ matrix.arch }}/alist-tgbot"
+          RELEASE_TAG="${{ matrix.arch }}"
           
-          # 创建架构专属Release
-          gh release create ${{ matrix.arch }} \
-            --title "AList-TGBot (${{ matrix.arch }})" \
-            --notes "Static build for ${{ matrix.arch }}" \
-            $BINARY_PATH
+          # 确保Release存在，如果不存在则创建
+          #if ! gh release list | grep -q "$RELEASE_TAG"; then
+          #  gh release create "$RELEASE_TAG" --title "AList-TGBot ($RELEASE_TAG)" --notes "Static build for $RELEASE_TAG"
+          #fi
+          
+          # 上传文件并覆盖同名文件
+          gh release upload "$RELEASE_TAG" "$BINARY_PATH" --clobber
