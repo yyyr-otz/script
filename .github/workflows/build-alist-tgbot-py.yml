@@ -2,6 +2,8 @@ name: Nuitka Static Build
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
 
 jobs:
   build:
@@ -13,10 +15,10 @@ jobs:
         include:
           - arch: amd64
             triplet: x86_64-linux-gnu
-            cflags: "-march=x86-64-v3"
+            host_arch: amd64
           - arch: arm64
             triplet: aarch64-linux-gnu
-            cflags: "-march=armv8-a+crc"
+            host_arch: arm64
       fail-fast: false
 
     steps:
@@ -27,18 +29,31 @@ jobs:
 
       - name: Setup Multiarch Toolchain
         run: |
+          # 启用目标架构支持
+          sudo dpkg --add-architecture $(echo "${{ matrix.triplet }}" | cut -d'-' -f1)
+          sudo add-apt-repository -y universe
           sudo apt-get update
+
+          # 安装基础编译工具
           sudo apt-get install -y \
             build-essential \
-            gcc-12 g++-12 \
-            gcc-12-${{ matrix.triplet }} g++-12-${{ matrix.triplet }} \
-            musl-tools \
+            crossbuild-essential-$(echo "${{ matrix.triplet }}" | cut -d'-' -f1) \
+            binutils-${{ matrix.triplet }} \
+            musl-dev \
             patchelf \
-            file
+            file \
+            python3-dev
 
-          # 配置交叉编译工具链
-          sudo update-alternatives --install /usr/bin/${{ matrix.triplet }}-gcc ${{ matrix.triplet }}-gcc /usr/bin/${{ matrix.triplet }}-gcc-12 50
-          sudo update-alternatives --install /usr/bin/${{ matrix.triplet }}-g++ ${{ matrix.triplet }}-g++ /usr/bin/${{ matrix.triplet }}-g++-12 50
+          # 配置工具链
+          sudo update-alternatives --install \
+            /usr/bin/${{ matrix.triplet }}-gcc \
+            ${{ matrix.triplet }}-gcc \
+            /usr/bin/${{ matrix.triplet }}-gcc 100
+
+          sudo update-alternatives --install \
+            /usr/bin/${{ matrix.triplet }}-g++ \
+            ${{ matrix.triplet }}-g++ \
+            /usr/bin/${{ matrix.triplet }}-g++ 100
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -56,11 +71,10 @@ jobs:
         env:
           CC: "/usr/bin/${{ matrix.triplet }}-gcc"
           CXX: "/usr/bin/${{ matrix.triplet }}-g++"
-          CFLAGS: "-static -Os ${matrix.cflags} -fstack-protector-strong"
+          CFLAGS: "-static -fstack-protector-strong"
           LDFLAGS: "-static -Wl,--strip-all"
         run: |
           cd alist-tgbot-py
-          # 使用绝对路径确保环境正确
           ${{ env.pythonLocation }}/bin/python -m nuitka \
             --onefile \
             --include-package=requests \
@@ -74,7 +88,6 @@ jobs:
             --lto=no \
             tgbot.py
 
-          # 增强静态化处理
           staticx --strip ./build/tgbot.dist/tgbot ./build/tgbot-static
           mkdir -p ../dist/${{ matrix.arch }}
           mv ./build/tgbot-static ../dist/${{ matrix.arch }}/alist-tgbot-py
@@ -85,7 +98,7 @@ jobs:
           file ./dist/${{ matrix.arch }}/alist-tgbot-py | grep "${{ matrix.triplet }}"
           # 静态链接检查
           ! ldd ./dist/${{ matrix.arch }}/alist-tgbot-py 2>&1 | grep "=>"
-          # 安全加固检查
+          # 文件属性检查
           checksec --file=./dist/${{ matrix.arch }}/alist-tgbot-py
 
       - name: Upload to Release
