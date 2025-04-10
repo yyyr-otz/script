@@ -27,6 +27,7 @@ RUN python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
 # 安装依赖（固定版本避免兼容性问题）
+COPY alist-tgbot-py/requirements.txt .
 RUN pip install --no-cache-dir \
     -r requirements.txt \
     pyinstaller>=6.12.0 \
@@ -37,6 +38,7 @@ RUN pip install --no-cache-dir \
     idna>=3.6
 
 # 复制源码并构建
+COPY alist-tgbot-py/tgbot.py .
 RUN pyinstaller --onefile \
     --name alist-tgbot-py \
     --hidden-import urllib3 \
