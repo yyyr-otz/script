@@ -1,5 +1,4 @@
 name: Static Build
-
 on:
   workflow_dispatch:
 
@@ -10,7 +9,8 @@ jobs:
       matrix:
         arch: [amd64, arm64]
         alpine_version: ["3.21"]
-      fail-fast: false 
+      fail-fast: false
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,14 +20,13 @@ jobs:
         with:
           driver-opts: |
             network=host
-            
+
       - name: Setup QEMU
-        #if: matrix.arch == 'arm64'
         uses: docker/setup-qemu-action@v2
         with:
           platforms: ${{ matrix.arch }}
           image: tonistiigi/binfmt:qemu-v9.2.2
-          
+
       - name: Build for ${{ matrix.arch }}
         uses: docker/build-push-action@v4
         with:
@@ -43,23 +42,17 @@ jobs:
 
       - name: Verify build output
         run: |
-          echo "构建产物路径结构:"
-          ls -R ./dist
-          echo "确认二进制文件存在:"
-          find ./dist -name alist-tgbot-py
+          echo "二进制文件架构:"
+          file ./dist/linux_${{ matrix.arch }}/alist-tgbot-py
+          echo "动态链接检查:"
+          ldd ./dist/linux_${{ matrix.arch }}/alist-tgbot-py || true
 
       - name: Upload to Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 动态获取二进制文件路径
-          BINARY_PATH="./dist/linux_${{ matrix.arch }}/alist-tgbot-py"
-          RELEASE_TAG="${{ matrix.arch }}"
-          
-          # 确保Release存在，如果不存在则创建
-          #if ! gh release list | grep -q "$RELEASE_TAG"; then
-          #  gh release create "$RELEASE_TAG" --title "AList-TGBot-Py ($RELEASE_TAG)" --notes "Static build for $RELEASE_TAG"
-          #fi
-          
-          # 上传文件并覆盖同名文件
-          gh release upload "$RELEASE_TAG" "$BINARY_PATH" --clobber
+          gh release create "v$(date +%Y%m%d)" \
+            --title "Static Build $(date +%F)" \
+            --notes "Multi-arch static binaries" \
+            ./dist/linux_${{ matrix.arch }}/alist-tgbot-py \
+            --clobber
