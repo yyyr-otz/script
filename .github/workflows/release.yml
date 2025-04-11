@@ -182,7 +182,7 @@ jobs:
           mkdir -p "xalist-bin/${dir}"
           tar xzf "x${filename}" -C "xalist-bin/${dir}" "alist"
           mv "xalist-bin/${dir}/alist" "xalist-bin/${dir}/xalist"
-          chmod +x "xalist-bin/${dir}x/xalist"
+          chmod +x "xalist-bin/${dir}/xalist"
           rm "${filename}"
         done
 
