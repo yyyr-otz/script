@@ -140,7 +140,7 @@ jobs:
         done
         
     - name: Process alist
-        run: |
+      run: |
         declare -A alist_platforms=(
           ["linux-arm64"]="alist-linux-arm64.tar.gz"
           ["linux-amd64"]="alist-linux-amd64.tar.gz"
@@ -163,7 +163,7 @@ jobs:
         done
 
     - name: Process ykxVK8yL5L-alist
-        run: |
+      run: |
         declare -A xalist_platforms=(
           ["linux-arm64"]="alist-linux-arm64.tar.gz"
           ["linux-amd64"]="alist-linux-amd64.tar.gz"
