@@ -18,7 +18,7 @@ jobs:
     - name: Setup environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y curl unzip jq
+        sudo apt-get install -y curl unzip jq tar
 
     - name: Get versions
       id: get_versions
@@ -157,7 +157,11 @@ jobs:
           echo "处理 $tag => $filename"
           curl -sL "https://github.com/AlistGo/alist/releases/download/$VERSION/$filename" -o "${filename}"
           mkdir -p "alist-bin/${dir}"
+          eecho "/ 目录" || ls
+          eecho "/alist-bin 目录" || ls alist-bin
           tar xzf "${filename}" --strip-components=1 -C "alist-bin/${dir}" "alist"
+          eecho "/ 目录" || ls
+          eecho "/alist-bin 目录" || ls alist-bin
           chmod +x "alist-bin/${dir}/alist"
           rm "${filename}"
         done
