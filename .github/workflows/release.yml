@@ -27,50 +27,56 @@ jobs:
         get_prerelease() {
         repo=$1
         curl -sL "https://api.github.com/repos/$repo/releases" | \
-        jq -r '[.[] | select(.prerelease == true) | .tag_name] 
+        jq -r '[.[] | select(.prerelease == true) | .tag_name | sub("^v";"") | select(test("[0-9]"))] 
                 | map(sub("^v";"")) 
                 | sort_by(split(".") | map(tonumber)) 
                 | reverse | first // empty'
         }
     
-        # 获取各项目版本
-        repos=(
-        "nezhahq/agent"
+        # 定义仓库类别
+        compare_repos=(
         "XTLS/Xray-core"
-        "cloudflare/cloudflared"
         )
-    
-        for repo in "${repos[@]}"; do
-        # 获取latest版本
-        latest=$(curl -sL "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
+        latest_repos=(
+        "nezhahq/agent"
+        "cloudflare/cloudflared"
+        "AlistGo/alist"
+        "ykxVK8yL5L/alist"
+        )
         
-        # 获取prerelease版本
-        prerelease=$(get_prerelease "$repo")
-        
-        # 版本比较逻辑
-        if [[ -n "$prerelease" ]]; then
-            # 使用semver比较（通过sort -V）
-            newer=$(printf "%s\n%s" "${latest#v}" "${prerelease#v}" | sort -V | tail -n1)
-            if [[ "$newer" == "${prerelease#v}" ]]; then
-            final_version="v$newer"
+        # 处理需要比较版本的仓库
+        for repo in "${compare_repos[@]}"; do
+            latest=$(curl -sL "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
+            prerelease=$(get_prerelease "$repo")
+            if [[ -n "$prerelease" ]]; then
+                newer=$(printf "%s\n%s" "${latest#v}" "${prerelease#v}" | sort -V | tail -n1)
+                if [[ "$newer" == "${prerelease#v}" ]]; then
+                    final_version="v$newer"
+                else
+                    final_version="$latest"
+                fi
             else
-            final_version="$latest"
+                final_version="$latest"
             fi
-        else
-            final_version="$latest"
-        fi
+            # 输出变量
+            case $repo in
+                XTLS/Xray-core) echo "xray_version=$final_version" >> $GITHUB_OUTPUT ;;
+            esac
+        done
         
-        # 输出变量
-        case $repo in
-            nezhahq/agent) echo "agent_version=$final_version" >> $GITHUB_OUTPUT ;;
-            XTLS/Xray-core) echo "xray_version=$final_version" >> $GITHUB_OUTPUT ;;
-            cloudflare/cloudflared) echo "cloudflared_version=$final_version" >> $GITHUB_OUTPUT ;;
-        esac
+        # 处理仅获取latest版本的仓库
+        for repo in "${latest_repos[@]}"; do
+            latest=$(curl -sL "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
+            case $repo in
+                nezhahq/agent) echo "agent_version=$latest" >> $GITHUB_OUTPUT ;;
+                cloudflare/cloudflared) echo "cloudflared_version=$latest" >> $GITHUB_OUTPUT ;;
+                AlistGo/alist) echo "alist_version=$latest" >> $GITHUB_OUTPUT ;;
+                ykxVK8yL5L/alist) echo "xalist_version=$latest" >> $GITHUB_OUTPUT ;;
+            esac
         done
 
     - name: Process nezha-agent
       run: |
-        # 定义所有agent平台配置
         declare -A agent_platforms=(
           ["linux-arm64"]="nezha-agent_linux_arm64.zip"
           ["linux-amd64"]="nezha-agent_linux_amd64.zip"
@@ -84,7 +90,6 @@ jobs:
         for tag in "${!agent_platforms[@]}"; do
           filename=${agent_platforms[$tag]}
           dir="$tag"  # 保留原始tag作为目录名
-
           echo "处理 $tag => $filename"
           curl -sL "https://github.com/nezhahq/agent/releases/download/$VERSION/$filename" -o "${filename}"
           mkdir -p "agent-bin/${dir}"
@@ -96,7 +101,6 @@ jobs:
 
     - name: Process Xray
       run: |
-        # 定义所有Xray平台配置
         declare -A xray_platforms=(
           ["linux-arm64"]="Xray-linux-arm64-v8a.zip"
           ["linux-amd64"]="Xray-linux-64.zip"
@@ -110,7 +114,6 @@ jobs:
         for tag in "${!xray_platforms[@]}"; do
           filename=${xray_platforms[$tag]}
           dir="$tag"  # 保留原始tag作为目录名
-
           echo "处理 $tag => $filename"
           curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/$filename" -o "${filename}"
           mkdir -p "xray-bin/${dir}"
@@ -121,7 +124,6 @@ jobs:
 
     - name: Process Cloudflared
       run: |
-        # Cloudflared平台配置
         declare -A cloudflared_platforms=(
           ["arm64"]="cloudflared-linux-arm64"
           ["amd64"]="cloudflared-linux-amd64"
@@ -135,6 +137,53 @@ jobs:
           echo "处理 $tag => $filename"
           curl -sL "https://github.com/cloudflare/cloudflared/releases/download/$VERSION/$filename" -o "cloudflared-bin/$tag/argo"
           chmod +x "cloudflared-bin/$tag/argo"
+        done
+        
+    - name: Process alist
+        run: |
+        declare -A alist_platforms=(
+          ["linux-arm64"]="alist-linux-arm64.tar.gz"
+          ["linux-amd64"]="alist-linux-amd64.tar.gz"
+          ["freebsd-arm64"]="alist-freebsd-arm64.tar.gz"
+          ["freebsd-amd64"]="alist-freebsd-amd64.tar.gz"
+        )
+
+        mkdir -p alist-bin
+        VERSION=${{ steps.get_versions.outputs.alist_version }}
+
+        for tag in "${!alist_platforms[@]}"; do
+          filename=${alist_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          curl -sL "https://github.com/AlistGo/alist/releases/download/$VERSION/$filename" -o "${filename}"
+          mkdir -p "alist-bin/${dir}"
+          tar xzf "${filename}" --strip-components=1 -C "alist-bin/${dir}" "alist"
+          chmod +x "alist-bin/${dir}/alist"
+          rm "${filename}"
+        done
+
+    - name: Process ykxVK8yL5L-alist
+        run: |
+        declare -A xalist_platforms=(
+          ["linux-arm64"]="alist-linux-arm64.tar.gz"
+          ["linux-amd64"]="alist-linux-amd64.tar.gz"
+          ["freebsd-arm64"]="alist-freebsd-arm64.tar.gz"
+          ["freebsd-amd64"]="alist-freebsd-amd64.tar.gz"
+        )
+
+        mkdir -p xalist-bin
+        VERSION=${{ steps.get_versions.outputs.xalist_version }}
+
+        for tag in "${!xalist_platforms[@]}"; do
+          filename=${xalist_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          curl -sL "https://github.com/ykxVK8yL5L/alist/releases/download/$VERSION/$filename" -o "x${filename}"
+          mkdir -p "xalist-bin/${dir}"
+          tar xzf "x${filename}" --strip-components=1 -C "xalist-bin/${dir}" "alist"
+          mv "xalist-bin/${dir}/alist" "xalist-bin/${dir}/xalist"
+          chmod +x "xalist-bin/${dir}x/alist"
+          rm "${filename}"
         done
 
     - name: Update releases
@@ -176,4 +225,30 @@ jobs:
         for src_tag in "${!cloudflared_tags[@]}"; do
           target_tag=${cloudflared_tags[$src_tag]}
           gh release upload "$target_tag" "cloudflared-bin/$src_tag/argo" --clobber
+        done
+        
+        # alist发布配置
+        declare -A alist_tags=(
+          ["linux-arm64"]="arm64"
+          ["linux-amd64"]="amd64"
+          ["freebsd-arm64"]="freebsd-arm64"
+          ["freebsd-amd64"]="freebsd-amd64"
+        )
+
+        for src_tag in "${!alist_tags[@]}"; do
+          target_tag=${alist_tags[$src_tag]}
+          gh release upload "$target_tag" "alist-bin/$src_tag/alist" --clobber
+        done
+
+        # alist魔改版发布配置 https://github.com/ykxVK8yL5L/alist
+        declare -A xalist_tags=(
+          ["linux-arm64"]="arm64"
+          ["linux-amd64"]="amd64"
+          ["freebsd-arm64"]="freebsd-arm64"
+          ["freebsd-amd64"]="freebsd-amd64"
+        )
+
+        for src_tag in "${!xalist_tags[@]}"; do
+          target_tag=${xalist_tags[$src_tag]}
+          gh release upload "$target_tag" "xalist-bin/$src_tag/xalist" --clobber
         done
