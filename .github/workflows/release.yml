@@ -167,7 +167,6 @@ jobs:
         declare -A xalist_platforms=(
           ["linux-arm64"]="alist-linux-arm64.tar.gz"
           ["linux-amd64"]="alist-linux-amd64.tar.gz"
-          ["freebsd-amd64"]="alist-freebsd.tar.gz"
         )
 
         mkdir -p xalist-bin
@@ -243,7 +242,6 @@ jobs:
         declare -A xalist_tags=(
           ["linux-arm64"]="arm64"
           ["linux-amd64"]="amd64"
-          ["freebsd-amd64"]="freebsd-amd64"
         )
 
         for src_tag in "${!xalist_tags[@]}"; do
