@@ -183,7 +183,7 @@ jobs:
           tar xzf "x${filename}" -C "xalist-bin/${dir}" "alist"
           mv "xalist-bin/${dir}/alist" "xalist-bin/${dir}/xalist"
           chmod +x "xalist-bin/${dir}/xalist"
-          rm "${filename}"
+          rm "x${filename}"
         done
 
     - name: Update releases
