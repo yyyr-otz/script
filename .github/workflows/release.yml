@@ -157,11 +157,12 @@ jobs:
           echo "处理 $tag => $filename"
           curl -sL "https://github.com/AlistGo/alist/releases/download/$VERSION/$filename" -o "${filename}"
           mkdir -p "alist-bin/${dir}"
-          eecho "/ 目录" || ls
-          eecho "/alist-bin 目录" || ls alist-bin
+          echo "/ 目录" || ls
+          echo "/alist-bin/${dir} 目录" || ls alist-bin/${dir}
           tar xzf "${filename}" --strip-components=1 -C "alist-bin/${dir}" "alist"
-          eecho "/ 目录" || ls
-          eecho "/alist-bin 目录" || ls alist-bin
+          echo "/ 目录" || ls
+          echo "/alist-bin 目录" || ls alist-bin
+          echo "/alist-bin/${dir} 目录" || ls alist-bin/${dir}
           chmod +x "alist-bin/${dir}/alist"
           rm "${filename}"
         done
