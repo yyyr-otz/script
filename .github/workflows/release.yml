@@ -22,17 +22,20 @@ jobs:
 
     - name: Get versions
       id: get_versions
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 传递Token到脚本环境
       run: |
         # 定义版本处理函数
         get_prerelease() {
         repo=$1
-        curl -sL "https://api.github.com/repos/$repo/releases" | \
-        jq -r '[.[] | select(.prerelease == true) | .tag_name | sub("^v";"") | select(test("[0-9]"))] 
-                | map(sub("^v";"")) 
-                | sort_by(split(".") | map(tonumber)) 
+        # 添加认证头，使用GitHub Token
+        curl -sL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$repo/releases" | \
+        jq -r '[.[] | select(.prerelease == true) | .tag_name | sub("^v";"") | select(test("[0-9]"))]
+                | map(sub("^v";""))
+                | sort_by(split(".") | map(tonumber))
                 | reverse | first // empty'
         }
-    
+        
         # 定义仓库类别
         compare_repos=(
         "XTLS/Xray-core"
@@ -46,33 +49,33 @@ jobs:
         
         # 处理需要比较版本的仓库
         for repo in "${compare_repos[@]}"; do
-            latest=$(curl -sL "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
-            prerelease=$(get_prerelease "$repo")
-            if [[ -n "$prerelease" ]]; then
-                newer=$(printf "%s\n%s" "${latest#v}" "${prerelease#v}" | sort -V | tail -n1)
-                if [[ "$newer" == "${prerelease#v}" ]]; then
-                    final_version="v$newer"
-                else
-                    final_version="$latest"
-                fi
+        latest=$(curl -sL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
+        prerelease=$(get_prerelease "$repo")
+        if [[ -n "$prerelease" ]]; then
+            newer=$(printf "%s\n%s" "${latest#v}" "${prerelease#v}" | sort -V | tail -n1)
+            if [[ "$newer" == "${prerelease#v}" ]]; then
+            final_version="v$newer"
             else
-                final_version="$latest"
+            final_version="$latest"
             fi
-            # 输出变量
-            case $repo in
-                XTLS/Xray-core) echo "xray_version=$final_version" >> $GITHUB_OUTPUT ;;
-            esac
+        else
+            final_version="$latest"
+        fi
+        # 输出变量
+        case $repo in
+            XTLS/Xray-core) echo "xray_version=$final_version" >> $GITHUB_OUTPUT ;;
+        esac
         done
         
         # 处理仅获取latest版本的仓库
         for repo in "${latest_repos[@]}"; do
-            latest=$(curl -sL "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
-            case $repo in
-                nezhahq/agent) echo "agent_version=$latest" >> $GITHUB_OUTPUT ;;
-                cloudflare/cloudflared) echo "cloudflared_version=$latest" >> $GITHUB_OUTPUT ;;
-                AlistGo/alist) echo "alist_version=$latest" >> $GITHUB_OUTPUT ;;
-                ykxVK8yL5L/alist) echo "xalist_version=$latest" >> $GITHUB_OUTPUT ;;
-            esac
+        latest=$(curl -sL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
+        case $repo in
+            nezhahq/agent) echo "agent_version=$latest" >> $GITHUB_OUTPUT ;;
+            cloudflare/cloudflared) echo "cloudflared_version=$latest" >> $GITHUB_OUTPUT ;;
+            AlistGo/alist) echo "alist_version=$latest" >> $GITHUB_OUTPUT ;;
+            ykxVK8yL5L/alist) echo "xalist_version=$latest" >> $GITHUB_OUTPUT ;;
+        esac
         done
 
     - name: Process nezha-agent
