@@ -82,16 +82,16 @@ jobs:
 
     - name: Process nezha-dash
       run: |
-        declare -A agent_platforms=(
+        declare -A dashboard_platforms=(
           ["linux-arm64"]="dashboard_linux_arm64.zip"
           ["linux-amd64"]="dashboard_linux_amd64.zip"
         )
 
-        mkdir -p agent-bin
+        mkdir -p dashboard-bin
         VERSION=${{ steps.get_versions.outputs.dashboard_version }}
 
-        for tag in "${!agent_platforms[@]}"; do
-          filename=${agent_platforms[$tag]}
+        for tag in "${!dashboard_platforms[@]}"; do
+          filename=${dashboard_platforms[$tag]}
           dir="$tag"  # 保留原始tag作为目录名
           echo "处理 $tag => $filename"
           curl -sL "https://github.com/nezhahq/nezha/releases/download/$VERSION/$filename" -o "${filename}"
