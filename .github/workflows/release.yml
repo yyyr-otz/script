@@ -216,14 +216,14 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # nezha-dash发布配置
-        declare -A agent_tags=(
+        declare -A dashboard_tags=(
           ["linux-arm64"]="arm64"
           ["linux-amd64"]="amd64"
         )
 
-        for src_tag in "${!agent_tags[@]}"; do
-          target_tag=${agent_tags[$src_tag]}
-          gh release upload "$target_tag" "dashboard/$src_tag/dashboard" --clobber
+        for src_tag in "${!dashboard_tags[@]}"; do
+          target_tag=${dashboard_tags[$src_tag]}
+          gh release upload "$target_tag" "dashboard-bin/$src_tag/dashboard" --clobber
         done
       
         # nezha-agent发布配置
