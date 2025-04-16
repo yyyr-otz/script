@@ -96,8 +96,8 @@ jobs:
           echo "处理 $tag => $filename"
           curl -sL "https://github.com/nezhahq/nezha/releases/download/$VERSION/$filename" -o "${filename}"
           mkdir -p "dashboard-bin/${dir}"
-          unzip -j "${filename}" 'dashboard-$tag' -d "dashboard-bin/${dir}"
-          mv "dashboard-bin/${dir}/dashboard-$tag" "dashboard-bin/${dir}/dashboard"
+          unzip -j "${filename}" "dashboard-${tag}" -d "dashboard-bin/${dir}"
+          mv "dashboard-bin/${dir}/dashboard-${tag}" "dashboard-bin/${dir}/dashboard"
           chmod +x "dashboard/${dir}/dashboard"
           rm "${filename}"
         done
