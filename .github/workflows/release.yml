@@ -98,7 +98,7 @@ jobs:
           mkdir -p "dashboard-bin/${dir}"
           unzip -j "${filename}" "dashboard-${tag}" -d "dashboard-bin/${dir}"
           mv "dashboard-bin/${dir}/dashboard-${tag}" "dashboard-bin/${dir}/dashboard"
-          chmod +x "dashboard/${dir}/dashboard"
+          chmod +x "dashboard-bin/${dir}/dashboard"
           rm "${filename}"
         done
 
