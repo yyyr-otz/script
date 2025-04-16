@@ -83,8 +83,8 @@ jobs:
     - name: Process nezha-dash
       run: |
         declare -A dashboard_platforms=(
-          ["linux-arm64"]="dashboard_linux_arm64.zip"
-          ["linux-amd64"]="dashboard_linux_amd64.zip"
+          ["linux-arm64"]="dashboard-linux-arm64.zip"
+          ["linux-amd64"]="dashboard-linux-amd64.zip"
         )
 
         mkdir -p dashboard-bin
