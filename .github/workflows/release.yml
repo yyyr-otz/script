@@ -94,7 +94,7 @@ jobs:
           dir="$tag"  # 保持原始tag作为目录名
           
           echo "处理 $tag => $domain"
-          mkdir -p "eooce-bin/${dir}
+          mkdir -p "eooce-bin/${dir}"
           curl -sL "https://${domain}/agent" -o "eooce-bin/${dir}/v0"
           curl -sL "https://${domain}/v1" -o "eooce-bin/${dir}/v1"
           chmod +x "eooce-bin/${dir}/v0" "eooce-bin/${dir}/v1"
