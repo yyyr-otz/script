@@ -9,6 +9,9 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+    env:
+      LINUX_PLATFORMS: "linux-arm64 linux-amd64"
+      FREEBSD_PLATFORMS: "freebsd-arm64 freebsd-amd64"
     steps:
     - name: 迁出代码
       uses: actions/checkout@v4.1.1
@@ -100,28 +103,6 @@ jobs:
           chmod +x "eooce-bin/${dir}/v0" "eooce-bin/${dir}/v1"
         done
 
-    - name: 下载 nezha-dash
-      run: |
-        declare -A dashboard_platforms=(
-          ["linux-arm64"]="dashboard-linux-arm64.zip"
-          ["linux-amd64"]="dashboard-linux-amd64.zip"
-        )
-
-        mkdir -p dashboard-bin
-        VERSION=${{ steps.get_versions.outputs.dashboard_version }}
-
-        for tag in "${!dashboard_platforms[@]}"; do
-          filename=${dashboard_platforms[$tag]}
-          dir="$tag"  # 保留原始tag作为目录名
-          echo "处理 $tag => $filename"
-          curl -sL "https://github.com/nezhahq/nezha/releases/download/$VERSION/$filename" -o "${filename}"
-          mkdir -p "dashboard-bin/${dir}"
-          unzip -j "${filename}" "dashboard-${tag}" -d "dashboard-bin/${dir}"
-          mv "dashboard-bin/${dir}/dashboard-${tag}" "dashboard-bin/${dir}/dashboard"
-          chmod +x "dashboard-bin/${dir}/dashboard"
-          rm "${filename}"
-        done
-
     - name: 下载 nezha-agent
       run: |
         declare -A agent_platforms=(
@@ -143,6 +124,28 @@ jobs:
           unzip -j "${filename}" 'nezha-agent' -d "agent-bin/${dir}"
           mv "agent-bin/${dir}/nezha-agent" "agent-bin/${dir}/nezha-agent-v1"
           chmod +x "agent-bin/${dir}/nezha-agent-v1"
+          rm "${filename}"
+        done
+
+    - name: 下载 nezha-dash
+      run: |
+        declare -A dashboard_platforms=(
+          ["linux-arm64"]="dashboard-linux-arm64.zip"
+          ["linux-amd64"]="dashboard-linux-amd64.zip"
+        )
+
+        mkdir -p dashboard-bin
+        VERSION=${{ steps.get_versions.outputs.dashboard_version }}
+
+        for tag in "${!dashboard_platforms[@]}"; do
+          filename=${dashboard_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          curl -sL "https://github.com/nezhahq/nezha/releases/download/$VERSION/$filename" -o "${filename}"
+          mkdir -p "dashboard-bin/${dir}"
+          unzip -j "${filename}" "dashboard-${tag}" -d "dashboard-bin/${dir}"
+          mv "dashboard-bin/${dir}/dashboard-${tag}" "dashboard-bin/${dir}/dashboard"
+          chmod +x "dashboard-bin/${dir}/dashboard"
           rm "${filename}"
         done
 
@@ -235,86 +238,19 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # eooce-agent发布配置 https://github.com/eooce
-        declare -A eooce_agent_tags=(
-          ["linux-arm64"]="arm64"
-          ["linux-amd64"]="amd64"
-        )
-
-        for src_tag in "${!eooce_agent_tags[@]}"; do
-          target_tag=${eooce_agent_tags[$src_tag]}
-          gh release upload "$target_tag" "eooce-bin/$src_tag/v0" --clobber
-          gh release upload "$target_tag" "eooce-bin/$src_tag/v1" --clobber
-        done
-      
-        # nezha-dash发布配置
-        declare -A dashboard_tags=(
-          ["linux-arm64"]="arm64"
-          ["linux-amd64"]="amd64"
-        )
-
-        for src_tag in "${!dashboard_tags[@]}"; do
-          target_tag=${dashboard_tags[$src_tag]}
-          gh release upload "$target_tag" "dashboard-bin/$src_tag/dashboard" --clobber
-        done
-      
-        # nezha-agent发布配置
-        declare -A agent_tags=(
-          ["linux-arm64"]="arm64"
-          ["linux-amd64"]="amd64"
-          ["freebsd-arm64"]="freebsd-arm64"
-          ["freebsd-amd64"]="freebsd-amd64"
-        )
-
-        for src_tag in "${!agent_tags[@]}"; do
-          target_tag=${agent_tags[$src_tag]}
-          gh release upload "$target_tag" "agent-bin/$src_tag/nezha-agent-v1" --clobber
-        done
-      
-        # Xray发布配置
-        declare -A xray_tags=(
-          ["linux-arm64"]="arm64"
-          ["linux-amd64"]="amd64"
-          ["freebsd-arm64"]="freebsd-arm64"
-          ["freebsd-amd64"]="freebsd-amd64"
-        )
-
-        for src_tag in "${!xray_tags[@]}"; do
-          target_tag=${xray_tags[$src_tag]}
-          gh release upload "$target_tag" "xray-bin/$src_tag/xray" --clobber
+        for platform in ${FREEBSD_PLATFORMS}; do
+          gh release upload "$platform" "agent-bin/$platform/nezha-agent-v1" --clobber
+          gh release upload "$platform" "xray-bin/$platform/xray" --clobber
+          gh release upload "$platform" "alist-bin/$platform/alist" --clobber
         done
 
-        # Cloudflared发布配置
-        declare -A cloudflared_tags=(
-          ["linux-arm64"]="arm64"
-          ["linux-amd64"]="amd64"
-        )
-
-        for src_tag in "${!cloudflared_tags[@]}"; do
-          target_tag=${cloudflared_tags[$src_tag]}
-          gh release upload "$target_tag" "cloudflared-bin/$src_tag/argo" --clobber
-        done
-        
-        # alist发布配置
-        declare -A alist_tags=(
-          ["linux-arm64"]="arm64"
-          ["linux-amd64"]="amd64"
-          ["freebsd-arm64"]="freebsd-arm64"
-          ["freebsd-amd64"]="freebsd-amd64"
-        )
-
-        for src_tag in "${!alist_tags[@]}"; do
-          target_tag=${alist_tags[$src_tag]}
-          gh release upload "$target_tag" "alist-bin/$src_tag/alist" --clobber
-        done
-
-        # alist魔改版发布配置 https://github.com/ykxVK8yL5L/alist
-        declare -A xalist_tags=(
-          ["linux-arm64"]="arm64"
-          ["linux-amd64"]="amd64"
-        )
-
-        for src_tag in "${!xalist_tags[@]}"; do
-          target_tag=${xalist_tags[$src_tag]}
-          gh release upload "$target_tag" "xalist-bin/$src_tag/xalist" --clobber
+        for platform in ${LINUX_PLATFORMS}; do
+          gh release upload "$platform" "eooce-bin/$platformg/v0" --clobber
+          gh release upload "$platform" "eooce-bin/$platformg/v1" --clobber
+          gh release upload "$platform" "agent-bin/$platform/nezha-agent-v1" --clobber
+          gh release upload "$platform" "dashboard-bin/$platformg/dashboard" --clobber
+          gh release upload "$platform" "xray-bin/$platform/xray" --clobber
+          gh release upload "$platform" "alist-bin/$platform/alist" --clobber
+          gh release upload "$platform" "xalist-bin/$platform/xalist" --clobber
+          gh release upload "$platform" "cloudflared-bin/$platform/argo" --clobber
         done
