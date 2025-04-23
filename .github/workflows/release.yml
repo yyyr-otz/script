@@ -245,10 +245,10 @@ jobs:
         done
 
         for platform in ${LINUX_PLATFORMS}; do
-          gh release upload "$platform" "eooce-bin/$platformg/v0" --clobber
-          gh release upload "$platform" "eooce-bin/$platformg/v1" --clobber
+          gh release upload "$platform" "eooce-bin/$platform/v0" --clobber
+          gh release upload "$platform" "eooce-bin/$platform/v1" --clobber
           gh release upload "$platform" "agent-bin/$platform/nezha-agent-v1" --clobber
-          gh release upload "$platform" "dashboard-bin/$platformg/dashboard" --clobber
+          gh release upload "$platform" "dashboard-bin/$platform/dashboard" --clobber
           gh release upload "$platform" "xray-bin/$platform/xray" --clobber
           gh release upload "$platform" "alist-bin/$platform/alist" --clobber
           gh release upload "$platform" "xalist-bin/$platform/xalist" --clobber
