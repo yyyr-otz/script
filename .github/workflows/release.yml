@@ -236,13 +236,13 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # eooce-agent发布配置 https://github.com/eooce
-        declare -A eooce-agent_tags=(
+        declare -A eooce_agent_tags=(
           ["linux-arm64"]="arm64"
           ["linux-amd64"]="amd64"
         )
 
-        for src_tag in "${!eooce-agent_tags[@]}"; do
-          target_tag=${eooce-agent_tags[$src_tag]}
+        for src_tag in "${!eooce_agent_tags[@]}"; do
+          target_tag=${eooce_agent_tags[$src_tag]}
           gh release upload "$target_tag" "eooce-bin/$src_tag/v0" --clobber
           gh release upload "$target_tag" "eooce-bin/$src_tag/v1" --clobber
         done
