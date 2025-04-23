@@ -10,17 +10,17 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
+    - name: 迁出代码
       uses: actions/checkout@v4.1.1
       with:
         fetch-depth: 0
 
-    - name: Setup environment
+    - name: 设置环境
       run: |
         sudo apt-get update
         sudo apt-get install -y curl unzip jq tar
 
-    - name: Get versions
+    - name: 获取版本
       id: get_versions
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 传递Token到脚本环境
@@ -80,7 +80,27 @@ jobs:
         esac
         done
 
-    - name: Process nezha-dash
+    - name: 下载 eooce
+      run: |
+        declare -A eooce_platforms=(
+          ["linux-amd64"]="amd64.ssss.nyc.mn"
+          ["linux-arm64"]="arm64.ssss.nyc.mn"
+        )
+        
+        mkdir -p eooce-bin
+        
+        for tag in "${!eooce_platforms[@]}"; do
+          domain=${eooce_platforms[$tag]}
+          dir="$tag"  # 保持原始tag作为目录名
+          
+          echo "处理 $tag => $domain"
+          mkdir -p "eooce-bin/${dir}
+          curl -sL "https://${domain}/agent" -o "eooce-bin/${dir}/v0"
+          curl -sL "https://${domain}/v1" -o "eooce-bin/${dir}/v1"
+          chmod +x "eooce-bin/${dir}/v0" "eooce-bin/${dir}/v1"
+        done
+
+    - name: 下载 nezha-dash
       run: |
         declare -A dashboard_platforms=(
           ["linux-arm64"]="dashboard-linux-arm64.zip"
@@ -102,7 +122,7 @@ jobs:
           rm "${filename}"
         done
 
-    - name: Process nezha-agent
+    - name: 下载 nezha-agent
       run: |
         declare -A agent_platforms=(
           ["linux-arm64"]="nezha-agent_linux_arm64.zip"
@@ -126,7 +146,7 @@ jobs:
           rm "${filename}"
         done
 
-    - name: Process Xray
+    - name: 下载 Xray
       run: |
         declare -A xray_platforms=(
           ["linux-arm64"]="Xray-linux-arm64-v8a.zip"
@@ -149,11 +169,11 @@ jobs:
           rm "${filename}"
         done
 
-    - name: Process Cloudflared
+    - name: 下载 Cloudflared
       run: |
         declare -A cloudflared_platforms=(
-          ["arm64"]="cloudflared-linux-arm64"
-          ["amd64"]="cloudflared-linux-amd64"
+          ["linux-arm64"]="cloudflared-linux-arm64"
+          ["linux-amd64"]="cloudflared-linux-amd64"
         )
 
         VERSION=${{ steps.get_versions.outputs.cloudflared_version }}
@@ -166,7 +186,7 @@ jobs:
           chmod +x "cloudflared-bin/$tag/argo"
         done
         
-    - name: Process alist
+    - name: 下载 alist
       run: |
         declare -A alist_platforms=(
           ["linux-arm64"]="alist-linux-arm64.tar.gz"
@@ -189,7 +209,7 @@ jobs:
           rm "${filename}"
         done
 
-    - name: Process ykxVK8yL5L-alist
+    - name: 下载 ykxVK8yL5L-alist
       run: |
         declare -A xalist_platforms=(
           ["linux-arm64"]="alist-linux-arm64.tar.gz"
@@ -211,10 +231,22 @@ jobs:
           rm "x${filename}"
         done
 
-    - name: Update releases
+    - name: 更新 releases
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        # eooce-agent发布配置 https://github.com/eooce
+        declare -A eooce-agent_tags=(
+          ["linux-arm64"]="arm64"
+          ["linux-amd64"]="amd64"
+        )
+
+        for src_tag in "${!eooce-agent_tags[@]}"; do
+          target_tag=${eooce-agent_tags[$src_tag]}
+          gh release upload "$target_tag" "eooce-bin/$src_tag/v0" --clobber
+          gh release upload "$target_tag" "eooce-bin/$src_tag/v1" --clobber
+        done
+      
         # nezha-dash发布配置
         declare -A dashboard_tags=(
           ["linux-arm64"]="arm64"
@@ -254,8 +286,8 @@ jobs:
 
         # Cloudflared发布配置
         declare -A cloudflared_tags=(
-          ["arm64"]="arm64"
-          ["amd64"]="amd64"
+          ["linux-arm64"]="arm64"
+          ["linux-amd64"]="amd64"
         )
 
         for src_tag in "${!cloudflared_tags[@]}"; do
