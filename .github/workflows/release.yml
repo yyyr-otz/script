@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  update:
+  update_release:
     runs-on: ubuntu-latest
     env:
       LINUX_PLATFORMS: "linux-arm64 linux-amd64"
