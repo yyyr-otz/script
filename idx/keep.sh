@@ -1,8 +1,8 @@
 #!/bin/bash
+export IDX_NAME=${IDX_NAME:-''}
 pip install psutil selenium --break-system-packages
 existing=$(crontab -l 2>/dev/null); if ! echo "$existing" | grep -q 'keep.py'; then (echo "$existing"; echo "*/20 * * * * /usr/bin/python /home/keep.py >> /home/keep.log 2>&1") | crontab -; fi
-pip install psutil selenium --break-system-packages
-export IDX_NAME=${IDX_NAME:-''}
+
 cat > /home/keep.py << EOF
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -16,7 +16,6 @@ import requests
 import zipfile
 import io
 
-# 配置日志
 logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)s] %(levelname)s: %(message)s',
@@ -80,11 +79,10 @@ def access_url(url: str):
         )
         driver = webdriver.Chrome(service=service, options=chrome_options)
         driver.get(url)
-        
-        # 等待60秒，直到页面加载完成或重定向完成
+
         wait = WebDriverWait(driver, 60)
         wait.until(EC.presence_of_element_located((By.TAG_NAME, 'html')))
-        
+
         logging.info(f"访问成功 | 最终URL: {driver.current_url}")
     except Exception as e:
         logging.error(f"访问异常: {str(e)}", exc_info=True)
