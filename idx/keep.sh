@@ -82,6 +82,8 @@ def access_url(url: str):
         driver.get(url)
 
         wait = WebDriverWait(driver, 60)
+        current_url = driver.current_url
+        wait.until(EC.url_changes(current_url))
         wait.until(EC.presence_of_element_located((By.TAG_NAME, 'html')))
 
         logging.info(f"访问成功 | 最终URL: {driver.current_url}")
