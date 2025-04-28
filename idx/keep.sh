@@ -2,7 +2,6 @@
 export IDX_NAME=${IDX_NAME:-''}
 sudo pip install psutil selenium --break-system-packages
 mkdir -p /home/user/idx
-existing=$(crontab -l 2>/dev/null); if ! echo "$existing" | grep -q 'keep.py'; then (echo "$existing"; echo "*/20 * * * * sudo python /home/user/idx/keep.py >> /home/user/idx/keep.log 2>&1") | crontab -; fi
 
 cat > /home/user/idx/keep.py << EOF
 from selenium import webdriver
