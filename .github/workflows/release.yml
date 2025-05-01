@@ -120,7 +120,7 @@ jobs:
           curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "${filename}"
           mkdir -p "sbp-bin/${dir}"
           tar xzf "${filename}" --strip-components=1 -C "sbp-bin/${dir}"
-          find "sb-bin/${dir}" -iname CrashCore | xargs -I {} mv {} "sb-bin/${dir}/sbp"
+          find "sbp-bin/${dir}" -iname CrashCore | xargs -I {} mv {} "sbp-bin/${dir}/sbp"
           #mv "sbp-bin/${dir}/CrashCore" "sbp-bin/${dir}/sbp"
           chmod +x "sbp-bin/${dir}/sbp"
           rm "${filename}"
