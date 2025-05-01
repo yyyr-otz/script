@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       LINUX_PLATFORMS: "linux-arm64 linux-amd64"
+      v3_PLATFORMS: "linux-amd64v3"
       FREEBSD_PLATFORMS: "freebsd-arm64 freebsd-amd64"
     steps:
     - name: 迁出代码
@@ -82,6 +83,46 @@ jobs:
             ykxVK8yL5L/alist) echo "xalist_version=$latest" >> $GITHUB_OUTPUT ;;
         esac
         done
+        
+    - name: 下载 sb
+      run: |
+        declare -A sb_platforms=(
+          ["linux-arm64"]="sing-box-release-linux-armv8.tar.gz"
+          ["linux-amd64"]="sing-box-release-linux-amd64.tar.gz"
+          ["linux-amd64v3"]="sing-box-release-linux-amd64v3.tar.gz"
+        )
+        mkdir -p sb-bin
+        for tag in "${!sb_platforms[@]}"; do
+          filename=${sb_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "${filename}"
+          mkdir -p "sb-bin/${dir}"
+          tar xzf "${filename}" --strip-components=1 -C "sb-bin/${dir}" "CrashCore"
+          mv "sb-bin/${dir}/CrashCore" "sb-bin/${dir}/sb"
+          chmod +x "sb-bin/${dir}/sb"
+          rm "${filename}"
+        done
+
+    - name: 下载 sbp
+      run: |
+        declare -A sbp_platforms=(
+          ["linux-arm64"]="sing-box-puernya-linux-armv8.tar.gz"
+          ["linux-amd64"]="sing-box-release-linux-amd64.tar.gz"
+          ["linux-amd64v3"]="sing-box-release-linux-amd64v3.tar.gz"
+        )
+        mkdir -p sbp-bin
+        for tag in "${!sbp_platforms[@]}"; do
+          filename=${sbp_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "${filename}"
+          mkdir -p "sbp-bin/${dir}"
+          tar xzf "${filename}" --strip-components=1 -C "sbp-bin/${dir}" "CrashCore"
+          mv "sbp-bin/${dir}/CrashCore" "sbp-bin/${dir}/sbp"
+          chmod +x "sbp-bin/${dir}/sbp"
+          rm "${filename}"
+        done
 
     - name: 下载 eooce
       run: |
@@ -149,6 +190,8 @@ jobs:
           rm "${filename}"
         done
 
+
+        
     - name: 下载 Xray
       run: |
         declare -A xray_platforms=(
@@ -243,10 +286,17 @@ jobs:
           gh release upload "$platform" "xray-bin/$platform/xray" --clobber
           gh release upload "$platform" "alist-bin/$platform/alist" --clobber
         done
+        
+        for platform in ${v3_PLATFORMS}; do
+          gh release upload "$platform" "sb-bin/$platform/sb" --clobber
+          gh release upload "$platform" "sbp-bin/$platform/sbp" --clobber
+        done
 
         for platform in ${LINUX_PLATFORMS}; do
           gh release upload "$platform" "eooce-bin/$platform/v0" --clobber
           gh release upload "$platform" "eooce-bin/$platform/v1" --clobber
+          gh release upload "$platform" "sb-bin/$platform/sb" --clobber
+          gh release upload "$platform" "sbp-bin/$platform/sbp" --clobber
           gh release upload "$platform" "agent-bin/$platform/nezha-agent-v1" --clobber
           gh release upload "$platform" "dashboard-bin/$platform/dashboard" --clobber
           gh release upload "$platform" "xray-bin/$platform/xray" --clobber
