@@ -306,3 +306,10 @@ jobs:
           gh release upload "$platform" "xalist-bin/$platform/xalist" --clobber
           gh release upload "$platform" "cloudflared-bin/$platform/argo" --clobber
         done
+    - name: 清理工作流
+      uses: Mattraks/delete-workflow-runs@v2
+      with:
+        token: ${{ secrets.MYPAT }}
+        repository: ${{ github.repository }}
+        retain_days: 0
+        keep_minimum_runs: 1
