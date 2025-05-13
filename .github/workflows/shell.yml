@@ -1,0 +1,47 @@
+name: 执行命令并提交更改
+run-name: ${{ github.actor }} 正在执行命令
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: '要执行的命令（例如：mv dir_a dir_b）'
+        required: true
+
+permissions:
+  contents: write  # 允许写入仓库
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 检出代码（完整克隆）
+      - name: 🛠️ 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 完整克隆历史记录
+
+      # 2. 执行用户输入的命令
+      - name: 🔥 执行命令
+        run: |
+          # 执行用户输入的命令
+          ${{ inputs.command }}
+
+          # 检查是否有文件变更（包括移动/重命名）
+          if ! git diff --quiet; then
+            echo "检测到文件变更，准备提交..."
+            # 自动处理文件移动/删除/新增（git add -A）
+            git add -A
+          else
+            echo "⚠️ 未检测到文件变更，跳过提交"
+            exit 0
+          fi
+
+      # 3. 提交变更到仓库
+      - name: 🚀 提交更改
+        if: success()
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git commit -m "执行命令: ${{ inputs.command }}"
+          git push
