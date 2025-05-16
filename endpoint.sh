@@ -1,4 +1,5 @@
 #!/bin/bash
+#bash <(curl -Ls https://raw.githubusercontent.com/yyyr-otz/script/main/endpoint.sh)
 WORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "脚本所在目录: $WORK_DIR"
 ARCH=$(uname -m) && FILE_INFO=()
