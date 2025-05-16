@@ -1,12 +1,14 @@
 #!/bin/bash
 #bash <(curl -Ls https://raw.githubusercontent.com/yyyr-otz/script/main/endpoint.sh)
 WORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ "$WORK_DIR" == *"/dev/"* ]] || [[ "$(basename "$WORK_DIR")" == "dev" ]]; then
+  WORK_DIR="/tmp"
+fi
 echo "脚本所在目录: $WORK_DIR"
 ARCH=$(uname -m) && FILE_INFO=()
 if [ "$ARCH" == "arm" ] || [ "$ARCH" == "arm64" ] || [ "$ARCH" == "aarch64" ]; then
     ARCH="arm64"
 elif [ "$ARCH" == "amd64" ] || [ "$ARCH" == "x86_64" ] || [ "$ARCH" == "x86" ]; then
-	#cat /proc/cpuinfo | grep -q avx2 && IS_AMD64V3=v3
     ARCH="amd64"
 else
     echo "不支持的平台架构: $ARCH"
@@ -35,3 +37,4 @@ best_endpoint() {
   echo "endpoint4:$endpoint4,endpoint6:$endpoint6"
 }
 best_endpoint
+rm -rf ${WORK_DIR}/endpoint ${WORK_DIR}/ipv4 ${WORK_DIR}/ipv6 ${WORK_DIR}/endpoint_result
