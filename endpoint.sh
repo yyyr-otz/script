@@ -17,6 +17,7 @@ fi
 echo "当前架构为 $ARCH"
 
 curl -L -sS -o "${WORK_DIR}/endpoint" "https://github.com/yyyr-otz/script/releases/download/linux-$ARCH/endpoint"
+chmod 777 "${WORK_DIR}/endpoint"
 check() { curl -$1 -m3 -s http://google.com >/dev/null; }
 check 4 && IPV4=1 && curl -L -sS -o "${WORK_DIR}/ipv4" "https://github.com/yyyr-otz/script/releases/download/ip/warp-ipv4" || IPV4==0
 check 6 && IPV6=1 && curl -L -sS -o "${WORK_DIR}/ipv6" "https://github.com/yyyr-otz/script/releases/download/ip/warp-ipv6" || IPV6==0
