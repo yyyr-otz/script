@@ -93,6 +93,6 @@ def access_url(url: str):
             driver.quit()
 
 if __name__ == "__main__":
-    target_url = "https://studio.firebase.google.com/${IDX_NAME}"
+    target_url = "https://studio.firebase.google.com/${TARGET_IDX_NAME}"
     access_url(target_url)
 EOF
