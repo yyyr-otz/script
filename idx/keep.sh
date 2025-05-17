@@ -1,5 +1,5 @@
 #!/bin/bash
-export IDX_NAME=${IDX_NAME:-''}
+export TARGET_IDX_NAME=${TARGET_IDX_NAME:-''}
 sudo pip install psutil selenium --break-system-packages
 mkdir -p /home/user/idx
 
