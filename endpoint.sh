@@ -29,8 +29,8 @@ best_endpoint() {
     ${WORK_DIR}/endpoint -file ${WORK_DIR}/ipv4 -max 1000 -output ${WORK_DIR}/endpoint_result >/dev/null 2>&1
     ENDPOINT4=$(grep -sE '[0-9]+[ ]+ms$' ${WORK_DIR}/endpoint_result | awk -F, 'NR==1 {print $1}')
   fi
-  if [[ -e ${WORK_DIR}/endpoint && -e ${WORK_DIR}/ipv4 ]]; then
-    ${WORK_DIR}/endpoint -file ${WORK_DIR}/ipv4 -max 1000 -output ${WORK_DIR}/endpoint_result >/dev/null 2>&1
+  if [[ -e ${WORK_DIR}/endpoint && -e ${WORK_DIR}/ipv6 ]]; then
+    ${WORK_DIR}/endpoint -file ${WORK_DIR}/ipv6 -max 1000 -output ${WORK_DIR}/endpoint_result >/dev/null 2>&1
     ENDPOINT6=$(grep -sE '[0-9]+[ ]+ms$' ${WORK_DIR}/endpoint_result | awk -F, 'NR==1 {print $1}')
   fi
   [ "$IPV4" = "1" ] && endpoint4=$ENDPOINT4 || endpoint4=$ENDPOINT6
