@@ -50,13 +50,13 @@ jobs:
 
       - name: 打包文件
         run: |
-          cd eooce-edgetunnel && tar -czvf pages.tar.gz _worker.js wrangler.toml
+          zip eooce-edgetunnel/pages.zip eooce-edgetunnel/_worker.js eooce-edgetunnel/wrangler.toml
 
       - name: 提交更改
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add eooce-edgetunnel/_worker.js eooce-edgetunnel/_worker.js.backup eooce-edgetunnel/pages.tar.gz
+          git add eooce-edgetunnel/_worker.js eooce-edgetunnel/_worker.js.backup eooce-edgetunnel/pages.zip
           if git diff --cached --quiet; then
             echo "没有文件更改，跳过提交"
           else
