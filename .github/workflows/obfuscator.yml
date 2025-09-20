@@ -63,6 +63,12 @@ jobs:
             git commit -m "混淆并打包 eooce-edgetunnel/_worker.js"
           fi
 
+      - name: 推送文件
+        env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "cf" "eooce-edgetunnel/pages.zip" --clobber
+
       - name: 推送更改
         uses: ad-m/github-push-action@master
         with:
