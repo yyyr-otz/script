@@ -48,15 +48,19 @@ jobs:
           --transform-object-keys true \
           --unicode-escape-sequence true
 
+      - name: 打包文件
+        run: |
+          zip -r eooce-edgetunnel/pages.zip eooce-edgetunnel/_worker.js eooce-edgetunnel/wrangler.toml
+
       - name: 提交更改
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add eooce-edgetunnel/_worker.js eooce-edgetunnel/_worker.js.backup
+          git add eooce-edgetunnel/_worker.js eooce-edgetunnel/_worker.js.backup eooce-edgetunnel/pages.zip
           if git diff --cached --quiet; then
             echo "没有文件更改，跳过提交"
           else
-            git commit -m "混淆 eooce-edgetunnel/_worker.js 文件并备份原文件"
+            git commit -m "混淆并打包 eooce-edgetunnel/_worker.js"
           fi
 
       - name: 推送更改
