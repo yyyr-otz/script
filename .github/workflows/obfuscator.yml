@@ -50,7 +50,7 @@ jobs:
 
       - name: 打包文件
         run: |
-          zip eooce-edgetunnel/pages.zip eooce-edgetunnel/_worker.js eooce-edgetunnel/wrangler.toml
+          cd eooce-edgetunnel && zip pages.zip _worker.js wrangler.toml
 
       - name: 提交更改
         run: |
