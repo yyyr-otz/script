@@ -68,7 +68,7 @@ jobs:
       - name: 清理
         uses: Mattraks/delete-workflow-runs@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.MYPAT }}
           repository: ${{ github.repository }}
           retain_days: 0
           keep_minimum_runs: 1
