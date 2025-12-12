@@ -1,3 +1,0 @@
-name = "eooce-vl"
-main = "_worker.js"
-keep_vars = true
