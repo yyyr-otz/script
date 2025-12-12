@@ -83,47 +83,6 @@ jobs:
             ykxVK8yL5L/alist) echo "xalist_version=$latest" >> $GITHUB_OUTPUT ;;
         esac
         done
-        
-    - name: 下载 sb
-      run: |
-        declare -A sb_platforms=(
-          ["linux-arm64"]="sing-box-dev-linux-armv8.tar.gz"
-          ["linux-amd64"]="sing-box-dev-linux-amd64.tar.gz"
-        )
-        mkdir -p sb-bin
-        for tag in "${!sb_platforms[@]}"; do
-          filename=${sb_platforms[$tag]}
-          dir="$tag"  # 保留原始tag作为目录名
-          echo "处理 $tag => $filename"
-          curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "${filename}"
-          mkdir -p "sb-bin/${dir}"
-          tar xzf "${filename}" --strip-components=1 -C "sb-bin/${dir}"
-          #find "sb-bin/${dir}" -iname CrashCore | xargs -I {} mv {} "sb-bin/${dir}/sb"
-          mv "sb-bin/${dir}/CrashCore" "sb-bin/${dir}/sb"
-          chmod +x "sb-bin/${dir}/sb"
-          rm "${filename}"
-        done
-
-    - name: 下载 sbp
-      run: |
-        declare -A sbp_platforms=(
-          ["linux-arm64"]="sing-box-ref1nd-dev-linux-armv8.tar.gz"
-          ["linux-amd64"]="sing-box-ref1nd-dev-linux-amd64.tar.gz"
-          ["linux-amd64v3"]="sing-box-ref1nd-dev-linux-amd64v3.tar.gz"
-        )
-        mkdir -p sbp-bin
-        for tag in "${!sbp_platforms[@]}"; do
-          filename=${sbp_platforms[$tag]}
-          dir="$tag"  # 保留原始tag作为目录名
-          echo "处理 $tag => $filename"
-          curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "${filename}"
-          mkdir -p "sbp-bin/${dir}"
-          tar xzf "${filename}" --strip-components=1 -C "sbp-bin/${dir}"
-          #find "sbp-bin/${dir}" -iname CrashCore | xargs -I {} mv {} "sbp-bin/${dir}/sbp"
-          mv "sbp-bin/${dir}/CrashCore" "sbp-bin/${dir}/sbp"
-          chmod +x "sbp-bin/${dir}/sbp"
-          rm "${filename}"
-        done
 
     - name: 下载 eooce
       run: |
