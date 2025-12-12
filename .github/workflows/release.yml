@@ -87,9 +87,8 @@ jobs:
     - name: 下载 sb
       run: |
         declare -A sb_platforms=(
-          ["linux-arm64"]="sing-box-release-linux-armv8.tar.gz"
-          ["linux-amd64"]="sing-box-release-linux-amd64.tar.gz"
-          ["linux-amd64v3"]="sing-box-release-linux-amd64v3.tar.gz"
+          ["linux-arm64"]="sing-box-dev-linux-armv8.tar.gz"
+          ["linux-amd64"]="sing-box-dev-linux-amd64.tar.gz"
         )
         mkdir -p sb-bin
         for tag in "${!sb_platforms[@]}"; do
@@ -108,9 +107,9 @@ jobs:
     - name: 下载 sbp
       run: |
         declare -A sbp_platforms=(
-          ["linux-arm64"]="sing-box-puernya-linux-armv8.tar.gz"
-          ["linux-amd64"]="sing-box-puernya-linux-amd64.tar.gz"
-          ["linux-amd64v3"]="sing-box-puernya-linux-amd64v3.tar.gz"
+          ["linux-arm64"]="sing-box-ref1nd-dev-linux-armv8.tar.gz"
+          ["linux-amd64"]="sing-box-ref1nd-dev-linux-amd64.tar.gz"
+          ["linux-amd64v3"]="sing-box-ref1nd-dev-linux-amd64v3.tar.gz"
         )
         mkdir -p sbp-bin
         for tag in "${!sbp_platforms[@]}"; do
