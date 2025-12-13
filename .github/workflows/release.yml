@@ -49,7 +49,6 @@ jobs:
         "nezhahq/agent"
         "cloudflare/cloudflared"
         "AlistGo/alist"
-        "ykxVK8yL5L/alist"
         )
         
         # 处理需要比较版本的仓库
@@ -109,8 +108,6 @@ jobs:
         declare -A agent_platforms=(
           ["linux-arm64"]="nezha-agent_linux_arm64.zip"
           ["linux-amd64"]="nezha-agent_linux_amd64.zip"
-          ["freebsd-arm64"]="nezha-agent_freebsd_arm64.zip"
-          ["freebsd-amd64"]="nezha-agent_freebsd_amd64.zip"
         )
 
         mkdir -p agent-bin
@@ -157,8 +154,6 @@ jobs:
         declare -A xray_platforms=(
           ["linux-arm64"]="Xray-linux-arm64-v8a.zip"
           ["linux-amd64"]="Xray-linux-64.zip"
-          ["freebsd-arm64"]="Xray-freebsd-arm64-v8a.zip"
-          ["freebsd-amd64"]="Xray-freebsd-64.zip"
         )
 
         mkdir -p xray-bin
@@ -197,8 +192,6 @@ jobs:
         declare -A alist_platforms=(
           ["linux-arm64"]="alist-linux-arm64.tar.gz"
           ["linux-amd64"]="alist-linux-amd64.tar.gz"
-          ["freebsd-arm64"]="alist-freebsd-arm64.tar.gz"
-          ["freebsd-amd64"]="alist-freebsd-amd64.tar.gz"
         )
 
         mkdir -p alist-bin
@@ -215,43 +208,10 @@ jobs:
           rm "${filename}"
         done
 
-    - name: 下载 ykxVK8yL5L-alist
-      run: |
-        declare -A xalist_platforms=(
-          ["linux-arm64"]="alist-linux-arm64.tar.gz"
-          ["linux-amd64"]="alist-linux-amd64.tar.gz"
-        )
-
-        mkdir -p xalist-bin
-        VERSION=${{ steps.get_versions.outputs.xalist_version }}
-
-        for tag in "${!xalist_platforms[@]}"; do
-          filename=${xalist_platforms[$tag]}
-          dir="$tag"  # 保留原始tag作为目录名
-          echo "处理 $tag => $filename"
-          curl -sL "https://github.com/ykxVK8yL5L/alist/releases/download/$VERSION/$filename" -o "x${filename}"
-          mkdir -p "xalist-bin/${dir}"
-          tar xzf "x${filename}" -C "xalist-bin/${dir}" "alist"
-          mv "xalist-bin/${dir}/alist" "xalist-bin/${dir}/xalist"
-          chmod +x "xalist-bin/${dir}/xalist"
-          rm "x${filename}"
-        done
-
     - name: 更新 releases
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        for platform in ${FREEBSD_PLATFORMS}; do
-          gh release upload "$platform" "agent-bin/$platform/nezha-agent-v1" --clobber
-          gh release upload "$platform" "xray-bin/$platform/xray" --clobber
-          gh release upload "$platform" "alist-bin/$platform/alist" --clobber
-        done
-        
-        #for platform in ${v3_PLATFORMS}; do
-        #  gh release upload "$platform" "sb-bin/$platform/sb" --clobber
-        #  gh release upload "$platform" "sbp-bin/$platform/sbp" --clobber
-        #done
-
         for platform in ${LINUX_PLATFORMS}; do
           gh release upload "$platform" "eooce-bin/$platform/v0" --clobber
           gh release upload "$platform" "eooce-bin/$platform/v1" --clobber
@@ -261,7 +221,7 @@ jobs:
           gh release upload "$platform" "dashboard-bin/$platform/dashboard" --clobber
           gh release upload "$platform" "xray-bin/$platform/xray" --clobber
           gh release upload "$platform" "alist-bin/$platform/alist" --clobber
-          gh release upload "$platform" "xalist-bin/$platform/xalist" --clobber
+          #gh release upload "$platform" "xalist-bin/$platform/xalist" --clobber
           gh release upload "$platform" "cloudflared-bin/$platform/argo" --clobber
         done
     - name: 清理工作流
