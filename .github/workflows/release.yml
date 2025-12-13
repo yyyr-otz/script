@@ -81,26 +81,25 @@ jobs:
             AlistGo/alist) echo "alist_version=$latest" >> $GITHUB_OUTPUT ;;
         esac
         done
-
-    - name: 下载 sb
-      run: |
-        declare -A sb_platforms=(
-          ["linux-arm64"]="sing-box-dev-linux-armv8.tar.gz"
-          ["linux-amd64"]="sing-box-dev-linux-amd64.tar.gz"
-        )
         
-        for tag in "${!sb_platforms[@]}"; do
-          filename=${sb_platforms[$tag]}
-          dir="$tag"  # 保留原始tag作为目录名
-          echo "处理 $tag => $filename"
-          mkdir -p "sb-bin/${dir}"
-          curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sb-bin/${dir}/${filename}"
-          tar xzf "sb-bin/${dir}/${filename}" -C "sb-bin/${dir}"
-          mv "sb-bin/${dir}/CrashCore" "sb-bin/${dir}/sb"
-          chmod +x "sb-bin/${dir}/sb"
-        done
-
-    - name: 下载 sbp
+    - name: 下载 sb
+         run: |
+           declare -A sbp_platforms=(
+             ["linux-arm64"]="sing-box-dev-linux-armv8.tar.gz"
+             ["linux-amd64"]="sing-box-dev-linux-amd64.tar.gz"
+           )
+           for tag in "${!sb_platforms[@]}"; do
+             filename=${sb_platforms[$tag]}
+             dir="$tag"  # 保留原始tag作为目录名
+             echo "处理 $tag => $filename"
+        mkdir -p "sb-bin/${dir}"
+             curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sb-bin/${dir}/${filename}"
+             tar xzf "sb-bin/${dir}/${filename}"  -C "sb-bin/${dir}"
+             mv "sb-bin/${dir}/CrashCore" "sb-bin/${dir}/sb"
+             chmod +x "sb-bin/${dir}/sb"
+          done
+          
+    - name: 下载 sbp
       run: |
         declare -A sbp_platforms=(
           ["linux-arm64"]="sing-box-ref1nd-dev-linux-armv8.tar.gz"
