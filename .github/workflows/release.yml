@@ -105,7 +105,7 @@ jobs:
       run: |
         declare -A sbp_platforms=(
           ["linux-arm64"]="sing-box-ref1nd-dev-linux-armv8.tar.gz"
-          ["linux-amd64"]="sing-box-ref1nd-dev-linux-amd64.tar.gz"
+          ["linux-amd64"]="sing-box-ref1nd-dev-linux-amd64v1.tar.gz"
         )
         for tag in "${!sbp_platforms[@]}"; do
           filename=${sbp_platforms[$tag]}
@@ -114,8 +114,6 @@ jobs:
           mkdir -p "sbp-bin/${dir}"
           curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sbp-bin/${dir}/${filename}"
           tar -xzf "sbp-bin/${dir}/${filename}" -C "sbp-bin/${dir}"
-          ls sbp-bin/${dir}
-          file sbp-bin/${dir}/${filename}
           #find "sbp-bin/${dir}" -iname CrashCore | xargs -I {} mv {} "sbp-bin/${dir}/sbp"
           mv "sbp-bin/${dir}/CrashCore" "sbp-bin/${dir}/sbp"
           chmod +x "sbp-bin/${dir}/sbp"
