@@ -81,6 +81,40 @@ jobs:
             AlistGo/alist) echo "alist_version=$latest" >> $GITHUB_OUTPUT ;;
         esac
         done
+    - name: 下载 sb
+      run: |
+        declare -A sb_platforms=(
+          ["linux-arm64"]="sing-box-dev-linux-armv8.tar.gz"
+          ["linux-amd64"]="sing-box-dev-linux-amd64.tar.gz"
+        )
+        
+        for tag in "${!sb_platforms[@]}"; do
+          filename=${sb_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          mkdir -p "sb-bin/${dir}"
+          curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sb-bin/${dir}/${filename}"
+          tar xzf "sb-bin/${dir}/${filename}" -C "sb-bin/${dir}"
+          mv "sb-bin/${dir}/CrashCore" "sb-bin/${dir}/sb"
+          chmod +x "sb-bin/${dir}/sb"
+        done
+
+    - name: 下载 sbp
+      run: |
+        declare -A sbp_platforms=(
+          ["linux-arm64"]="sing-box-ref1nd-dev-linux-armv8.tar.gz"
+          ["linux-amd64"]="sing-box-ref1nd-dev-linux-amd64.tar.gz"
+        )
+        for tag in "${!sbp_platforms[@]}"; do
+          filename=${sbp_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          mkdir -p "sbp-bin/${dir}"
+          curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sbp-bin/${dir}/${filename}"
+          tar xzf "sbp-bin/${dir}/${filename}"  -C "sbp-bin/${dir}"
+          mv "sbp-bin/${dir}/CrashCore" "sbp-bin/${dir}/sbp"
+          chmod +x "sbp-bin/${dir}/sbp"
+        done
 
     - name: 下载 eooce
       run: |
@@ -92,7 +126,6 @@ jobs:
         for tag in "${!eooce_platforms[@]}"; do
           domain=${eooce_platforms[$tag]}
           dir="$tag"  # 保持原始tag作为目录名
-          
           echo "处理 $tag => $domain"
           mkdir -p "eooce-bin/${dir}"
           curl -sL "https://${domain}/agent" -o "eooce-bin/${dir}/v0"
@@ -118,7 +151,6 @@ jobs:
           unzip -j "agent-bin/${dir}/${filename}" 'nezha-agent' -d "agent-bin/${dir}"
           mv "agent-bin/${dir}/nezha-agent" "agent-bin/${dir}/nezha-agent-v1"
           chmod +x "agent-bin/${dir}/nezha-agent-v1"
-          rm "${filename}"
         done
 
     - name: 下载 nezha-dash
@@ -139,7 +171,6 @@ jobs:
           unzip -j "dashboard-bin/${dir}/${filename}" "dashboard-${tag}" -d "dashboard-bin/${dir}"
           mv "dashboard-bin/${dir}/dashboard-${tag}" "dashboard-bin/${dir}/dashboard"
           chmod +x "dashboard-bin/${dir}/dashboard"
-          rm "${filename}"
         done
 
 
@@ -161,7 +192,6 @@ jobs:
           curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/$filename" -o "xray-bin/${dir}/${filename}"
           unzip -j "xray-bin/${dir}/${filename}" 'xray' -d "xray-bin/${dir}"
           chmod +x "xray-bin/${dir}/xray"
-          rm "${filename}"
         done
 
     - name: 下载 Cloudflared
@@ -199,7 +229,6 @@ jobs:
           curl -sL "https://github.com/AlistGo/alist/releases/download/$VERSION/$filename" -o "alist-bin/${dir}/${filename}"
           tar xzf "alist-bin/${dir}/${filename}" -C "alist-bin/${dir}" "alist"
           chmod +x "alist-bin/${dir}/alist"
-          rm "${filename}"
         done
 
     - name: 更新 releases
@@ -209,8 +238,8 @@ jobs:
         for platform in ${LINUX_PLATFORMS}; do
           gh release upload "$platform" "eooce-bin/$platform/v0" --clobber
           gh release upload "$platform" "eooce-bin/$platform/v1" --clobber
-          #gh release upload "$platform" "sb-bin/$platform/sb" --clobber
-          #gh release upload "$platform" "sbp-bin/$platform/sbp" --clobber
+          gh release upload "$platform" "sb-bin/$platform/sb" --clobber
+          gh release upload "$platform" "sbp-bin/$platform/sbp" --clobber
           gh release upload "$platform" "agent-bin/$platform/nezha-agent-v1" --clobber
           gh release upload "$platform" "dashboard-bin/$platform/dashboard" --clobber
           gh release upload "$platform" "xray-bin/$platform/xray" --clobber
