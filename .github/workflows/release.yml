@@ -98,7 +98,6 @@ jobs:
           #find "sb-bin/${dir}" -iname CrashCore | xargs -I {} mv {} "sb-bin/${dir}/sb"
           mv "sb-bin/${dir}/CrashCore" "sb-bin/${dir}/sb"
           chmod +x "sb-bin/${dir}/sb"
-          rm "${filename}"
         done
 
     - name: 下载 sbp
@@ -117,7 +116,6 @@ jobs:
           #find "sbp-bin/${dir}" -iname CrashCore | xargs -I {} mv {} "sbp-bin/${dir}/sbp"
           mv "sbp-bin/${dir}/CrashCore" "sbp-bin/${dir}/sbp"
           chmod +x "sbp-bin/${dir}/sbp"
-          rm "${filename}"
         done
         
 
