@@ -93,7 +93,8 @@ jobs:
           dir="$tag"  # 保留原始tag作为目录名
           echo "处理 $tag => $filename"
           mkdir -p "sb-bin/${dir}"
-          curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sb-bin/${dir}/${filename}"
+          curl -L "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sb-bin/${dir}/${filename}"
+          cd sb-bin/${dir} && ls
           tar xzf "sb-bin/${dir}/${filename}"-C "sb-bin/${dir}"
           #find "sb-bin/${dir}" -iname CrashCore | xargs -I {} mv {} "sb-bin/${dir}/sb"
           mv "sb-bin/${dir}/CrashCore" "sb-bin/${dir}/sb"
@@ -106,7 +107,6 @@ jobs:
         declare -A sbp_platforms=(
           ["linux-arm64"]="sing-box-ref1nd-dev-linux-armv8.tar.gz"
           ["linux-amd64"]="sing-box-ref1nd-dev-linux-amd64.tar.gz"
-          ["linux-amd64v3"]="sing-box-ref1nd-dev-linux-amd64v3.tar.gz"
         )
         for tag in "${!sbp_platforms[@]}"; do
           filename=${sbp_platforms[$tag]}
