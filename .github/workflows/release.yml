@@ -93,9 +93,8 @@ jobs:
           dir="$tag"  # 保留原始tag作为目录名
           echo "处理 $tag => $filename"
           mkdir -p "sb-bin/${dir}"
-          curl -L "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sb-bin/${dir}/${filename}"
-          cd sb-bin/${dir} && ls
-          tar xzf "sb-bin/${dir}/${filename}"-C "sb-bin/${dir}"
+          curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sb-bin/${dir}/${filename}"
+          tar xzf "sb-bin/${dir}/${filename}" -C "sb-bin/${dir}"
           #find "sb-bin/${dir}" -iname CrashCore | xargs -I {} mv {} "sb-bin/${dir}/sb"
           mv "sb-bin/${dir}/CrashCore" "sb-bin/${dir}/sb"
           chmod +x "sb-bin/${dir}/sb"
