@@ -211,7 +211,7 @@ jobs:
           filename=${cloudflared_platforms[$tag]}
           dir="$tag"  # 保留原始tag作为目录名
           echo "处理 $tag => $filename"
-          mkdir -p "cloudflared-bin/{$tag}"
+          mkdir -p "cloudflared-bin/${tag}"
           curl -sL "https://github.com/cloudflare/cloudflared/releases/download/$VERSION/$filename" -o "cloudflared-bin/$tag/argo"
           chmod +x "cloudflared-bin/$tag/argo"
         done
