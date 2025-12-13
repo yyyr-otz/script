@@ -93,6 +93,229 @@ jobs:
           dir="$tag"  # 保留原始tag作为目录名
           echo "处理 $tag => $filename"
           mkdir -p "sb-bin/${dir}"
+          curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sb-bin/${dir}/$filename"
+          file sb-bin/${dir}/$filename
+          tar -xzf "sb-bin/${dir}/$filename" -C "sb-bin/${dir}"
+          #find "sb-bin/${dir}" -iname CrashCore | xargs -I {} mv {} "sb-bin/${dir}/sb"
+          mv "sb-bin/${dir}/CrashCore" "sb-bin/${dir}/sb"
+          chmod +x "sb-bin/${dir}/sb"
+        done
+
+    - name: 下载 sbp
+      run: |
+        declare -A sbp_platforms=(
+          ["linux-arm64"]="sing-box-ref1nd-dev-linux-armv8.tar.gz"
+          ["linux-amd64"]="sing-box-ref1nd-dev-linux-amd64v1.tar.gz"
+        )
+        for tag in "${!sbp_platforms[@]}"; do
+          filename=${sbp_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          mkdir -p "sbp-bin/${dir}"
+          curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sbp-bin/${dir}/$filename"
+          tar -xzf "sbp-bin/${dir}/$filename" -C "sbp-bin/${dir}"
+          #find "sbp-bin/${dir}" -iname CrashCore | xargs -I {} mv {} "sbp-bin/${dir}/sbp"
+          mv "sbp-bin/${dir}/CrashCore" "sbp-bin/${dir}/sbp"
+          chmod +x "sbp-bin/${dir}/sbp"
+        done
+        
+
+    - name: 下载 eooce
+      run: |
+        declare -A eooce_platforms=(
+          ["linux-amd64"]="amd64.ssss.nyc.mn"
+          ["linux-arm64"]="arm64.ssss.nyc.mn"
+        )
+        
+        for tag in "${!eooce_platforms[@]}"; do
+          domain=${eooce_platforms[$tag]}
+          dir="$tag"  # 保持原始tag作为目录名
+          echo "处理 $tag => $domain"
+          mkdir -p "eooce-bin/${dir}"
+          curl -sL "https://${domain}/agent" -o "eooce-bin/${dir}/v0"
+          curl -sL "https://${domain}/v1" -o "eooce-bin/${dir}/v1"
+          chmod +x "eooce-bin/${dir}/v0" "eooce-bin/${dir}/v1"
+        done
+
+    - name: 下载 nezha-agent
+      run: |
+        declare -A agent_platforms=(
+          ["linux-arm64"]="nezha-agent_linux_arm64.zip"
+          ["linux-amd64"]="nezha-agent_linux_amd64.zip"
+        )
+
+        VERSION=${{ steps.get_versions.outputs.agent_version }}
+
+        for tag in "${!agent_platforms[@]}"; do
+          filename=${agent_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          mkdir -p "agent-bin/${dir}"
+          curl -sL "https://github.com/nezhahq/agent/releases/download/$VERSION/$filename" -o "agent-bin/${dir}/$filename"
+          unzip -j "agent-bin/${dir}/$filename" 'nezha-agent' -d "agent-bin/${dir}"
+          mv "agent-bin/${dir}/nezha-agent" "agent-bin/${dir}/nezha-agent-v1"
+          chmod +x "agent-bin/${dir}/nezha-agent-v1"
+        done
+
+    - name: 下载 nezha-dash
+      run: |
+        declare -A dashboard_platforms=(
+          ["linux-arm64"]="dashboard-linux-arm64.zip"
+          ["linux-amd64"]="dashboard-linux-amd64.zip"
+        )
+        
+        VERSION=${{ steps.get_versions.outputs.dashboard_version }}
+
+        for tag in "${!dashboard_platforms[@]}"; do
+          filename=${dashboard_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          mkdir -p "dashboard-bin/${dir}"
+          curl -sL "https://github.com/nezhahq/nezha/releases/download/$VERSION/$filename" -o "dashboard-bin/${dir}/$filename"
+          unzip -j "dashboard-bin/${dir}/$filename" "dashboard-$tag" -d "dashboard-bin/${dir}"
+          mv "dashboard-bin/${dir}/dashboard-$tag" "dashboard-bin/${dir}/dashboard"
+          chmod +x "dashboard-bin/${dir}/dashboard"
+        done
+
+
+        
+    - name: 下载 Xray
+      run: |
+        declare -A xray_platforms=(
+          ["linux-arm64"]="Xray-linux-arm64-v8a.zip"
+          ["linux-amd64"]="Xray-linux-64.zip"
+        )
+
+        VERSION=${{ steps.get_versions.outputs.xray_version }}
+
+        for tag in "${!xray_platforms[@]}"; do
+          filename=${xray_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          mkdir -p "xray-bin/${dir}"
+          curl -sL "https://github.com/XTLS/Xray-core/releases/download/$VERSION/$filename" -o "xray-bin/${dir}/$filename"
+          unzip -j "xray-bin/${dir}/$filename" 'xray' -d "xray-bin/${dir}"
+          chmod +x "xray-bin/${dir}/xray"
+        done
+
+    - name: 下载 Cloudflared
+      run: |
+        declare -A cloudflared_platforms=(
+          ["linux-arm64"]="cloudflared-linux-arm64"
+          ["linux-amd64"]="cloudflared-linux-amd64"
+        )
+
+        VERSION=${{ steps.get_versions.outputs.cloudflared_version }}
+
+        for tag in "${!cloudflared_platforms[@]}"; do
+          filename=${cloudflared_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          mkdir -p "cloudflared-bin/$tag"
+          curl -sL "https://github.com/cloudflare/cloudflared/releases/download/$VERSION/$filename" -o "cloudflared-bin/$tag/argo"
+          chmod +x "cloudflared-bin/$tag/argo"
+        done
+        
+    - name: 下载 alist
+      run: |
+        declare -A alist_platforms=(
+          ["linux-arm64"]="alist-linux-arm64.tar.gz"
+          ["linux-amd64"]="alist-linux-amd64.tar.gz"
+        )
+
+        VERSION=${{ steps.get_versions.outputs.alist_version }}
+
+        for tag in "${!alist_platforms[@]}"; do
+          filename=${alist_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          mkdir -p "alist-bin/${dir}"
+          curl -sL "https://github.com/AlistGo/alist/releases/download/$VERSION/$filename" -o "alist-bin/${dir}/$filename"
+          tar -xzf "alist-bin/${dir}/$filename" -C "alist-bin/${dir}" "alist"
+          chmod +x "alist-bin/${dir}/alist"
+        done
+
+    - name: 更新 releases
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        for platform in ${LINUX_PLATFORMS}; do
+          gh release upload "$platform" "eooce-bin/$platform/v0" --clobber
+          gh release upload "$platform" "eooce-bin/$platform/v1" --clobber
+          gh release upload "$platform" "sb-bin/$platform/sb" --clobber
+          gh release upload "$platform" "sbp-bin/$platform/sbp" --clobber
+          gh release upload "$platform" "agent-bin/$platform/nezha-agent-v1" --clobber
+          gh release upload "$platform" "dashboard-bin/$platform/dashboard" --clobber
+          gh release upload "$platform" "xray-bin/$platform/xray" --clobber
+          gh release upload "$platform" "alist-bin/$platform/alist" --clobber
+          #gh release upload "$platform" "xalist-bin/$platform/xalist" --clobber
+          gh release upload "$platform" "cloudflared-bin/$platform/argo" --clobber
+        done
+    - name: 清理工作流
+      uses: Mattraks/delete-workflow-runs@v2
+      with:
+        token: ${{ secrets.MYPAT }}
+        repository: ${{ github.repository }}
+        retain_days: 0
+        keep_minimum_runs: 1        jq -r '[.[] | select(.prerelease == true) | .tag_name | sub("^v";"") | select(test("[0-9]"))]
+                | map(sub("^v";""))
+                | sort_by(split(".") | map(tonumber))
+                | reverse | first // empty'
+        }
+        
+        # 定义仓库类别
+        compare_repos=(
+        "XTLS/Xray-core"
+        )
+        latest_repos=(
+        "nezhahq/nezha"
+        "nezhahq/agent"
+        "cloudflare/cloudflared"
+        "AlistGo/alist"
+        )
+        
+        # 处理需要比较版本的仓库
+        for repo in "${compare_repos[@]}"; do
+        latest=$(curl -sL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
+        prerelease=$(get_prerelease "$repo")
+        if [[ -n "$prerelease" ]]; then
+            newer=$(printf "%s\n%s" "${latest#v}" "${prerelease#v}" | sort -V | tail -n1)
+            if [[ "$newer" == "${prerelease#v}" ]]; then
+            final_version="v$newer"
+            else
+            final_version="$latest"
+            fi
+        else
+            final_version="$latest"
+        fi
+        # 输出变量
+        case $repo in
+            XTLS/Xray-core) echo "xray_version=$final_version" >> $GITHUB_OUTPUT ;;
+        esac
+        done
+        
+        # 处理仅获取latest版本的仓库
+        for repo in "${latest_repos[@]}"; do
+        latest=$(curl -sL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
+        case $repo in
+            nezhahq/nezha) echo "dashboard_version=$latest" >> $GITHUB_OUTPUT ;;
+            nezhahq/agent) echo "agent_version=$latest" >> $GITHUB_OUTPUT ;;
+            cloudflare/cloudflared) echo "cloudflared_version=$latest" >> $GITHUB_OUTPUT ;;
+            AlistGo/alist) echo "alist_version=$latest" >> $GITHUB_OUTPUT ;;
+        esac
+        done
+        
+    - name: 下载 sb
+      run: |
+        declare -A sb_platforms=(
+          ["linux-arm64"]="sing-box-dev-linux-armv8.tar.gz"
+          ["linux-amd64"]="sing-box-dev-linux-amd64.tar.gz"
+        )
+        for tag in "${!sb_platforms[@]}"; do
+          filename=${sb_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          mkdir -p "sb-bin/${dir}"
           curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sb-bin/${dir}/${filename}"
           file sb-bin/${dir}/${filename}
           tar -xzf "sb-bin/${dir}/${filename}" -C "sb-bin/${dir}"
