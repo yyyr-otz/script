@@ -81,6 +81,7 @@ jobs:
             AlistGo/alist) echo "alist_version=$latest" >> $GITHUB_OUTPUT ;;
         esac
         done
+
     - name: 下载 sb
       run: |
         declare -A sb_platforms=(
