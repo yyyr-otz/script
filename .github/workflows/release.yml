@@ -114,6 +114,7 @@ jobs:
           mkdir -p "sbp-bin/${dir}"
           curl -sL "https://github.com/DustinWin/proxy-tools/releases/download/sing-box/$filename" -o "sbp-bin/${dir}/${filename}"
           tar -xzf "sbp-bin/${dir}/${filename}" -C "sbp-bin/${dir}"
+          ls sbp-bin/${dir}
           file sbp-bin/${dir}/${filename}
           #find "sbp-bin/${dir}" -iname CrashCore | xargs -I {} mv {} "sbp-bin/${dir}/sbp"
           mv "sbp-bin/${dir}/CrashCore" "sbp-bin/${dir}/sbp"
