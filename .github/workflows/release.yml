@@ -1,4 +1,4 @@
-name: 更新release文件
+name: 更新自用二进制
 run-name: ${{ github.actor }} 正在更新release文件
 
 on:
@@ -49,6 +49,7 @@ jobs:
         "nezhahq/agent"
         "cloudflare/cloudflared"
         "AlistGo/alist"
+        "pmkol/mosdns-x"
         )
         
         # 处理需要比较版本的仓库
@@ -79,6 +80,7 @@ jobs:
             nezhahq/agent) echo "agent_version=$latest" >> $GITHUB_OUTPUT ;;
             cloudflare/cloudflared) echo "cloudflared_version=$latest" >> $GITHUB_OUTPUT ;;
             AlistGo/alist) echo "alist_version=$latest" >> $GITHUB_OUTPUT ;;
+            pmkol/mosdns-x) echo "mosdns_version=$latest" >> $GITHUB_OUTPUT ;;
         esac
         done
         
@@ -119,7 +121,6 @@ jobs:
           chmod +x "sbp-bin/$dir/sbp"
         done
         
-
     - name: 下载 eooce
       run: |
         declare -A eooce_platforms=(
@@ -177,8 +178,6 @@ jobs:
           chmod +x "dashboard-bin/$dir/dashboard"
         done
 
-
-        
     - name: 下载 Xray
       run: |
         declare -A xray_platforms=(
@@ -216,6 +215,25 @@ jobs:
           chmod +x "cloudflared-bin/$tag/argo"
         done
         
+    - name: 下载 mosdns-x
+      run: |
+        declare -A mosdns_platforms=(
+          ["linux-arm64"]="mosdns-linux-arm64.zip"
+          ["linux-amd64"]="mosdns-linux-amd64.zip"
+        )
+
+        VERSION=${{ steps.get_versions.outputs.mosdns_version }}
+
+        for tag in "${!mosdns_platforms[@]}"; do
+          filename=${mosdns_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          mkdir -p "mosdns-bin/$dir"
+          curl -sL "https://github.com/pmkol/mosdns-x/releases/download/$VERSION/$filename" -o "mosdns-bin/$dir/${filename}"
+          unzip -j "mosdns-bin/$dir/${filename}" 'mosdns' -d "mosdns-bin/$dir"
+          chmod +x "mosdns-bin/$dir/mosdns"
+        done
+        
     - name: 下载 alist
       run: |
         declare -A alist_platforms=(
@@ -248,8 +266,8 @@ jobs:
           gh release upload "$platform" "dashboard-bin/$platform/dashboard" --clobber
           gh release upload "$platform" "xray-bin/$platform/xray" --clobber
           gh release upload "$platform" "alist-bin/$platform/alist" --clobber
-          #gh release upload "$platform" "xalist-bin/$platform/xalist" --clobber
           gh release upload "$platform" "cloudflared-bin/$platform/argo" --clobber
+          gh release upload "$platform" "mosdns-bin/$platform/mosdns" --clobber
         done
     - name: 清理工作流
       uses: Mattraks/delete-workflow-runs@v2
