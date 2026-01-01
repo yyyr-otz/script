@@ -2,8 +2,8 @@ name: 更新自用二进制
 run-name: ${{ github.actor }} 正在更新release文件
 
 on:
-  schedule:
-    - cron: '0 22 * * *'  # UTC 22点 ，北京时间 6点
+#  schedule:
+#    - cron: '0 22 * * *'  # UTC 22点 ，北京时间 6点
   workflow_dispatch:
 
 jobs:
