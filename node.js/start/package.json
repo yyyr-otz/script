@@ -1,0 +1,13 @@
+{
+  "name": "start",
+  "version": "1.0.0",
+  "description": "start",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
