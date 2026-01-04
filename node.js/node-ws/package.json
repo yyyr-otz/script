@@ -1,0 +1,17 @@
+{
+  "name": "node-ws",
+  "version": "1.0.0",
+  "description": "node-ws",
+  "main": "index.js",
+  "author": "easyshare",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.17.0"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
