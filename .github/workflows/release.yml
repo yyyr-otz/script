@@ -14,10 +14,6 @@ jobs:
       #v3_PLATFORMS: "linux-amd64v3"
       #FREEBSD_PLATFORMS: "freebsd-arm64 freebsd-amd64"
     steps:
-    - name: 迁出代码
-      uses: actions/checkout@v4.1.1
-      with:
-        fetch-depth: 0
 
     - name: 设置环境
       run: |
