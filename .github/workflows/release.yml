@@ -197,7 +197,7 @@ jobs:
           mkdir -p "mosdns4-bin/$dir"
           curl -sL "https://github.com/pmkol/mosdns-x/releases/download/$VERSION/$filename" -o "mosdns4-bin/$dir/${filename}"
           unzip -j "mosdns4-bin/$dir/${filename}" 'mosdns' -d "mosdns4-bin/$dir"
-          mv "mosdns4-bin/$dir/${filename}/mosdns" "mosdns4-bin/$dir/${filename}/mosdns4" 
+          mv "mosdns4-bin/$dir/mosdns" "mosdns4-bin/$dir/${filename}/mosdns4" 
           chmod +x "mosdns4-bin/$dir/mosdns4"
         done
 
@@ -217,7 +217,7 @@ jobs:
           mkdir -p "mosdns5-bin/$dir"
           curl -sL "https://github.com/pmkol/mosdns-x/releases/download/$VERSION/$filename" -o "mosdns5-bin/$dir/${filename}"
           unzip -j "mosdns5-bin/$dir/${filename}" 'mosdns' -d "mosdns5-bin/$dir"
-          mv "mosdns5-bin/$dir/${filename}/mosdns" "mosdns5-bin/$dir/${filename}/mosdns5" 
+          mv "mosdns5-bin/$dir/mosdns" "mosdns5-bin/$dir/${filename}/mosdns5" 
           chmod +x "mosdns5-bin/$dir/mosdns5"
         done
         
