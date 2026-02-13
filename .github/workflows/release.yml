@@ -215,7 +215,7 @@ jobs:
           dir="$tag"  # 保留原始tag作为目录名
           echo "处理 $tag => $filename"
           mkdir -p "mosdns5-bin/$dir"
-          curl -sL "https://github.com/pmkol/mosdns-x/releases/download/$VERSION/$filename" -o "mosdns5-bin/$dir/${filename}"
+          curl -sL "https://github.com/IrineSistiana/mosdns/releases/download/$VERSION/$filename" -o "mosdns5-bin/$dir/${filename}"
           unzip -j "mosdns5-bin/$dir/${filename}" 'mosdns' -d "mosdns5-bin/$dir"
           mv "mosdns5-bin/$dir/mosdns" "mosdns5-bin/$dir/mosdns5" 
           chmod +x "mosdns5-bin/$dir/mosdns5"
