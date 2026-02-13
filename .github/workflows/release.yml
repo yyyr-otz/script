@@ -16,7 +16,7 @@ jobs:
     steps:
 
     - name: 迁出代码
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@4.1.1
       with:
         fetch-depth: 0
 
@@ -51,6 +51,7 @@ jobs:
         "cloudflare/cloudflared"
         "AlistGo/alist"
         "pmkol/mosdns-x"
+        "IrineSistiana/mosdns"
         )
         
         # 处理需要比较版本的仓库
@@ -81,7 +82,8 @@ jobs:
             nezhahq/agent) echo "agent_version=$latest" >> $GITHUB_OUTPUT ;;
             cloudflare/cloudflared) echo "cloudflared_version=$latest" >> $GITHUB_OUTPUT ;;
             AlistGo/alist) echo "alist_version=$latest" >> $GITHUB_OUTPUT ;;
-            pmkol/mosdns-x) echo "mosdns_version=$latest" >> $GITHUB_OUTPUT ;;
+            pmkol/mosdns-x) echo "mosdns4_version=$latest" >> $GITHUB_OUTPUT ;;
+            IrineSistiana/mosdns) echo "mosdns5_version=$latest" >> $GITHUB_OUTPUT ;;
         esac
         done
         
@@ -179,23 +181,44 @@ jobs:
           chmod +x "cloudflared-bin/$tag/argo"
         done
         
-    - name: 下载 mosdns-x
+    - name: 下载 mosdns4
       run: |
-        declare -A mosdns_platforms=(
-          ["linux-arm64"]="mosdns-linux-arm64.zip"
-          ["linux-amd64"]="mosdns-linux-amd64.zip"
+        declare -A mosdns4_platforms=(
+          ["linux-arm64"]="mosdns4-linux-arm64.zip"
+          ["linux-amd64"]="mosdns4-linux-amd64.zip"
         )
 
-        VERSION=${{ steps.get_versions.outputs.mosdns_version }}
+        VERSION=${{ steps.get_versions.outputs.mosdns4_version }}
 
-        for tag in "${!mosdns_platforms[@]}"; do
-          filename=${mosdns_platforms[$tag]}
+        for tag in "${!mosdns4_platforms[@]}"; do
+          filename=${mosdns4_platforms[$tag]}
           dir="$tag"  # 保留原始tag作为目录名
           echo "处理 $tag => $filename"
-          mkdir -p "mosdns-bin/$dir"
-          curl -sL "https://github.com/pmkol/mosdns-x/releases/download/$VERSION/$filename" -o "mosdns-bin/$dir/${filename}"
-          unzip -j "mosdns-bin/$dir/${filename}" 'mosdns' -d "mosdns-bin/$dir"
-          chmod +x "mosdns-bin/$dir/mosdns"
+          mkdir -p "mosdns4-bin/$dir"
+          curl -sL "https://github.com/pmkol/mosdns-x/releases/download/$VERSION/$filename" -o "mosdns4-bin/$dir/${filename}"
+          unzip -j "mosdns4-bin/$dir/${filename}" 'mosdns' -d "mosdns4-bin/$dir"
+          mv "mosdns4-bin/$dir/${filename}/mosdns" "mosdns4-bin/$dir/${filename}/mosdns4" 
+          chmod +x "mosdns4-bin/$dir/mosdns4"
+        done
+
+    - name: 下载 mosdns5
+      run: |
+        declare -A mosdns5_platforms=(
+          ["linux-arm64"]="mosdns5-linux-arm64.zip"
+          ["linux-amd64"]="mosdns5-linux-amd64.zip"
+        )
+
+        VERSION=${{ steps.get_versions.outputs.mosdns5_version }}
+
+        for tag in "${!mosdns5_platforms[@]}"; do
+          filename=${mosdns5_platforms[$tag]}
+          dir="$tag"  # 保留原始tag作为目录名
+          echo "处理 $tag => $filename"
+          mkdir -p "mosdns5-bin/$dir"
+          curl -sL "https://github.com/pmkol/mosdns-x/releases/download/$VERSION/$filename" -o "mosdns5-bin/$dir/${filename}"
+          unzip -j "mosdns5-bin/$dir/${filename}" 'mosdns' -d "mosdns5-bin/$dir"
+          mv "mosdns5-bin/$dir/${filename}/mosdns" "mosdns5-bin/$dir/${filename}/mosdns5" 
+          chmod +x "mosdns5-bin/$dir/mosdns5"
         done
         
     - name: 下载 alist
@@ -229,7 +252,8 @@ jobs:
           gh release upload "$platform" "xray-bin/$platform/xray" --clobber
           gh release upload "$platform" "alist-bin/$platform/alist" --clobber
           gh release upload "$platform" "cloudflared-bin/$platform/argo" --clobber
-          gh release upload "$platform" "mosdns-bin/$platform/mosdns" --clobber
+          gh release upload "$platform" "mosdns4-bin/$platform/mosdns4" --clobber
+          gh release upload "$platform" "mosdns5-bin/$platform/mosdns5" --clobber
         done
     - name: 清理工作流
       uses: Mattraks/delete-workflow-runs@v2
