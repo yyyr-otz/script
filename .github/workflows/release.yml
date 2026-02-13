@@ -184,8 +184,8 @@ jobs:
     - name: 下载 mosdns4
       run: |
         declare -A mosdns4_platforms=(
-          ["linux-arm64"]="mosdns4-linux-arm64.zip"
-          ["linux-amd64"]="mosdns4-linux-amd64.zip"
+          ["linux-arm64"]="mosdns-linux-arm64.zip"
+          ["linux-amd64"]="mosdns-linux-amd64.zip"
         )
 
         VERSION=${{ steps.get_versions.outputs.mosdns4_version }}
@@ -204,8 +204,8 @@ jobs:
     - name: 下载 mosdns5
       run: |
         declare -A mosdns5_platforms=(
-          ["linux-arm64"]="mosdns5-linux-arm64.zip"
-          ["linux-amd64"]="mosdns5-linux-amd64.zip"
+          ["linux-arm64"]="mosdns-linux-arm64.zip"
+          ["linux-amd64"]="mosdns-linux-amd64.zip"
         )
 
         VERSION=${{ steps.get_versions.outputs.mosdns5_version }}
