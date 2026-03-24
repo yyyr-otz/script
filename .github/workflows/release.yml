@@ -43,9 +43,9 @@ jobs:
         
         # 定义仓库类别
         compare_repos=(
-        "XTLS/Xray-core"
         )
         latest_repos=(
+        "XTLS/Xray-core"
         "nezhahq/nezha"
         "nezhahq/agent"
         "cloudflare/cloudflared"
