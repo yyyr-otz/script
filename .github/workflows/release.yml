@@ -43,10 +43,9 @@ jobs:
         
         # 定义仓库类别
         compare_repos=(
-        
         )
         latest_repos=(
-		"XTLS/Xray-core"
+        "XTLS/Xray-core"
         "nezhahq/nezha"
         "nezhahq/agent"
         "cloudflare/cloudflared"
@@ -55,25 +54,6 @@ jobs:
         "IrineSistiana/mosdns"
         )
         
-        ## 处理需要比较版本的仓库
-        #for repo in "${compare_repos[@]}"; do
-        #latest=$(curl -sL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
-        #prerelease=$(get_prerelease "$repo")
-        #if [[ -n "$prerelease" ]]; then
-        #    newer=$(printf "%s\n%s" "${latest#v}" "${prerelease#v}" | sort -V | tail -n1)
-        #    if [[ "$newer" == "${prerelease#v}" ]]; then
-        #    final_version="v$newer"
-        #    else
-        #    final_version="$latest"
-        #    fi
-        #else
-        #    final_version="$latest"
-        #fi
-        ## 输出变量
-        #case $repo in
-        #    XTLS/Xray-core) echo "xray_version=$final_version" >> $GITHUB_OUTPUT ;;
-        #esac
-        #done
         
         # 处理仅获取latest版本的仓库
         for repo in "${latest_repos[@]}"; do
