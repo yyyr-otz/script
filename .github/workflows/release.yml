@@ -9,6 +9,9 @@ on:
 jobs:
   update_release:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        task: ["eooce", "agent", "dashboard","xray", "alist", "argo", "mosdns4", "mosdns5"]
     env:
       LINUX_PLATFORMS: "linux-arm64 linux-amd64"
       #v3_PLATFORMS: "linux-amd64v3"
@@ -90,6 +93,7 @@ jobs:
         done
         
     - name: 下载 eooce
+      if: matrix.task == 'eooce'
       run: |
         declare -A eooce_platforms=(
           ["linux-amd64"]="amd64.ssss.nyc.mn"
@@ -107,6 +111,7 @@ jobs:
         done
 
     - name: 下载 nezha-agent
+      if: matrix.task == 'agent'
       run: |
         declare -A agent_platforms=(
           ["linux-arm64"]="nezha-agent_linux_arm64.zip"
@@ -127,6 +132,7 @@ jobs:
         done
 
     - name: 下载 nezha-dash
+      if: matrix.task == 'dashboard'
       run: |
         declare -A dashboard_platforms=(
           ["linux-arm64"]="dashboard-linux-arm64.zip"
@@ -147,6 +153,7 @@ jobs:
         done
 
     - name: 下载 Xray
+      if: matrix.task == 'xray'
       run: |
         declare -A xray_platforms=(
           ["linux-arm64"]="Xray-linux-arm64-v8a.zip"
@@ -166,6 +173,7 @@ jobs:
         done
 
     - name: 下载 Cloudflared
+      if: matrix.task == 'argo'
       run: |
         declare -A cloudflared_platforms=(
           ["linux-arm64"]="cloudflared-linux-arm64"
@@ -184,6 +192,7 @@ jobs:
         done
         
     - name: 下载 mosdns4
+      if: matrix.task == 'mosdns4'
       run: |
         declare -A mosdns4_platforms=(
           ["linux-arm64"]="mosdns-linux-arm64.zip"
@@ -204,6 +213,7 @@ jobs:
         done
 
     - name: 下载 mosdns5
+      if: matrix.task == 'mosdns5'
       run: |
         declare -A mosdns5_platforms=(
           ["linux-arm64"]="mosdns-linux-arm64.zip"
@@ -224,6 +234,7 @@ jobs:
         done
         
     - name: 下载 alist
+      if: matrix.task == 'alist'
       run: |
         declare -A alist_platforms=(
           ["linux-arm64"]="alist-linux-arm64.tar.gz"
@@ -250,14 +261,14 @@ jobs:
           (
             gh release upload "$platform" "eooce-bin/$platform/v0" --clobber &
             gh release upload "$platform" "eooce-bin/$platform/v1" --clobber &
-           gh release upload "$platform" "agent-bin/$platform/nezha-agent-v1" --clobber &
-           gh release upload "$platform" "dashboard-bin/$platform/dashboard" --clobber &
-           gh release upload "$platform" "xray-bin/$platform/xray" --clobber &
-           gh release upload "$platform" "alist-bin/$platform/alist" --clobber &
-           gh release upload "$platform" "cloudflared-bin/$platform/argo" --clobber &
-           gh release upload "$platform" "mosdns4-bin/$platform/mosdns4" --clobber &
-           gh release upload "$platform" "mosdns5-bin/$platform/mosdns5" --clobber &
-           wait
+            gh release upload "$platform" "agent-bin/$platform/nezha-agent-v1" --clobber &
+            gh release upload "$platform" "dashboard-bin/$platform/dashboard" --clobber &
+            gh release upload "$platform" "xray-bin/$platform/xray" --clobber &
+            gh release upload "$platform" "alist-bin/$platform/alist" --clobber &
+            gh release upload "$platform" "cloudflared-bin/$platform/argo" --clobber &
+            gh release upload "$platform" "mosdns4-bin/$platform/mosdns4" --clobber &
+            gh release upload "$platform" "mosdns5-bin/$platform/mosdns5" --clobber &
+            wait
           )
         done
         
