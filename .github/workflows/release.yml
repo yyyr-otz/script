@@ -94,6 +94,8 @@ jobs:
         
     - name: 下载 eooce
       if: matrix.task == 'eooce'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         declare -A eooce_platforms=(
           ["linux-amd64"]="amd64.ssss.nyc.mn"
@@ -109,9 +111,18 @@ jobs:
           curl -sL "https://${domain}/v1" -o "eooce-bin/$dir/v1"
           chmod +x "eooce-bin/$dir/v0" "eooce-bin/$dir/v1"
         done
+        for platform in ${LINUX_PLATFORMS}; do
+          (
+            gh release upload "$platform" "eooce-bin/$platform/v0" --clobber &
+            gh release upload "$platform" "eooce-bin/$platform/v1" --clobber &
+            wait
+          )
+        done
 
     - name: 下载 nezha-agent
       if: matrix.task == 'agent'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         declare -A agent_platforms=(
           ["linux-arm64"]="nezha-agent_linux_arm64.zip"
@@ -130,9 +141,17 @@ jobs:
           mv "agent-bin/$dir/nezha-agent" "agent-bin/$dir/nezha-agent-v1"
           chmod +x "agent-bin/$dir/nezha-agent-v1"
         done
+        for platform in ${LINUX_PLATFORMS}; do
+          (
+            gh release upload "$platform" "agent-bin/$platform/nezha-agent-v1" --clobber &
+            wait
+          )
+        done
 
     - name: 下载 nezha-dash
       if: matrix.task == 'dashboard'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         declare -A dashboard_platforms=(
           ["linux-arm64"]="dashboard-linux-arm64.zip"
@@ -151,9 +170,17 @@ jobs:
           mv "dashboard-bin/$dir/dashboard-$tag" "dashboard-bin/$dir/dashboard"
           chmod +x "dashboard-bin/$dir/dashboard"
         done
+        for platform in ${LINUX_PLATFORMS}; do
+          (
+            gh release upload "$platform" "dashboard-bin/$platform/dashboard" --clobber &
+            wait
+          )
+        done
 
     - name: 下载 Xray
       if: matrix.task == 'xray'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         declare -A xray_platforms=(
           ["linux-arm64"]="Xray-linux-arm64-v8a.zip"
@@ -171,9 +198,17 @@ jobs:
           unzip -j "xray-bin/$dir/${filename}" 'xray' -d "xray-bin/$dir"
           chmod +x "xray-bin/$dir/xray"
         done
+        for platform in ${LINUX_PLATFORMS}; do
+          (
+            gh release upload "$platform" "xray-bin/$platform/xray" --clobber &
+            wait
+          )
+        done
 
     - name: 下载 Cloudflared
       if: matrix.task == 'argo'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         declare -A cloudflared_platforms=(
           ["linux-arm64"]="cloudflared-linux-arm64"
@@ -190,9 +225,17 @@ jobs:
           curl -sL "https://github.com/cloudflare/cloudflared/releases/download/$VERSION/$filename" -o "cloudflared-bin/$tag/argo"
           chmod +x "cloudflared-bin/$tag/argo"
         done
+        for platform in ${LINUX_PLATFORMS}; do
+          (
+            gh release upload "$platform" "cloudflared-bin/$platform/argo" --clobber &
+            wait
+          )
+        done
         
     - name: 下载 mosdns4
       if: matrix.task == 'mosdns4'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         declare -A mosdns4_platforms=(
           ["linux-arm64"]="mosdns-linux-arm64.zip"
@@ -211,9 +254,17 @@ jobs:
           mv "mosdns4-bin/$dir/mosdns" "mosdns4-bin/$dir/mosdns4" 
           chmod +x "mosdns4-bin/$dir/mosdns4"
         done
+        for platform in ${LINUX_PLATFORMS}; do
+          (
+            gh release upload "$platform" "mosdns4-bin/$platform/mosdns4" --clobber &
+            wait
+          )
+        done
 
     - name: 下载 mosdns5
       if: matrix.task == 'mosdns5'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         declare -A mosdns5_platforms=(
           ["linux-arm64"]="mosdns-linux-arm64.zip"
@@ -232,9 +283,17 @@ jobs:
           mv "mosdns5-bin/$dir/mosdns" "mosdns5-bin/$dir/mosdns5" 
           chmod +x "mosdns5-bin/$dir/mosdns5"
         done
+        for platform in ${LINUX_PLATFORMS}; do
+          (
+            gh release upload "$platform" "mosdns5-bin/$platform/mosdns5" --clobber &
+            wait
+          )
+        done
         
     - name: 下载 alist
       if: matrix.task == 'alist'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         declare -A alist_platforms=(
           ["linux-arm64"]="alist-linux-arm64.tar.gz"
@@ -252,48 +311,13 @@ jobs:
           tar -xzf "alist-bin/$dir/${filename}" -C "alist-bin/$dir" "alist"
           chmod +x "alist-bin/$dir/alist"
         done
-
-    - name: 更新 releases
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
         for platform in ${LINUX_PLATFORMS}; do
           (
-            gh release upload "$platform" "eooce-bin/$platform/v0" --clobber &
-            gh release upload "$platform" "eooce-bin/$platform/v1" --clobber &
-            gh release upload "$platform" "agent-bin/$platform/nezha-agent-v1" --clobber &
-            gh release upload "$platform" "dashboard-bin/$platform/dashboard" --clobber &
-            gh release upload "$platform" "xray-bin/$platform/xray" --clobber &
             gh release upload "$platform" "alist-bin/$platform/alist" --clobber &
-            gh release upload "$platform" "cloudflared-bin/$platform/argo" --clobber &
-            gh release upload "$platform" "mosdns4-bin/$platform/mosdns4" --clobber &
-            gh release upload "$platform" "mosdns5-bin/$platform/mosdns5" --clobber &
             wait
           )
         done
-        
-    - name: 更新 version
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        cd $GITHUB_WORKSPACE
-        cat << EOF > version.json
-        {
-        "Xray-core": "${{ steps.get_versions.outputs.xray_version }}",
-        "Nezha-Agent": "${{ steps.get_versions.outputs.agent_version }}",
-        "Nezha-Dashboard": "${{ steps.get_versions.outputs.dashboard_version }}",
-        "Cloudflared": "${{ steps.get_versions.outputs.cloudflared_version }}",
-        "Alist": "${{ steps.get_versions.outputs.alist_version }}",
-        "mosdns4": "${{ steps.get_versions.outputs.mosdns4_version }}",
-        "mosdns5": "${{ steps.get_versions.outputs.mosdns5_version }}"
-        }
-        EOF
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
-        git add version.json
-        git commit -m "Update version.json with latest versions" --allow-empty
-        git push
-    
+
 
     - name: 清理工作流
       uses: Mattraks/delete-workflow-runs@v2
