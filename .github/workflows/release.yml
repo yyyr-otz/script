@@ -277,7 +277,7 @@ jobs:
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
         git add version.json
-        git commit -m "Update version.json with latest versions"
+        git commit -m "Update version.json with latest versions" --allow-empty
         git push
     
 
