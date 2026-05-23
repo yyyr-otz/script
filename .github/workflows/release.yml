@@ -262,6 +262,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        cd $GITHUB_WORKSPACE
         cat << EOF > version.json
         {
         "Xray-core": "${{ steps.get_versions.outputs.xray_version }}",
@@ -273,6 +274,8 @@ jobs:
         "mosdns5": "${{ steps.get_versions.outputs.mosdns5_version }}"
         }
         EOF
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
         git add version.json
         git commit -m "Update version.json with latest versions"
         git push
