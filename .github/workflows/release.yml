@@ -262,7 +262,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        cat <<EOF > $HOME/version.json
+        cat << EOF > version.json
         {
         "Xray-core": "${{ steps.get_versions.outputs.xray_version }}",
         "Nezha-Agent": "${{ steps.get_versions.outputs.agent_version }}",
