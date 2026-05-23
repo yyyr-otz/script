@@ -43,9 +43,9 @@ jobs:
         
         # 定义仓库类别
         compare_repos=(
+        "XTLS/Xray-core"
         )
         latest_repos=(
-        "XTLS/Xray-core"
         "nezhahq/nezha"
         "nezhahq/agent"
         "cloudflare/cloudflared"
@@ -59,7 +59,7 @@ jobs:
         for repo in "${latest_repos[@]}"; do
         latest=$(curl -sL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
         case $repo in
-            XTLS/Xray-core)  echo "xray_version=$latest" >> $GITHUB_OUTPUT ;;
+            # XTLS/Xray-core)  echo "xray_version=$latest" >> $GITHUB_OUTPUT ;;
             nezhahq/nezha) echo "dashboard_version=$latest" >> $GITHUB_OUTPUT ;;
             nezhahq/agent) echo "agent_version=$latest" >> $GITHUB_OUTPUT ;;
             cloudflare/cloudflared) echo "cloudflared_version=$latest" >> $GITHUB_OUTPUT ;;
