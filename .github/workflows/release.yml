@@ -19,8 +19,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          chmod +x ./scripts/update-binaries.sh
-          ./scripts/update-binaries.sh "${{ matrix.task }}"
+          chmod +x ./scripts/release.sh
+          ./scripts/release.sh "${{ matrix.task }}"
 
       - name: 清理工作流历史
         uses: Mattraks/delete-workflow-runs@v2
