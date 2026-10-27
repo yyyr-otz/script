@@ -5,11 +5,10 @@ TASK="${1:-}"
 PLATFORMS=("linux-amd64" "linux-arm64")
 
 if [[ -z "$TASK" ]]; then
-  echo "Error: 请指定任务名 (例如: bash update-binaries.sh xray)" >&2
+  echo "Error: 请指定任务名" >&2
   exit 1
 fi
 
-# 1. 基础工具函数：获取版本
 fetch_latest() {
   local repo="$1"
   curl -sL -H "Authorization: Bearer ${GITHUB_TOKEN}" \
@@ -40,7 +39,6 @@ fetch_compare_prerelease() {
   echo "$latest"
 }
 
-# 2. 统一处理标准 Github Release 的通用解压与上传函数
 process_github_release() {
   local repo="$1"
   local version="$2"
@@ -63,7 +61,6 @@ process_github_release() {
     echo "正在下载 [${plat}]: ${url}"
     curl -sL "$url" -o "${work_dir}/${file}"
 
-# 智能解压/提权
     case "$file" in
       *.zip)
         unzip -qo -j "${work_dir}/${file}" "${inner_binary}" -d "${work_dir}"
@@ -80,7 +77,6 @@ process_github_release() {
         rm -f "${work_dir}/${file}"
         ;;
       *)
-        # 裸二进制文件
         if [[ "${file}" != "${target_name}" ]]; then
           mv -f "${work_dir}/${file}" "${work_dir}/${target_name}"
         fi
@@ -89,13 +85,11 @@ process_github_release() {
 
     chmod +x "${work_dir}/${target_name}"
 
-    # 上传到对应 tag 的 Release
     echo "正在上传到 Release: ${plat}"
     gh release upload "$plat" "${work_dir}/${target_name}" --clobber
   done
 }
 
-# 3. 任务路由与元数据定义
 case "$TASK" in
   eooce)
     for plat in "${PLATFORMS[@]}"; do
@@ -117,7 +111,6 @@ case "$TASK" in
 
   dashboard)
     ver=$(fetch_latest "nezhahq/nezha")
-    # dashboard 特殊点：压缩包内文件名为 dashboard-linux-xxx
     for plat in "${PLATFORMS[@]}"; do
       mkdir -p "dist/${plat}"
       file="dashboard-${plat}.zip"
@@ -163,6 +156,14 @@ case "$TASK" in
     process_github_release "AlistGo/alist" "$ver" \
       "alist" "alist" \
       "alist-linux-amd64.tar.gz" "alist-linux-arm64.tar.gz"
+    ;;
+
+  gost)
+    ver=$(fetch_latest "go-gost/gost")
+    ver_num="${ver#v}"
+    process_github_release "go-gost/gost" "$ver" \
+      "gost" "gost" \
+      "gost_${ver_num}_linux_amd64v3.tar.gz" "gost_${ver_num}_linux_arm64.tar.gz"
     ;;
 
   *)
