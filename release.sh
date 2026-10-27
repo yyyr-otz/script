@@ -63,11 +63,13 @@ process_github_release() {
     echo "正在下载 [${plat}]: ${url}"
     curl -sL "$url" -o "${work_dir}/${file}"
 
-    # 智能解压/提权
+# 智能解压/提权
     case "$file" in
       *.zip)
         unzip -qo -j "${work_dir}/${file}" "${inner_binary}" -d "${work_dir}"
-        mv -f "${work_dir}/${inner_binary}" "${work_dir}/${target_name}"
+        if [[ "${inner_binary}" != "${target_name}" ]]; then
+          mv -f "${work_dir}/${inner_binary}" "${work_dir}/${target_name}"
+        fi
         rm -f "${work_dir}/${file}"
         ;;
       *.tar.gz|*.tgz)
@@ -79,7 +81,9 @@ process_github_release() {
         ;;
       *)
         # 裸二进制文件
-        mv -f "${work_dir}/${file}" "${work_dir}/${target_name}"
+        if [[ "${file}" != "${target_name}" ]]; then
+          mv -f "${work_dir}/${file}" "${work_dir}/${target_name}"
+        fi
         ;;
     esac
 
