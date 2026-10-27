@@ -214,12 +214,12 @@ case "$TASK" in
     for fname in "${!files_to_download[@]}"; do
       url="${files_to_download[$fname]}"
       echo "正在下载: $fname"
-      curl -sL --retry 3 "$url" -o "dist/txt/$fname"
-      upload_files+=("dist/txt/$fname")
+      curl -sL --retry 3 "$url" -o "dist/rules/$fname"
+      upload_files+=("dist/rules/$fname")
     done
 
-    echo "正在推送所有规则文件到 Release: txt"
-    gh release upload "txt" "${upload_files[@]}" --clobber
+    echo "正在推送所有规则文件到 Release: rules"
+    gh release upload "rules" "${upload_files[@]}" --clobber
     ;;
 
   *)
