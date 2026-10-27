@@ -166,6 +166,13 @@ case "$TASK" in
       "gost_${ver_num}_linux_amd64v3.tar.gz" "gost_${ver_num}_linux_arm64.tar.gz"
     ;;
 
+  wireproxy)
+    ver=$(fetch_latest "windtf/wireproxy")
+    process_github_release "windtf/wireproxy" "$ver" \
+      "wireproxy" "wireproxy" \
+      "wireproxy_linux_amd64.tar.gz" "wireproxy_linux_arm64.tar.gz"
+    ;;
+    
   *)
     echo "未识别的任务: $TASK" >&2
     exit 1
