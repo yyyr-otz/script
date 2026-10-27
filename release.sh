@@ -172,7 +172,17 @@ case "$TASK" in
       "wireproxy" "wireproxy" \
       "wireproxy_linux_amd64.tar.gz" "wireproxy_linux_arm64.tar.gz"
     ;;
-    
+
+  aria2)
+    ver=$(fetch_latest "AnInsomniacy/aria2-next")
+    # 去除 tag 开头的 'v'（如果存在），拼接对应文件名
+    ver_clean="${ver#v}"
+    process_github_release "AnInsomniacy/aria2-next" "$ver" \
+      "" "aria2c" \
+      "aria2-next-${ver_clean}-linux-x86_64" "aria2-next-${ver_clean}-linux-aarch64"
+    ;;
+
+
   *)
     echo "未识别的任务: $TASK" >&2
     exit 1
