@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        task: ["eooce", "agent", "dashboard", "xray", "alist", "argo", "mosdns4", "mosdns5"]
+        task: ["eooce", "agent", "dashboard", "xray", "alist", "argo", "mosdns4", "mosdns5", "gost", "wireproxy"]
       fail-fast: false # 保证某个软件失败不会直接阻断其他任务
     steps:
       - name: 检出代码
