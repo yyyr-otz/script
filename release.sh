@@ -181,9 +181,9 @@ case "$TASK" in
       "aria2-next-${ver_clean}-linux-x86_64" "aria2-next-${ver_clean}-linux-aarch64"
     ;;
 
-  rules)
+rules)
     echo "==> 开始下载规则列表与数据文件"
-    mkdir -p dist/txt
+    mkdir -p dist/rules
 
     declare -A files_to_download=(
       ["adaway_domain_list.txt"]="https://raw.githubusercontent.com/NethServer/dns-community-blacklist/master/adaway.dns"
@@ -221,7 +221,6 @@ case "$TASK" in
     echo "正在推送所有规则文件到 Release: rules"
     gh release upload "rules" "${upload_files[@]}" --clobber
     ;;
-
   *)
     echo "未识别的任务: $TASK" >&2
     exit 1
