@@ -181,7 +181,7 @@ case "$TASK" in
       "aria2-next-${ver_clean}-linux-x86_64" "aria2-next-${ver_clean}-linux-aarch64"
     ;;
 
-rules)
+  rules)
     echo "==> 开始下载规则列表与数据文件"
     mkdir -p dist/rules
 
@@ -210,15 +210,18 @@ rules)
       ["geosite.dat"]="https://github.com/Loyalsoldier/domain-list-custom/releases/latest/download/geosite.dat"
     )
 
+    # 下载全部规则与数据文件
     for fname in "${!files_to_download[@]}"; do
       url="${files_to_download[$fname]}"
       echo "正在下载: $fname"
       curl -sL --retry 3 "$url" -o "dist/rules/$fname"
     done
 
+    # 仅打包所有的 .txt 文件，避免包含 .dat 和正在写入的 tar 包本身
     echo "==> 正在将 txt 文件打包为 rules.tar.gz"
-    tar -czf "dist/rules/rules.tar.gz" -C dist/rules --exclude="*.dat" --exclude="*.tar.gz" .
+    (cd dist/rules && tar -czf rules.tar.gz *.txt)
 
+    # 收集 dist/rules 目录下的全部文件（包括所有 .txt、.dat 和 rules.tar.gz）
     upload_files=()
     for file in dist/rules/*; do
       [[ -f "$file" ]] && upload_files+=("$file")
