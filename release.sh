@@ -210,17 +210,23 @@ rules)
       ["geosite.dat"]="https://github.com/Loyalsoldier/domain-list-custom/releases/latest/download/geosite.dat"
     )
 
-    upload_files=()
     for fname in "${!files_to_download[@]}"; do
       url="${files_to_download[$fname]}"
       echo "正在下载: $fname"
       curl -sL --retry 3 "$url" -o "dist/rules/$fname"
-      upload_files+=("dist/rules/$fname")
     done
 
-    echo "正在推送所有规则文件到 Release: rules"
+    echo "==> 正在将 txt 文件打包为 rules.tar.gz"
+    tar -czf "dist/rules/rules.tar.gz" -C dist/rules --exclude="*.dat" --exclude="*.tar.gz" .
+
+    upload_files=("dist/rules/rules.tar.gz")
+    for dat_file in dist/rules/*.dat; do
+      [[ -f "$dat_file" ]] && upload_files+=("$dat_file")
+    done
+
     gh release upload "rules" "${upload_files[@]}" --clobber
     ;;
+    
   *)
     echo "未识别的任务: $TASK" >&2
     exit 1
