@@ -219,11 +219,12 @@ rules)
     echo "==> 正在将 txt 文件打包为 rules.tar.gz"
     tar -czf "dist/rules/rules.tar.gz" -C dist/rules --exclude="*.dat" --exclude="*.tar.gz" .
 
-    upload_files=("dist/rules/rules.tar.gz")
-    for dat_file in dist/rules/*.dat; do
-      [[ -f "$dat_file" ]] && upload_files+=("$dat_file")
+    upload_files=()
+    for file in dist/rules/*; do
+      [[ -f "$file" ]] && upload_files+=("$file")
     done
 
+    echo "正在推送所有规则文件（txt、dat 及 rules.tar.gz）到 Release: rules"
     gh release upload "rules" "${upload_files[@]}" --clobber
     ;;
     
