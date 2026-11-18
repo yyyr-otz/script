@@ -88,7 +88,6 @@ upload_to_webdav_async() {
     echo "${file_name}|${file_size}|${time_total}|${speed_mb}|${status}|${raw_dir}" > "dist/.webdav_reports/${log_id}.log"
   ) &
 
-  # 并发限制控制
   while (( $(jobs -r -p | wc -l) >= MAX_WEBDAV_JOBS )); do
     sleep 0.05
   done
@@ -137,7 +136,7 @@ print_webdav_summary() {
   echo ""
 }
 
-# 将任务中的文件排队加入 WebDAV 并发上传池（智能仅推变动文件）
+# 将任务中的文件排队加入 WebDAV 并发上传池
 queue_task_webdav_uploads() {
   local task="$1"
   if [[ "$WEBDAV_ENABLED" != "true" || ! -f "$LOCAL_CONFIG" ]]; then
@@ -165,7 +164,6 @@ queue_task_webdav_uploads() {
 
     if [[ "$task" == "rules" ]]; then
       if [[ "$file" == "*.txt" || "$file" == "rules.tar.gz" || "$file" == "*" ]]; then
-        # 仅推送实际发生哈希变动的 txt 规则文件（若强制更新则全量推送）
         for rf in dist/rules/*.txt; do
           local bname
           bname=$(basename "$rf")
@@ -174,13 +172,11 @@ queue_task_webdav_uploads() {
           fi
         done
       else
-        # 单文件推送（如 ips-v4.txt 或 geoip.dat，变动或强制才推）
         if [[ -f "dist/.rules_changed/${file}" || "$FORCE_UPDATE" == "true" ]]; then
           upload_to_webdav_async "dist/rules/${file}" "$dir" "$file"
         fi
       fi
     elif [[ "$task" == "eooce" ]]; then
-      # eooce 针对 arm64 推送
       if [[ -f "dist/.sha256_updates/eooce_${arch}_${file}" || "$FORCE_UPDATE" == "true" ]]; then
         upload_to_webdav_async "dist/${arch}/${file}" "$dir" "$file"
       fi
@@ -219,7 +215,6 @@ init_release_json() {
     echo '{"tasks":{},"version":{},"sha256":{}}' > "$LOCAL_CONFIG"
   fi
 
-  # 保证 .version 和 .sha256 结构存在
   if [[ $(jq '.version // empty' "$LOCAL_CONFIG") == "" ]]; then
     local tmp
     tmp=$(jq '.version = {}' "$LOCAL_CONFIG") && echo "$tmp" > "$LOCAL_CONFIG"
@@ -290,7 +285,8 @@ sync_release_json() {
 }
 
 # ==================== 版本比对与并发构建工具 ====================
-VERSIONED_TASKS=("agent" "dashboard" "xray" "argo" "mosdns4" "mosdns5" "alist" "gost" "wireproxy" "aria2")
+# 新增 dpanel 到版本化任务列表
+VERSIONED_TASKS=("agent" "dashboard" "xray" "argo" "mosdns4" "mosdns5" "alist" "gost" "wireproxy" "aria2" "dpanel")
 UNVERSIONED_TASKS=("eooce" "rules")
 ALL_TASKS=("${UNVERSIONED_TASKS[@]}" "${VERSIONED_TASKS[@]}")
 
@@ -413,6 +409,15 @@ process_github_release() {
 run_task() {
   local task="$1"
   case "$task" in
+    dpanel)
+      local ver
+      ver=$(fetch_latest "donknap/dpanel")
+      if is_up_to_date "dpanel" "$ver"; then return 0; fi
+      process_github_release "dpanel" "donknap/dpanel" "$ver" \
+        "" "dpanel" \
+        "dpanel-ce-musl-amd64" "dpanel-ce-musl-arm64"
+      ;;
+
     eooce)
       echo "==> 执行 eooce (并发下载与 SHA256 检测)"
       for plat in "${PLATFORMS[@]}"; do
@@ -481,7 +486,6 @@ run_task() {
         ["geosite.dat"]="https://github.com/Loyalsoldier/domain-list-custom/releases/latest/download/geosite.dat"
       )
 
-      # 24个文件并发下载
       for fname in "${!files_to_download[@]}"; do
         local url="${files_to_download[$fname]}"
         (
@@ -490,7 +494,6 @@ run_task() {
       done
       wait
 
-      # 逐个文件比对 SHA256
       local rules_changed=false
       for fname in "${!files_to_download[@]}"; do
         local fpath="dist/rules/$fname"
