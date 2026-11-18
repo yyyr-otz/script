@@ -1,31 +1,61 @@
 name: 更新自用二进制
-run-name: ${{ github.actor }} 正在更新release文件
+run-name: ${{ github.actor }} 正在更新release文件 (${{ inputs.task || 'all' }})
 
 on:
   workflow_dispatch:
+    inputs:
+      task:
+        description: '选择需要执行的任务（默认 all 为全量增量更新）'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - eooce
+          - rules
+          - agent
+          - dashboard
+          - xray
+          - alist
+          - argo
+          - mosdns4
+          - mosdns5
+          - gost
+          - wireproxy
+          - aria2
+      force:
+        description: '是否强制更新（忽略版本比对）'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   update_release:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        task: ["eooce", "agent", "dashboard", "xray", "alist", "argo", "mosdns4", "mosdns5", "gost", "wireproxy", "aria2", "rules"]
-      fail-fast: false # 保证某个软件失败不会直接阻断其他任务
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
 
       - name: 执行更新脚本
+        id: run_update
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORCE_UPDATE: ${{ inputs.force || false }}
+          # WebDAV 配置
+          WEBDAV_URL: ${{ secrets.WEBDAV_URL }}
+          WEBDAV_USER: ${{ secrets.WEBDAV_USER }}
+          WEBDAV_PASS: ${{ secrets.WEBDAV_PASS }}
+          WEBDAV_DIR: ${{ secrets.WEBDAV_DIR }}
+          WEBDAV_FILE: ${{ secrets.WEBDAV_FILE }}
         run: |
           chmod +x release.sh
-          bash release.sh "${{ matrix.task }}"
+          bash release.sh "${{ inputs.task || 'all' }}"
 
       - name: 清理工作流历史
+        if: always()
         uses: Mattraks/delete-workflow-runs@v2
         with:
-          token: ${{ secrets.MYPAT }}
+          token: ${{ secrets.MYPAT || secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           retain_days: 0
           keep_minimum_runs: 1
