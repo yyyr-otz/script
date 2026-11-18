@@ -7,6 +7,29 @@ PLATFORMS=("linux-amd64" "linux-arm64")
 RELEASE_JSON="release.json"
 UPDATED_COUNT=0
 
+# WebDAV 相关参数处理
+WEBDAV_FILE="${WEBDAV_FILE:-release_version.json}"
+
+# 组装 WebDAV 完整 URL
+get_webdav_url() {
+  if [[ -z "${WEBDAV_URL:-}" ]]; then
+    echo ""
+    return
+  fi
+  local base="${WEBDAV_URL%/}"
+  local dir="${WEBDAV_DIR:-}"
+  dir="${dir#/}"
+  dir="${dir%/}"
+
+  if [[ -n "$dir" ]]; then
+    echo "${base}/${dir}/${WEBDAV_FILE}"
+  else
+    echo "${base}/${WEBDAV_FILE}"
+  fi
+}
+
+WEBDAV_FULL_URL=$(get_webdav_url)
+
 # 需要比对版本并记录的任务列表
 VERSIONED_TASKS=("agent" "dashboard" "xray" "argo" "mosdns4" "mosdns5" "alist" "gost" "wireproxy" "aria2")
 # 不需要比对版本、直接更新的任务列表
@@ -22,13 +45,11 @@ gh_curl() {
   fi
 }
 
-# 获取最新 release tag
 fetch_latest() {
   local repo="$1"
   gh_curl "https://api.github.com/repos/${repo}/releases/latest" | jq -r '.tag_name // empty'
 }
 
-# 比较并获取最新版（支持 prerelease）
 fetch_compare_prerelease() {
   local repo="$1"
   local latest
@@ -52,18 +73,71 @@ fetch_compare_prerelease() {
   echo "$latest"
 }
 
-# 初始化 release.json
+# 初始化 / 从 WebDAV 或本地或 Release 下载 JSON
 init_release_json() {
-  if [[ ! -f "$RELEASE_JSON" ]]; then
-    echo "本地未找到 ${RELEASE_JSON}，尝试从 Release 下载..."
-    gh release download "linux-amd64" -p "$RELEASE_JSON" 2>/dev/null || true
+  local loaded=false
+
+  # 1. 优先尝试从 WebDAV 获取
+  if [[ -n "$WEBDAV_FULL_URL" && -n "${WEBDAV_USER:-}" && -n "${WEBDAV_PASS:-}" ]]; then
+    echo "==> 尝试从 WebDAV 读取版本文件: ${WEBDAV_FULL_URL}"
+    if curl -fsSL -u "${WEBDAV_USER}:${WEBDAV_PASS}" "${WEBDAV_FULL_URL}" -o "$RELEASE_JSON" 2>/dev/null; then
+      if jq empty "$RELEASE_JSON" >/dev/null 2>&1; then
+        echo "==> 成功从 WebDAV 加载版本配置"
+        loaded=true
+      fi
+    fi
+    if [[ "$loaded" != "true" ]]; then
+      echo "==> WebDAV 上暂无有效文件或读取失败，将尝试备用源"
+    fi
   fi
-  if [[ ! -f "$RELEASE_JSON" ]]; then
+
+  # 2. 若 WebDAV 没取到，尝试从 Release 资产取
+  if [[ "$loaded" != "true" && ! -f "$RELEASE_JSON" ]]; then
+    echo "==> 尝试从 GitHub Release (linux-amd64) 下载 ${RELEASE_JSON}..."
+    gh release download "linux-amd64" -p "$RELEASE_JSON" 2>/dev/null || true
+    if [[ -f "$RELEASE_JSON" ]] && jq empty "$RELEASE_JSON" >/dev/null 2>&1; then
+      loaded=true
+    fi
+  fi
+
+  # 3. 兜底初始化空 JSON
+  if [[ ! -f "$RELEASE_JSON" ]] || ! jq empty "$RELEASE_JSON" >/dev/null 2>&1; then
     echo "{}" > "$RELEASE_JSON"
   fi
 }
 
-# 检查是否已是最新版本
+# 同步保存回 WebDAV 和 Release
+sync_release_json() {
+  if [[ ! -f "$RELEASE_JSON" ]]; then
+    return
+  fi
+
+  # 格式化 JSON
+  local formatted
+  formatted=$(jq . "$RELEASE_JSON") && echo "$formatted" > "$RELEASE_JSON"
+  echo "当前 ${RELEASE_JSON} 内容:"
+  cat "$RELEASE_JSON"
+
+  # 仅当有更新或强制构建时上传
+  if [[ "$UPDATED_COUNT" -gt 0 || "$FORCE_UPDATE" == "true" ]]; then
+    # 1. 上传至 WebDAV
+    if [[ -n "$WEBDAV_FULL_URL" && -n "${WEBDAV_USER:-}" && -n "${WEBDAV_PASS:-}" ]]; then
+      echo "==> 正在上传最新版本记录至 WebDAV: ${WEBDAV_FULL_URL}"
+      if curl -fsS -u "${WEBDAV_USER}:${WEBDAV_PASS}" -T "$RELEASE_JSON" "${WEBDAV_FULL_URL}"; then
+        echo "==> WebDAV 同步成功!"
+      else
+        echo "==> [警告] 上传到 WebDAV 失败，请检查账号密码或路径" >&2
+      fi
+    fi
+
+    # 2. 同步上传一份到 GitHub Release 作为兜底
+    echo "==> 正在上传 ${RELEASE_JSON} 到 GitHub Release (linux-amd64)..."
+    gh release upload "linux-amd64" "$RELEASE_JSON" --clobber || true
+  else
+    echo "==> 本次无软件更新，无需同步上传版本记录"
+  fi
+}
+
 is_up_to_date() {
   local task="$1"
   local new_ver="$2"
@@ -82,7 +156,7 @@ is_up_to_date() {
   old_ver=$(jq -r --arg k "$task" '.[$k] // empty' "$RELEASE_JSON" 2>/dev/null || echo "")
 
   if [[ -n "$old_ver" && "$old_ver" == "$new_ver" ]]; then
-    echo "==> [跳过] ${task} 当前已是最新版本 (${old_ver})"
+    echo "==> [已是最新] ${task} (版本 ${old_ver}) 无变更，跳过"
     return 0
   fi
 
@@ -90,7 +164,6 @@ is_up_to_date() {
   return 1
 }
 
-# 记录新版本号到 release.json
 save_version() {
   local task="$1"
   local ver="$2"
@@ -100,7 +173,6 @@ save_version() {
   UPDATED_COUNT=$((UPDATED_COUNT + 1))
 }
 
-# 通用处理 GitHub Release 下载解压上传逻辑
 process_github_release() {
   local repo="$1"
   local version="$2"
@@ -152,7 +224,6 @@ process_github_release() {
   done
 }
 
-# 单个任务执行入口
 run_task() {
   local task="$1"
   case "$task" in
@@ -334,7 +405,6 @@ run_task() {
   esac
 }
 
-# 主程序入口
 main() {
   init_release_json
 
@@ -353,21 +423,8 @@ main() {
   echo "任务完成! 本次更新组件数: ${UPDATED_COUNT}"
   echo "=========================================="
 
-  if [[ -f "$RELEASE_JSON" ]]; then
-    # 格式化 JSON
-    local formatted
-    formatted=$(jq . "$RELEASE_JSON") && echo "$formatted" > "$RELEASE_JSON"
-    echo "当前 release.json 内容:"
-    cat "$RELEASE_JSON"
+  sync_release_json
 
-    # 如果有新版本更新，同步上传 release.json 到 Release 资产
-    if [[ "$UPDATED_COUNT" -gt 0 || "$FORCE_UPDATE" == "true" ]]; then
-      echo "正在同步上传 ${RELEASE_JSON} 到 Release (linux-amd64)..."
-      gh release upload "linux-amd64" "$RELEASE_JSON" --clobber || true
-    fi
-  fi
-
-  # 输出变量到 GitHub Actions Output
   if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
     echo "updated_count=${UPDATED_COUNT}" >> "$GITHUB_OUTPUT"
     echo "release_json=$(jq -c . "$RELEASE_JSON" 2>/dev/null || echo '{}')" >> "$GITHUB_OUTPUT"
