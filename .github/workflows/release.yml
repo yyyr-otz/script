@@ -23,6 +23,7 @@ on:
           - gost
           - wireproxy
           - aria2
+          - dpanel
       force:
         description: '是否强制更新（忽略版本比对）'
         required: false
