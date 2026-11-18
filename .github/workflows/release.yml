@@ -41,12 +41,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FORCE_UPDATE: ${{ inputs.force || false }}
-          # WebDAV 配置
-          WEBDAV_URL: ${{ secrets.WEBDAV_URL }}
-          WEBDAV_USER: ${{ secrets.WEBDAV_USER }}
-          WEBDAV_PASS: ${{ secrets.WEBDAV_PASS }}
-          WEBDAV_DIR: ${{ secrets.WEBDAV_DIR }}
-          WEBDAV_FILE: ${{ secrets.WEBDAV_FILE }}
+          WEBDAV_CONFIG: ${{ secrets.WEBDAV_CONFIG }}
         run: |
           chmod +x release.sh
           bash release.sh "${{ inputs.task || 'all' }}"
