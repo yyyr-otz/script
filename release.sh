@@ -6,10 +6,10 @@ FORCE_UPDATE="${FORCE_UPDATE:-false}"
 PLATFORMS=("linux-amd64" "linux-arm64")
 LOCAL_CONFIG="release.json"
 UPDATED_COUNT=0
-MAX_WEBDAV_JOBS=5  # WebDAV 最大并发传输连接数
+MAX_WEBDAV_JOBS=5  # WebDAV 并发传输连接数
 
 # 初始化临时状态目录
-mkdir -p dist/linux-amd64 dist/linux-arm64 dist/rules dist/.versions dist/.webdav_reports
+mkdir -p dist/linux-amd64 dist/linux-arm64 dist/rules dist/.versions dist/.webdav_reports dist/.sha256_updates dist/.rules_changed
 rm -f dist/.upload_amd64 dist/.upload_arm64
 
 # ==================== WebDAV 认证与配置载入 ====================
@@ -137,7 +137,7 @@ print_webdav_summary() {
   echo ""
 }
 
-# 将任务中的文件排队加入 WebDAV 并发上传池
+# 将任务中的文件排队加入 WebDAV 并发上传池（智能仅推变动文件）
 queue_task_webdav_uploads() {
   local task="$1"
   if [[ "$WEBDAV_ENABLED" != "true" || ! -f "$LOCAL_CONFIG" ]]; then
@@ -165,14 +165,24 @@ queue_task_webdav_uploads() {
 
     if [[ "$task" == "rules" ]]; then
       if [[ "$file" == "*.txt" || "$file" == "rules.tar.gz" || "$file" == "*" ]]; then
-        # 将 dist/rules 下所有 txt（包括 ips 文件）全部推送到目标文件夹
+        # 仅推送实际发生哈希变动的 txt 规则文件（若强制更新则全量推送）
         for rf in dist/rules/*.txt; do
           local bname
           bname=$(basename "$rf")
-          upload_to_webdav_async "$rf" "$dir" "$bname"
+          if [[ -f "dist/.rules_changed/${bname}" || "$FORCE_UPDATE" == "true" ]]; then
+            upload_to_webdav_async "$rf" "$dir" "$bname"
+          fi
         done
       else
-        upload_to_webdav_async "dist/rules/${file}" "$dir" "$file"
+        # 单文件推送（如 ips-v4.txt 或 geoip.dat，变动或强制才推）
+        if [[ -f "dist/.rules_changed/${file}" || "$FORCE_UPDATE" == "true" ]]; then
+          upload_to_webdav_async "dist/rules/${file}" "$dir" "$file"
+        fi
+      fi
+    elif [[ "$task" == "eooce" ]]; then
+      # eooce 针对 arm64 推送
+      if [[ -f "dist/.sha256_updates/eooce_${arch}_${file}" || "$FORCE_UPDATE" == "true" ]]; then
+        upload_to_webdav_async "dist/${arch}/${file}" "$dir" "$file"
       fi
     else
       upload_to_webdav_async "dist/${arch}/${file}" "$dir" "$file"
@@ -191,7 +201,7 @@ init_release_json() {
 
     if curl -fsSL --connect-timeout 15 -u "${WEBDAV_USER}:${WEBDAV_PASS}" "${webdav_config_url}" -o "$LOCAL_CONFIG" 2>/dev/null; then
       if jq empty "$LOCAL_CONFIG" >/dev/null 2>&1; then
-        echo "==> 成功从 NAS 加载 release.json (包含 tasks 与 version)"
+        echo "==> 成功从 NAS 加载 release.json (包含 tasks, version 与 sha256)"
         loaded=true
       fi
     fi
@@ -206,12 +216,17 @@ init_release_json() {
   fi
 
   if [[ ! -f "$LOCAL_CONFIG" ]] || ! jq empty "$LOCAL_CONFIG" >/dev/null 2>&1; then
-    echo '{"tasks":{},"version":{}}' > "$LOCAL_CONFIG"
+    echo '{"tasks":{},"version":{},"sha256":{}}' > "$LOCAL_CONFIG"
   fi
 
+  # 保证 .version 和 .sha256 结构存在
   if [[ $(jq '.version // empty' "$LOCAL_CONFIG") == "" ]]; then
     local tmp
     tmp=$(jq '.version = {}' "$LOCAL_CONFIG") && echo "$tmp" > "$LOCAL_CONFIG"
+  fi
+  if [[ $(jq '.sha256 // empty' "$LOCAL_CONFIG") == "" ]]; then
+    local tmp
+    tmp=$(jq '.sha256 = {}' "$LOCAL_CONFIG") && echo "$tmp" > "$LOCAL_CONFIG"
   fi
 }
 
@@ -220,7 +235,7 @@ sync_release_json() {
     return
   fi
 
-  # 将所有子进程产出的版本号安全汇总到 release.json
+  # 1. 汇总所有有版本号的任务 (.version)
   for vf in dist/.versions/*; do
     [[ -f "$vf" ]] || continue
     local tname
@@ -237,11 +252,25 @@ sync_release_json() {
     fi
   done
 
+  # 2. 汇总所有无版本号文件的哈希更新 (.sha256)
+  if [[ -d dist/.sha256_updates ]]; then
+    for sf in dist/.sha256_updates/*; do
+      [[ -f "$sf" ]] || continue
+      local key
+      key=$(basename "$sf")
+      local hval
+      hval=$(cat "$sf")
+      local tmp
+      tmp=$(jq --arg k "$key" --arg h "$hval" '.sha256[$k] = $h' "$LOCAL_CONFIG")
+      echo "$tmp" > "$LOCAL_CONFIG"
+    done
+  fi
+
   local formatted
   formatted=$(jq . "$LOCAL_CONFIG") && echo "$formatted" > "$LOCAL_CONFIG"
   echo "=========================================="
-  echo "当前 release.json 最新版本状态:"
-  jq '.version' "$LOCAL_CONFIG" || cat "$LOCAL_CONFIG"
+  echo "当前 release.json 最新状态预览:"
+  jq '{version: .version, sha256_tracked_files: (.sha256 | length)}' "$LOCAL_CONFIG" || cat "$LOCAL_CONFIG"
   echo "=========================================="
 
   if [[ "$UPDATED_COUNT" -gt 0 || "$FORCE_UPDATE" == "true" ]]; then
@@ -256,7 +285,7 @@ sync_release_json() {
     echo "==> 正在备份 release.json 到 GitHub Release (linux-amd64)..."
     gh release upload "linux-amd64" "$LOCAL_CONFIG" --clobber || true
   else
-    echo "==> 本次无软件更新，无需回写 release.json"
+    echo "==> 本次全部组件无更新，无需回写 release.json"
   fi
 }
 
@@ -339,7 +368,6 @@ process_github_release() {
 
   echo "==> [构建开始] ${target_name} (${version})"
 
-  # 并发拉取并处理 amd64 与 arm64 架构
   for plat in "${PLATFORMS[@]}"; do
     (
       local file=""
@@ -378,7 +406,6 @@ process_github_release() {
   done
   wait
 
-  # 写入版本标记
   echo "$version" > "dist/.versions/${task}"
 }
 
@@ -387,19 +414,42 @@ run_task() {
   local task="$1"
   case "$task" in
     eooce)
-      echo "==> 执行 eooce (并发下载直接更新)"
+      echo "==> 执行 eooce (并发下载与 SHA256 检测)"
       for plat in "${PLATFORMS[@]}"; do
         (
           local subdomain=$([[ "$plat" == "linux-amd64" ]] && echo "amd64" || echo "arm64")
           curl -sL "https://${subdomain}.ssss.nyc.mn/agent" -o "dist/${plat}/v0"
           curl -sL "https://${subdomain}.ssss.nyc.mn/v1" -o "dist/${plat}/v1"
           chmod +x "dist/${plat}/v0" "dist/${plat}/v1"
-          echo "dist/${plat}/v0" >> "dist/.upload_${plat#linux-}"
-          echo "dist/${plat}/v1" >> "dist/.upload_${plat#linux-}"
         ) &
       done
       wait
-      touch "dist/.versions/eooce"
+
+      local eooce_changed=false
+      for plat in "${PLATFORMS[@]}"; do
+        local arch="${plat#linux-}"
+        for bin in "v0" "v1"; do
+          local fpath="dist/${plat}/${bin}"
+          local key="eooce_${arch}_${bin}"
+          local cur_hash
+          cur_hash=$(sha256sum "$fpath" | awk '{print $1}')
+          local old_hash
+          old_hash=$(jq -r --arg k "$key" '.sha256[$k] // empty' "$LOCAL_CONFIG" 2>/dev/null || echo "")
+
+          if [[ "$cur_hash" != "$old_hash" || "$FORCE_UPDATE" == "true" ]]; then
+            echo "==> [发现更新] eooce (${arch} ${bin}): ${old_hash:0:10}... -> ${cur_hash:0:10}..."
+            eooce_changed=true
+            echo "$cur_hash" > "dist/.sha256_updates/${key}"
+            echo "$fpath" >> "dist/.upload_${arch}"
+          else
+            echo "==> [已是最新] eooce (${arch} ${bin}) 哈希未变"
+          fi
+        done
+      done
+
+      if [[ "$eooce_changed" == "true" ]]; then
+        touch "dist/.versions/eooce"
+      fi
       ;;
 
     rules)
@@ -431,7 +481,7 @@ run_task() {
         ["geosite.dat"]="https://github.com/Loyalsoldier/domain-list-custom/releases/latest/download/geosite.dat"
       )
 
-      # 24个规则文件全部并行高速下载
+      # 24个文件并发下载
       for fname in "${!files_to_download[@]}"; do
         local url="${files_to_download[$fname]}"
         (
@@ -440,10 +490,30 @@ run_task() {
       done
       wait
 
-      echo "==> [rules] 正在将 txt 文件打包为 rules.tar.gz"
-      (cd dist/rules && tar -czf rules.tar.gz *.txt)
+      # 逐个文件比对 SHA256
+      local rules_changed=false
+      for fname in "${!files_to_download[@]}"; do
+        local fpath="dist/rules/$fname"
+        local cur_hash
+        cur_hash=$(sha256sum "$fpath" | awk '{print $1}')
+        local old_hash
+        old_hash=$(jq -r --arg k "$fname" '.sha256[$k] // empty' "$LOCAL_CONFIG" 2>/dev/null || echo "")
 
-      touch "dist/.versions/rules"
+        if [[ "$cur_hash" != "$old_hash" || "$FORCE_UPDATE" == "true" ]]; then
+          echo "==> [发现更新] rules ($fname): ${old_hash:0:10}... -> ${cur_hash:0:10}..."
+          rules_changed=true
+          echo "$cur_hash" > "dist/.sha256_updates/${fname}"
+          touch "dist/.rules_changed/${fname}"
+        fi
+      done
+
+      if [[ "$rules_changed" == "true" ]]; then
+        echo "==> [rules] 规则库有变动，正在重新打包 rules.tar.gz"
+        (cd dist/rules && tar -czf rules.tar.gz *.txt)
+        touch "dist/.versions/rules"
+      else
+        echo "==> [已是最新] rules 所有规则与数据文件哈希均未变化，跳过上传"
+      fi
       ;;
 
     agent)
@@ -561,7 +631,7 @@ main() {
   init_release_json
 
   echo "=========================================================="
-  echo "阶段 1: 并发检测版本与构建目标资产..."
+  echo "阶段 1: 并发检测版本/哈希并构建目标资产..."
   echo "=========================================================="
 
   if [[ "$TARGET" == "all" ]]; then
@@ -577,11 +647,10 @@ main() {
   echo "阶段 2: 批量推送构建产物到 GitHub Release..."
   echo "=========================================================="
 
-  # 批量单次上传 Release，杜绝并发 409 冲突
   if [[ -f dist/.upload_amd64 ]]; then
     mapfile -t amd64_list < <(sort -u dist/.upload_amd64)
     if (( ${#amd64_list[@]} > 0 )); then
-      echo "==> 批量上传 [linux-amd64] 资产: ${amd64_list[*]}"
+      echo "==> 批量上传 [linux-amd64] 变动资产: ${amd64_list[*]}"
       gh release upload "linux-amd64" "${amd64_list[@]}" --clobber
     fi
   fi
@@ -589,7 +658,7 @@ main() {
   if [[ -f dist/.upload_arm64 ]]; then
     mapfile -t arm64_list < <(sort -u dist/.upload_arm64)
     if (( ${#arm64_list[@]} > 0 )); then
-      echo "==> 批量上传 [linux-arm64] 资产: ${arm64_list[*]}"
+      echo "==> 批量上传 [linux-arm64] 变动资产: ${arm64_list[*]}"
       gh release upload "linux-arm64" "${arm64_list[@]}" --clobber
     fi
   fi
@@ -604,22 +673,18 @@ main() {
   fi
 
   echo "=========================================================="
-  echo "阶段 3: 并发推送更新文件至 NAS WebDAV..."
+  echo "阶段 3: 并发推送更新文件至 NAS WebDAV (仅推变动文件)..."
   echo "=========================================================="
 
-  # 针对发生更新的任务，排队加入 WebDAV 并发池
   for vf in dist/.versions/*; do
     [[ -f "$vf" ]] || continue
     local updated_task
     updated_task=$(basename "$vf")
     queue_task_webdav_uploads "$updated_task"
   done
-  wait # 等待所有后台上传完成
+  wait
 
-  # 阶段 4: 统一输出格式化的传输与速度汇总
   print_webdav_summary
-
-  # 阶段 5: 回写与同步 release.json
   sync_release_json
 
   if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
