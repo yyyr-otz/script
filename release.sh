@@ -4,20 +4,25 @@ set -euo pipefail
 TARGET="${1:-all}"
 FORCE_UPDATE="${FORCE_UPDATE:-false}"
 PLATFORMS=("linux-amd64" "linux-arm64")
-RELEASE_JSON="release.json"
+LOCAL_CONFIG="release.json"
 UPDATED_COUNT=0
 
-# ==================== WebDAV 配置解析 ====================
-WEBDAV_CONFIG="${WEBDAV_CONFIG:-}"
+# ==================== WebDAV 认证与配置载入 ====================
+WEBDAV_AUTH="${WEBDAV_AUTH:-${WEBDAV_CONFIG:-}}"
 WEBDAV_ENABLED=false
 WEBDAV_URL=""
 WEBDAV_USER=""
 WEBDAV_PASS=""
+WEBDAV_FILE="release.json"
+WEBDAV_DIR="/root/"
 
-if [[ -n "$WEBDAV_CONFIG" ]] && jq empty <<< "$WEBDAV_CONFIG" 2>/dev/null; then
-  WEBDAV_URL=$(jq -r '.webdav.url // .url // empty' <<< "$WEBDAV_CONFIG")
-  WEBDAV_USER=$(jq -r '.webdav.username // .username // .user // empty' <<< "$WEBDAV_CONFIG")
-  WEBDAV_PASS=$(jq -r '.webdav.password // .password // .pass // empty' <<< "$WEBDAV_CONFIG")
+if [[ -n "$WEBDAV_AUTH" ]] && jq empty <<< "$WEBDAV_AUTH" 2>/dev/null; then
+  WEBDAV_URL=$(jq -r '.url // .webdav.url // empty' <<< "$WEBDAV_AUTH")
+  WEBDAV_USER=$(jq -r '.username // .user // .webdav.username // empty' <<< "$WEBDAV_AUTH")
+  WEBDAV_PASS=$(jq -r '.password // .pass // .webdav.password // empty' <<< "$WEBDAV_AUTH")
+  WEBDAV_FILE=$(jq -r '.file // .filename // "release.json"' <<< "$WEBDAV_AUTH")
+  WEBDAV_DIR=$(jq -r '.dir // "/root/"' <<< "$WEBDAV_AUTH")
+
   if [[ -n "$WEBDAV_URL" && -n "$WEBDAV_USER" && -n "$WEBDAV_PASS" ]]; then
     WEBDAV_ENABLED=true
   fi
@@ -85,15 +90,15 @@ upload_to_webdav() {
   echo "--------------------------------------------------------"
 }
 
-# 推送任务文件到 WebDAV
+# 根据任务名称推送任务文件到 WebDAV (从 release.json 的 .tasks 中读取)
 push_task_to_webdav() {
   local task="$1"
-  if [[ "$WEBDAV_ENABLED" != "true" ]]; then
+  if [[ "$WEBDAV_ENABLED" != "true" || ! -f "$LOCAL_CONFIG" ]]; then
     return 0
   fi
 
   local targets_json
-  targets_json=$(jq -c --arg t "$task" '.tasks[$t] // empty' <<< "$WEBDAV_CONFIG" 2>/dev/null || echo "")
+  targets_json=$(jq -c --arg t "$task" '.tasks[$t] // empty' "$LOCAL_CONFIG" 2>/dev/null || echo "")
 
   if [[ -z "$targets_json" || "$targets_json" == "null" || "$targets_json" == "[]" ]]; then
     return 0
@@ -112,7 +117,7 @@ push_task_to_webdav() {
     arch=$(jq -r '.arch // "linux-arm64"' <<< "$item")
 
     if [[ "$task" == "rules" ]]; then
-      # 如果配置的是 *.txt、rules.tar.gz 或 *，则将所有 mosdns 规则 txt 全部上传到目标文件夹
+      # 如果配置的是 *.txt、rules.tar.gz 或 *，则将所有 mosdns 规则 txt 逐个推送到目标目录
       if [[ "$file" == "*.txt" || "$file" == "rules.tar.gz" || "$file" == "*" ]]; then
         echo "==> 正在将全部规则文本文件逐个推送到 WebDAV: ${dir}"
         for rf in dist/rules/*.txt; do
@@ -127,14 +132,12 @@ push_task_to_webdav() {
           upload_to_webdav "$rf" "$target_url"
         done
       else
-        # 单个文件上传 (例如 ips-v4.txt, ips-v6.txt, geoip.dat 等)
         local local_file="dist/rules/${file}"
         local target_url
         target_url=$(resolve_webdav_url "$dir" "$file")
         upload_to_webdav "$local_file" "$target_url"
       fi
     else
-      # 二进制文件上传
       local local_file="dist/${arch}/${file}"
       local target_url
       target_url=$(resolve_webdav_url "$dir" "$file")
@@ -143,19 +146,75 @@ push_task_to_webdav() {
   done
 }
 
-get_webdav_version_url() {
-  if [[ "$WEBDAV_ENABLED" != "true" ]]; then
-    echo ""
-    return
+# ==================== 初始化与同步 release.json ====================
+init_release_json() {
+  local loaded=false
+
+  # 1. 优先从 WebDAV 读取 NAS 上的 release.json
+  if [[ "$WEBDAV_ENABLED" == "true" ]]; then
+    local webdav_config_url
+    webdav_config_url=$(resolve_webdav_url "$WEBDAV_DIR" "$WEBDAV_FILE")
+    echo "==> 正在从 WebDAV 获取主配置文件: ${webdav_config_url}"
+
+    if curl -fsSL --connect-timeout 15 -u "${WEBDAV_USER}:${WEBDAV_PASS}" "${webdav_config_url}" -o "$LOCAL_CONFIG" 2>/dev/null; then
+      if jq empty "$LOCAL_CONFIG" >/dev/null 2>&1; then
+        echo "==> 成功从 NAS 加载 release.json (包含 tasks 与 version)"
+        loaded=true
+      fi
+    fi
   fi
-  local dir
-  dir=$(jq -r '.version_file.dir // "/root/etc/"' <<< "$WEBDAV_CONFIG")
-  local file
-  file=$(jq -r '.version_file.file // .version_file.filename // "release_version.json"' <<< "$WEBDAV_CONFIG")
-  resolve_webdav_url "$dir" "$file"
+
+  # 2. 备用：若 WebDAV 未配置或读取失败，尝试从 Release 资产取
+  if [[ "$loaded" != "true" && ! -f "$LOCAL_CONFIG" ]]; then
+    echo "==> 尝试从 GitHub Release 下载备用 ${LOCAL_CONFIG}..."
+    gh release download "linux-amd64" -p "$LOCAL_CONFIG" 2>/dev/null || true
+    if [[ -f "$LOCAL_CONFIG" ]] && jq empty "$LOCAL_CONFIG" >/dev/null 2>&1; then
+      loaded=true
+    fi
+  fi
+
+  # 3. 兜底初始化结构
+  if [[ ! -f "$LOCAL_CONFIG" ]] || ! jq empty "$LOCAL_CONFIG" >/dev/null 2>&1; then
+    echo '{"tasks":{},"version":{}}' > "$LOCAL_CONFIG"
+  fi
+
+  # 保证 .version 键存在
+  if [[ $(jq '.version // empty' "$LOCAL_CONFIG") == "" ]]; then
+    local tmp
+    tmp=$(jq '.version = {}' "$LOCAL_CONFIG") && echo "$tmp" > "$LOCAL_CONFIG"
+  fi
 }
 
-# ==================== 任务列表与基础工具 ====================
+sync_release_json() {
+  if [[ ! -f "$LOCAL_CONFIG" ]]; then
+    return
+  fi
+
+  local formatted
+  formatted=$(jq . "$LOCAL_CONFIG") && echo "$formatted" > "$LOCAL_CONFIG"
+  echo "=========================================="
+  echo "当前 release.json 版本与配置预览:"
+  jq '.version' "$LOCAL_CONFIG" || cat "$LOCAL_CONFIG"
+  echo "=========================================="
+
+  if [[ "$UPDATED_COUNT" -gt 0 || "$FORCE_UPDATE" == "true" ]]; then
+    # 推回 NAS 上的 WebDAV
+    if [[ "$WEBDAV_ENABLED" == "true" ]]; then
+      local webdav_config_url
+      webdav_config_url=$(resolve_webdav_url "$WEBDAV_DIR" "$WEBDAV_FILE")
+      echo "==> 正在将更新后的 ${LOCAL_CONFIG} 回写推送到 NAS WebDAV..."
+      upload_to_webdav "$LOCAL_CONFIG" "$webdav_config_url"
+    fi
+
+    # 上传备份到 GitHub Release
+    echo "==> 正在上传 ${LOCAL_CONFIG} 备份到 GitHub Release (linux-amd64)..."
+    gh release upload "linux-amd64" "$LOCAL_CONFIG" --clobber || true
+  else
+    echo "==> 本次无软件更新，无需回写 release.json"
+  fi
+}
+
+# ==================== 版本比对与辅助函数 ====================
 VERSIONED_TASKS=("agent" "dashboard" "xray" "argo" "mosdns4" "mosdns5" "alist" "gost" "wireproxy" "aria2")
 UNVERSIONED_TASKS=("eooce" "rules")
 
@@ -196,59 +255,6 @@ fetch_compare_prerelease() {
   echo "$latest"
 }
 
-init_release_json() {
-  local loaded=false
-  local webdav_version_url
-  webdav_version_url=$(get_webdav_version_url)
-
-  if [[ -n "$webdav_version_url" ]]; then
-    echo "==> 尝试从 WebDAV 读取版本文件: ${webdav_version_url}"
-    if curl -fsSL --connect-timeout 10 -u "${WEBDAV_USER}:${WEBDAV_PASS}" "${webdav_version_url}" -o "$RELEASE_JSON" 2>/dev/null; then
-      if jq empty "$RELEASE_JSON" >/dev/null 2>&1; then
-        echo "==> 成功从 WebDAV 加载已有版本配置"
-        loaded=true
-      fi
-    fi
-  fi
-
-  if [[ "$loaded" != "true" && ! -f "$RELEASE_JSON" ]]; then
-    echo "==> 尝试从 GitHub Release (linux-amd64) 下载 ${RELEASE_JSON}..."
-    gh release download "linux-amd64" -p "$RELEASE_JSON" 2>/dev/null || true
-    if [[ -f "$RELEASE_JSON" ]] && jq empty "$RELEASE_JSON" >/dev/null 2>&1; then
-      loaded=true
-    fi
-  fi
-
-  if [[ ! -f "$RELEASE_JSON" ]] || ! jq empty "$RELEASE_JSON" >/dev/null 2>&1; then
-    echo "{}" > "$RELEASE_JSON"
-  fi
-}
-
-sync_release_json() {
-  if [[ ! -f "$RELEASE_JSON" ]]; then
-    return
-  fi
-
-  local formatted
-  formatted=$(jq . "$RELEASE_JSON") && echo "$formatted" > "$RELEASE_JSON"
-  echo "当前 ${RELEASE_JSON} 内容:"
-  cat "$RELEASE_JSON"
-
-  if [[ "$UPDATED_COUNT" -gt 0 || "$FORCE_UPDATE" == "true" ]]; then
-    local webdav_version_url
-    webdav_version_url=$(get_webdav_version_url)
-    if [[ -n "$webdav_version_url" ]]; then
-      echo "==> 正在同步更新版本文件到 WebDAV..."
-      upload_to_webdav "$RELEASE_JSON" "$webdav_version_url"
-    fi
-
-    echo "==> 正在上传 ${RELEASE_JSON} 到 GitHub Release (linux-amd64)..."
-    gh release upload "linux-amd64" "$RELEASE_JSON" --clobber || true
-  else
-    echo "==> 本次无软件更新，无需同步上传版本记录"
-  fi
-}
-
 is_up_to_date() {
   local task="$1"
   local new_ver="$2"
@@ -264,7 +270,7 @@ is_up_to_date() {
   fi
 
   local old_ver
-  old_ver=$(jq -r --arg k "$task" '.[$k] // empty' "$RELEASE_JSON" 2>/dev/null || echo "")
+  old_ver=$(jq -r --arg k "$task" '.version[$k] // empty' "$LOCAL_CONFIG" 2>/dev/null || echo "")
 
   if [[ -n "$old_ver" && "$old_ver" == "$new_ver" ]]; then
     echo "==> [已是最新] ${task} (版本 ${old_ver}) 无变更，跳过"
@@ -279,8 +285,8 @@ save_version() {
   local task="$1"
   local ver="$2"
   local tmp
-  tmp=$(jq --arg k "$task" --arg v "$ver" '.[$k] = $v' "$RELEASE_JSON")
-  echo "$tmp" > "$RELEASE_JSON"
+  tmp=$(jq --arg k "$task" --arg v "$ver" '.version[$k] = $v' "$LOCAL_CONFIG")
+  echo "$tmp" > "$LOCAL_CONFIG"
   UPDATED_COUNT=$((UPDATED_COUNT + 1))
 }
 
@@ -383,22 +389,22 @@ run_task() {
         ["geosite.dat"]="https://github.com/Loyalsoldier/domain-list-custom/releases/latest/download/geosite.dat"
       )
 
-      # 1. 下载全部文件
+      # 1. 下载全部规则文件
       for fname in "${!files_to_download[@]}"; do
         local url="${files_to_download[$fname]}"
         echo "正在下载: $fname"
         curl -sL --retry 3 "$url" -o "dist/rules/$fname"
       done
 
-      # 2. 【关键】：在打包成 rules.tar.gz 之前，将规则全都发送到 WebDAV 各指定目录
+      # 2. 【在打包 rules.tar.gz 之前先行推送到 NAS WebDAV 目标目录】
       echo "==> [WebDAV] 在打包 rules.tar.gz 之前先行推送规则文件到 NAS..."
       push_task_to_webdav "rules"
 
-      # 3. 将 mosdns 规则 txt 打包为 rules.tar.gz (排除 ips-*.txt)
+      # 3. 将 mosdns 规则 txt 打包为 rules.tar.gz (排除 cf 专用的 ips-*.txt)
       echo "==> 正在将 txt 文件打包为 rules.tar.gz"
       (cd dist/rules && tar -czf rules.tar.gz --exclude="ips-*.txt" *.txt)
 
-      # 4. 上传至 Release 资产
+      # 4. 上传所有规则文件及压缩包到 GitHub Release (rules 标签)
       local upload_files=()
       for file in dist/rules/*; do
         [[ -f "$file" ]] && upload_files+=("$file")
@@ -559,7 +565,7 @@ main() {
 
   if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
     echo "updated_count=${UPDATED_COUNT}" >> "$GITHUB_OUTPUT"
-    echo "release_json=$(jq -c . "$RELEASE_JSON" 2>/dev/null || echo '{}')" >> "$GITHUB_OUTPUT"
+    echo "release_json=$(jq -c .version "$LOCAL_CONFIG" 2>/dev/null || echo '{}')" >> "$GITHUB_OUTPUT"
   fi
 }
 
