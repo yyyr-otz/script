@@ -461,7 +461,7 @@ run_task() {
       echo "==> [rules] 开始全量并发下载规则与数据文件..."
       declare -A files_to_download=(
         ["ips-v4.txt"]="https://subhubpg1.yyyrspeed.nyc.mn/workers-xh?token=workers-xh&type=cidr4"
-        ["ips-v6.txt"]="https://subhubpg1.yyyrspeed.nyc.mn/cidr64?token=workers-xh"
+        ["ips-v6.txt"]="https://subhubpg1.yyyrspeed.nyc.mn/workers-xh?token=workers-xh&type=cidr4"
         ["adaway_domain_list.txt"]="https://raw.githubusercontent.com/NethServer/dns-community-blacklist/master/adaway.dns"
         ["china_domain_list.txt"]="https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/china-list.txt"
         ["cn_domain_list.txt"]="https://raw.githubusercontent.com/Loyalsoldier/domain-list-custom/release/cn.txt"
