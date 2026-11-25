@@ -82,10 +82,10 @@ upload_to_webdav_async() {
 
     time_total=$(echo "$result" | grep -o 'TIME:[^|]*' | cut -d: -f2 || echo "0.0")
     speed_bytes=$(echo "$result" | grep -o 'SPEED:.*' | cut -d: -f2 || echo "0")
-    speed_mb=$(awk "BEGIN {printf \"%.2f\", ${speed_bytes:-0}/1024/1024}")
+    speed_mb=$(awk "BEGIN {printf \"\%.2f\", ${speed_bytes:-0}/1024/1024}")
 
     local log_id="${RANDOM}_$(date +%s%N)"
-    echo "${file_name}|${file_size}|${time_total}|${speed_mb}|${status}|${raw_dir}" > "dist/.webdav_reports/${log_id}.log"
+    echo "${file_name}|${file_size}\vert{}${time_total}|${speed_mb}\vert{}${status}|${raw_dir}" > "dist/.webdav_reports/${log_id}.log"
   ) &
 
   while (( $(jobs -r -p | wc -l) >= MAX_WEBDAV_JOBS )); do
@@ -131,7 +131,7 @@ print_webdav_summary() {
   done
 
   echo "------------------------------------------------------------------------------------------------"
-  echo "传输统计: 共 ${total_count} 个文件 | 成功: ${success_count} | 失败: ${fail_count}"
+  echo "传输统计: 共 ${total_count} 个文件 | 成功: ${success_count} \vert{} 失败: ${fail_count}"
   echo "================================================================================================"
   echo ""
 }
@@ -139,14 +139,14 @@ print_webdav_summary() {
 # 将任务中的文件排队加入 WebDAV 并发上传池
 queue_task_webdav_uploads() {
   local task="$1"
-  if [[ "$WEBDAV_ENABLED" != "true" || ! -f "$LOCAL_CONFIG" ]]; then
+  if [[ "$WEBDAV_ENABLED" != "true" \vert{}\vert{} ! -f "$LOCAL_CONFIG" ]]; then
     return 0
   fi
 
   local targets_json
   targets_json=$(jq -c --arg t "$task" '.tasks[$t] // empty' "$LOCAL_CONFIG" 2>/dev/null || echo "")
 
-  if [[ -z "$targets_json" || "$targets_json" == "null" || "$targets_json" == "[]" ]]; then
+  if [[ -z "$targets_json" || "$targets_json" == "null" \vert{}\vert{} "$targets_json" == "[]" ]]; then
     return 0
   fi
 
@@ -163,21 +163,21 @@ queue_task_webdav_uploads() {
     arch=$(jq -r '.arch // "linux-arm64"' <<< "$item")
 
     if [[ "$task" == "rules" ]]; then
-      if [[ "$file" == "*.txt" || "$file" == "rules.tar.gz" || "$file" == "*" ]]; then
+      if [[ "$file" == "*.txt" || "$file" == "rules.tar.gz" \vert{}\vert{} "$file" == "*" ]]; then
         for rf in dist/rules/*.txt; do
           local bname
           bname=$(basename "$rf")
-          if [[ -f "dist/.rules_changed/${bname}" || "$FORCE_UPDATE" == "true" ]]; then
+          if [[ -f "dist/.rules_changed/${bname}" \vert{}\vert{} "$FORCE_UPDATE" == "true" ]]; then
             upload_to_webdav_async "$rf" "$dir" "$bname"
           fi
         done
       else
-        if [[ -f "dist/.rules_changed/${file}" || "$FORCE_UPDATE" == "true" ]]; then
+        if [[ -f "dist/.rules_changed/${file}" \vert{}\vert{} "$FORCE_UPDATE" == "true" ]]; then
           upload_to_webdav_async "dist/rules/${file}" "$dir" "$file"
         fi
       fi
     elif [[ "$task" == "eooce" ]]; then
-      if [[ -f "dist/.sha256_updates/eooce_${arch}_${file}" || "$FORCE_UPDATE" == "true" ]]; then
+      if [[ -f "dist/.sha256_updates/eooce_${arch}_${file}" \vert{}\vert{} "$FORCE_UPDATE" == "true" ]]; then
         upload_to_webdav_async "dist/${arch}/${file}" "$dir" "$file"
       fi
     else
@@ -265,10 +265,10 @@ sync_release_json() {
   formatted=$(jq . "$LOCAL_CONFIG") && echo "$formatted" > "$LOCAL_CONFIG"
   echo "=========================================="
   echo "当前 release.json 最新状态预览:"
-  jq '{version: .version, sha256_tracked_files: (.sha256 | length)}' "$LOCAL_CONFIG" || cat "$LOCAL_CONFIG"
+  jq '{version: .version, sha256_tracked_files: (.sha256 | length)}' "$LOCAL_CONFIG" \vert{}\vert{} cat "$LOCAL_CONFIG"
   echo "=========================================="
 
-  if [[ "$UPDATED_COUNT" -gt 0 || "$FORCE_UPDATE" == "true" ]]; then
+  if [[ "$UPDATED_COUNT" -gt 0 \vert{}\vert{} "$FORCE_UPDATE" == "true" ]]; then
     if [[ "$WEBDAV_ENABLED" == "true" ]]; then
       local webdav_config_url
       webdav_config_url=$(resolve_webdav_url "$WEBDAV_DIR" "$WEBDAV_FILE")
@@ -278,14 +278,39 @@ sync_release_json() {
     fi
 
     echo "==> 正在备份 release.json 到 GitHub Release (linux-amd64)..."
-    gh release upload "linux-amd64" "$LOCAL_CONFIG" --clobber || true
+    gh_upload_with_retry "linux-amd64" "$LOCAL_CONFIG" || true
   else
     echo "==> 本次全部组件无更新，无需回写 release.json"
   fi
 }
 
+# ==================== GitHub Release 限流重试上传器 ====================
+gh_upload_with_retry() {
+  local tag="$1"
+  shift
+  local files=("$@")
+
+  if (( ${#files[@]} == 0 )); then
+    return 0
+  fi
+
+  # 限制最多 2 并发逐个上传，单文件遇到 GitHub 500 锁冲突自动退避重试最多 5 次
+  printf "%s\n" "${files[@]}" | xargs -n 1 -P 2 -I {} bash -c '
+    tag="$1"
+    file="$2"
+    for ((i=1; i<=5; i++)); do
+      if gh release upload "$tag" "$file" --clobber; then
+        exit 0
+      fi
+      echo "⚠️ [第 ${i}/5 次] 上传 $(basename "$file") 至 [${tag}] 遇到服务端异常，4秒后重试..." >&2
+      sleep 4
+    done
+    echo "❌ 上传 $(basename "$file") 至 [${tag}] 彻底失败" >&2
+    exit 1
+  ' _ "$tag" {}
+}
+
 # ==================== 版本比对与并发构建工具 ====================
-# 新增 dpanel 到版本化任务列表
 VERSIONED_TASKS=("agent" "dashboard" "xray" "argo" "mosdns4" "mosdns5" "alist" "gost" "wireproxy" "aria2" "dpanel")
 UNVERSIONED_TASKS=("eooce" "rules")
 ALL_TASKS=("${UNVERSIONED_TASKS[@]}" "${VERSIONED_TASKS[@]}")
@@ -331,7 +356,7 @@ is_up_to_date() {
   local task="$1"
   local new_ver="$2"
 
-  if [[ -z "$new_ver" || "$new_ver" == "null" ]]; then
+  if [[ -z "$new_ver" \vert{}\vert{} "$new_ver" == "null" ]]; then
     echo "==> [警告] 未能获取到 ${task} 的有效版本号，跳过更新" >&2
     return 0
   fi
@@ -497,6 +522,7 @@ run_task() {
       local rules_changed=false
       for fname in "${!files_to_download[@]}"; do
         local fpath="dist/rules/$fname"
+        [[ -s "$fpath" ]] || continue  # 避免下载空文件覆盖有效文件
         local cur_hash
         cur_hash=$(sha256sum "$fpath" | awk '{print $1}')
         local old_hash
@@ -578,122 +604,4 @@ run_task() {
     mosdns5)
       local ver
       ver=$(fetch_latest "IrineSistiana/mosdns")
-      if is_up_to_date "mosdns5" "$ver"; then return 0; fi
-      process_github_release "mosdns5" "IrineSistiana/mosdns" "$ver" \
-        "mosdns" "mosdns5" \
-        "mosdns-linux-amd64.zip" "mosdns-linux-arm64.zip"
-      ;;
-
-    alist)
-      local ver
-      ver=$(fetch_latest "AlistGo/alist")
-      if is_up_to_date "alist" "$ver"; then return 0; fi
-      process_github_release "alist" "AlistGo/alist" "$ver" \
-        "alist" "alist" \
-        "alist-linux-amd64.tar.gz" "alist-linux-arm64.tar.gz"
-      ;;
-
-    gost)
-      local ver
-      ver=$(fetch_latest "go-gost/gost")
-      if is_up_to_date "gost" "$ver"; then return 0; fi
-      local ver_num="${ver#v}"
-      process_github_release "gost" "go-gost/gost" "$ver" \
-        "gost" "gost" \
-        "gost_${ver_num}_linux_amd64v3.tar.gz" "gost_${ver_num}_linux_arm64.tar.gz"
-      ;;
-
-    wireproxy)
-      local ver
-      ver=$(fetch_latest "windtf/wireproxy")
-      if is_up_to_date "wireproxy" "$ver"; then return 0; fi
-      process_github_release "wireproxy" "windtf/wireproxy" "$ver" \
-        "wireproxy" "wireproxy" \
-        "wireproxy_linux_amd64.tar.gz" "wireproxy_linux_arm64.tar.gz"
-      ;;
-
-    aria2)
-      local ver
-      ver=$(fetch_latest "AnInsomniacy/aria2-next")
-      if is_up_to_date "aria2" "$ver"; then return 0; fi
-      local ver_clean="${ver#v}"
-      process_github_release "aria2" "AnInsomniacy/aria2-next" "$ver" \
-        "" "aria2c" \
-        "aria2-next-${ver_clean}-linux-x86_64" "aria2-next-${ver_clean}-linux-aarch64"
-      ;;
-
-    *)
-      echo "错误: 未识别的任务: $task" >&2
-      exit 1
-      ;;
-  esac
-}
-
-# ==================== 主流程控制 ====================
-main() {
-  init_release_json
-
-  echo "=========================================================="
-  echo "阶段 1: 并发检测版本/哈希并构建目标资产..."
-  echo "=========================================================="
-
-  if [[ "$TARGET" == "all" ]]; then
-    for t in "${ALL_TASKS[@]}"; do
-      run_task "$t" &
-    done
-    wait
-  else
-    run_task "$TARGET"
-  fi
-
-  echo "=========================================================="
-  echo "阶段 2: 批量推送构建产物到 GitHub Release..."
-  echo "=========================================================="
-
-  if [[ -f dist/.upload_amd64 ]]; then
-    mapfile -t amd64_list < <(sort -u dist/.upload_amd64)
-    if (( ${#amd64_list[@]} > 0 )); then
-      echo "==> 批量上传 [linux-amd64] 变动资产: ${amd64_list[*]}"
-      gh release upload "linux-amd64" "${amd64_list[@]}" --clobber
-    fi
-  fi
-
-  if [[ -f dist/.upload_arm64 ]]; then
-    mapfile -t arm64_list < <(sort -u dist/.upload_arm64)
-    if (( ${#arm64_list[@]} > 0 )); then
-      echo "==> 批量上传 [linux-arm64] 变动资产: ${arm64_list[*]}"
-      gh release upload "linux-arm64" "${arm64_list[@]}" --clobber
-    fi
-  fi
-
-  if [[ -f dist/.versions/rules ]]; then
-    echo "==> 批量上传 [rules] 规则库资产..."
-    local rules_files=()
-    for rf in dist/rules/*; do
-      [[ -f "$rf" ]] && rules_files+=("$rf")
-    done
-    gh release upload "rules" "${rules_files[@]}" --clobber
-  fi
-
-  echo "=========================================================="
-  echo "阶段 3: 并发推送更新文件至 NAS WebDAV (仅推变动文件)..."
-  echo "=========================================================="
-
-  for vf in dist/.versions/*; do
-    [[ -f "$vf" ]] || continue
-    local updated_task
-    updated_task=$(basename "$vf")
-    queue_task_webdav_uploads "$updated_task"
-  done
-  wait
-
-  print_webdav_summary
-  sync_release_json
-
-  if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
-    echo "updated_count=${UPDATED_COUNT}" >> "$GITHUB_OUTPUT"
-    echo "release_json=$(jq -c .version "$LOCAL_CONFIG" 2>/dev/null || echo '{}')" >> "$GITHUB_OUTPUT"
-  fi
-}
-
-main
+      if is_up_
