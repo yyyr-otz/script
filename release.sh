@@ -6,7 +6,8 @@ FORCE_UPDATE="${FORCE_UPDATE:-false}"
 PLATFORMS=("linux-amd64" "linux-arm64")
 LOCAL_CONFIG="release.json"
 UPDATED_COUNT=0
-MAX_WEBDAV_JOBS=5  # WebDAV 并发传输连接数
+MAX_WEBDAV_JOBS=5       # WebDAV 并发传输连接数
+WEBDAV_FAILED=false     # 标记 WebDAV 推送是否有失败项
 
 # 初始化临时状态目录
 mkdir -p dist/linux-amd64 dist/linux-arm64 dist/rules dist/.versions dist/.webdav_reports dist/.sha256_updates dist/.rules_changed
@@ -93,7 +94,7 @@ upload_to_webdav_async() {
   done
 }
 
-# 打印美化的传输测速报表
+# 打印美化的传输测速报表（同时设置全局失败标志）
 print_webdav_summary() {
   local reports=(dist/.webdav_reports/*.log)
   if [[ ! -e "${reports[0]}" ]]; then
@@ -134,6 +135,10 @@ print_webdav_summary() {
   echo "传输统计: 共 ${total_count} 个文件 | 成功: ${success_count} | 失败: ${fail_count}"
   echo "================================================================================================"
   echo ""
+
+  if (( fail_count > 0 )); then
+    WEBDAV_FAILED=true
+  fi
 }
 
 # 将任务中的文件排队加入 WebDAV 并发上传池
@@ -163,7 +168,8 @@ queue_task_webdav_uploads() {
     arch=$(jq -r '.arch // "linux-arm64"' <<< "$item")
 
     if [[ "$task" == "rules" ]]; then
-      if [[ "$file" == "*.txt" || "$file" == "rules.tar.gz" || "$file" == "*" ]]; then
+      # 修复 Bug 4: 移除 rules.tar.gz 误匹配，让其进入 else 分支单独上传打包文件
+      if [[ "$file" == "*.txt" || "$file" == "*" ]]; then
         for rf in dist/rules/*.txt; do
           local bname
           bname=$(basename "$rf")
@@ -172,7 +178,7 @@ queue_task_webdav_uploads() {
           fi
         done
       else
-        if [[ -f "dist/.rules_changed/${file}" || "$FORCE_UPDATE" == "true" ]]; then
+        if [[ -f "dist/.rules_changed/${file}" || "$file" == "rules.tar.gz" || "$FORCE_UPDATE" == "true" ]]; then
           upload_to_webdav_async "dist/rules/${file}" "$dir" "$file"
         fi
       fi
@@ -182,6 +188,76 @@ queue_task_webdav_uploads() {
       fi
     else
       upload_to_webdav_async "dist/${arch}/${file}" "$dir" "$file"
+    fi
+  done
+}
+
+# ==================== 联动 Nginx Lua 接口重启受影响的服务 ====================
+trigger_nginx_restarts() {
+  if [[ "$WEBDAV_ENABLED" != "true" || "$WEBDAV_FAILED" == "true" || ! -f "$LOCAL_CONFIG" ]]; then
+    return 0
+  fi
+
+  local nginx_url nginx_key
+  # 兼容 uel 拼写错误以及标准 url 键名
+  nginx_url=$(jq -r '.nginx.url // .nginx.uel // empty' "$LOCAL_CONFIG" 2>/dev/null || echo "")
+  nginx_key=$(jq -r '.nginx.key // empty' "$LOCAL_CONFIG" 2>/dev/null || echo "")
+
+  if [[ -z "$nginx_url" || -z "$nginx_key" ]]; then
+    return 0
+  fi
+
+  # 读出允许重启的服务列表
+  mapfile -t allowed_svcs < <(jq -r '.nginx.services[]? // empty' "$LOCAL_CONFIG" 2>/dev/null)
+  if (( ${#allowed_svcs[@]} == 0 )); then
+    return 0
+  fi
+
+  # 建立“更新任务 -> 需重启服务”映射
+  declare -A svcs_to_restart
+  for vf in dist/.versions/*; do
+    [[ -f "$vf" ]] || continue
+    local tname
+    tname=$(basename "$vf")
+    case "$tname" in
+      xray)    svcs_to_restart["xray"]=1 ;;
+      mosdns5) svcs_to_restart["mosdns5"]=1 ;;
+      alist)   svcs_to_restart["alist"]=1 ;;
+      argo)    svcs_to_restart["argo"]=1 ;;
+      rules)
+        # 规则库变动时按需联动重启 mosdns5 与 xray
+        svcs_to_restart["mosdns5"]=1
+        svcs_to_restart["xray"]=1
+        ;;
+    esac
+  done
+
+  if (( ${#svcs_to_restart[@]} == 0 )); then
+    return 0
+  fi
+
+  echo "=========================================================="
+  echo "阶段 4: 远程通知 NAS Nginx 重启受更新影响的服务..."
+  echo "=========================================================="
+
+  for svc in "${!svcs_to_restart[@]}"; do
+    # 校验该服务是否在 release.json 配置的服务列表中
+    local in_list=false
+    for allowed in "${allowed_svcs[@]}"; do
+      if [[ "$allowed" == "$svc" ]]; then
+        in_list=true
+        break
+      fi
+    done
+
+    if [[ "$in_list" == "true" ]]; then
+      echo -n "==> 正在触发远程重启 [${svc}] ... "
+      local resp
+      if resp=$(curl -fsSL --connect-timeout 10 -H "X-Key: ${nginx_key}" "${nginx_url}?service=${svc}" 2>&1); then
+        echo "成功 ($(jq -r '.message // "OK"' <<< "$resp" 2>/dev/null || echo "$resp"))"
+      else
+        echo "失败 (${resp})"
+      fi
     fi
   done
 }
@@ -230,20 +306,19 @@ sync_release_json() {
     return
   fi
 
-  # 1. 汇总所有有版本号的任务 (.version)
+  # 1. 汇总所有更新任务计数与版本号 (修复 Bug 6: 合并冗余计数分支)
   for vf in dist/.versions/*; do
     [[ -f "$vf" ]] || continue
     local tname
     tname=$(basename "$vf")
+    UPDATED_COUNT=$((UPDATED_COUNT + 1))
+
     if [[ "$tname" != "rules" && "$tname" != "eooce" ]]; then
       local nver
       nver=$(cat "$vf")
       local tmp
       tmp=$(jq --arg k "$tname" --arg v "$nver" '.version[$k] = $v' "$LOCAL_CONFIG")
       echo "$tmp" > "$LOCAL_CONFIG"
-      UPDATED_COUNT=$((UPDATED_COUNT + 1))
-    else
-      UPDATED_COUNT=$((UPDATED_COUNT + 1))
     fi
   done
 
@@ -268,10 +343,14 @@ sync_release_json() {
   jq '{version: .version, sha256_tracked_files: (.sha256 | length)}' "$LOCAL_CONFIG" || cat "$LOCAL_CONFIG"
   echo "=========================================="
 
+  # 修复 Bug 2: 若 WebDAV 推送存在失败文件，阻止覆盖云端 release.json 以便下次补传
+  if [[ "$WEBDAV_FAILED" == "true" ]]; then
+    echo "⚠️ [中断回写] 检测到 NAS WebDAV 有部分文件推送失败，已跳过更新 release.json，下次运行时将自动补传！" >&2
+    return 1
+  fi
+
   if [[ "$UPDATED_COUNT" -gt 0 || "$FORCE_UPDATE" == "true" ]]; then
     if [[ "$WEBDAV_ENABLED" == "true" ]]; then
-      local webdav_config_url
-      webdav_config_url=$(resolve_webdav_url "$WEBDAV_DIR" "$WEBDAV_FILE")
       echo "==> 正在回写 release.json 到 NAS WebDAV..."
       upload_to_webdav_async "$LOCAL_CONFIG" "$WEBDAV_DIR" "$WEBDAV_FILE"
       wait
@@ -294,8 +373,8 @@ gh_upload_with_retry() {
     return 0
   fi
 
-  # 限制最多 2 并发逐个上传，单文件遇到 GitHub 500 锁冲突自动退避重试最多 5 次
-  printf "%s\n" "${files[@]}" | xargs -n 1 -P 2 -I {} bash -c '
+  # 修复 Bug 5: 移除与 -I {} 冲突的 -n 1 参数
+  printf "%s\n" "${files[@]}" | xargs -P 2 -I {} bash -c '
     tag="$1"
     file="$2"
     for ((i=1; i<=5; i++)); do
@@ -318,9 +397,9 @@ ALL_TASKS=("${UNVERSIONED_TASKS[@]}" "${VERSIONED_TASKS[@]}")
 gh_curl() {
   local url="$1"
   if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-    curl -sL -H "Authorization: Bearer ${GITHUB_TOKEN}" "$url"
+    curl -fsSL -H "Authorization: Bearer ${GITHUB_TOKEN}" "$url"
   else
-    curl -sL "$url"
+    curl -fsSL "$url"
   fi
 }
 
@@ -389,6 +468,8 @@ process_github_release() {
 
   echo "==> [构建开始] ${target_name} (${version})"
 
+  # 修复 Bug 3: 收集并严格等待子进程退出状态
+  local pids=()
   for plat in "${PLATFORMS[@]}"; do
     (
       local file=""
@@ -397,7 +478,8 @@ process_github_release() {
 
       local work_dir="dist/${plat}"
       local url="https://github.com/${repo}/releases/download/${version}/${file}"
-      curl -sL "$url" -o "${work_dir}/${file}"
+      # 修复 Bug 1: 增加 -f 拦截 404/502 网页
+      curl -fsSL --retry 3 "$url" -o "${work_dir}/${file}"
 
       case "$file" in
         *.zip)
@@ -424,8 +506,12 @@ process_github_release() {
       chmod +x "${work_dir}/${target_name}"
       echo "${work_dir}/${target_name}" >> "dist/.upload_${plat#linux-}"
     ) &
+    pids+=($!)
   done
-  wait
+
+  for pid in "${pids[@]}"; do
+    wait "$pid"
+  done
 
   echo "$version" > "dist/.versions/${task}"
 }
@@ -445,15 +531,19 @@ run_task() {
 
     eooce)
       echo "==> 执行 eooce (并发下载与 SHA256 检测)"
+      local pids=()
       for plat in "${PLATFORMS[@]}"; do
         (
           local subdomain=$([[ "$plat" == "linux-amd64" ]] && echo "amd64" || echo "arm64")
-          curl -sL "https://${subdomain}.ssss.nyc.mn/agent" -o "dist/${plat}/v0"
-          curl -sL "https://${subdomain}.ssss.nyc.mn/v1" -o "dist/${plat}/v1"
+          curl -fsSL --retry 3 "https://${subdomain}.ssss.nyc.mn/agent" -o "dist/${plat}/v0"
+          curl -fsSL --retry 3 "https://${subdomain}.ssss.nyc.mn/v1" -o "dist/${plat}/v1"
           chmod +x "dist/${plat}/v0" "dist/${plat}/v1"
         ) &
+        pids+=($!)
       done
-      wait
+      for pid in "${pids[@]}"; do
+        wait "$pid"
+      done
 
       local eooce_changed=false
       for plat in "${PLATFORMS[@]}"; do
@@ -511,18 +601,23 @@ run_task() {
         ["geosite.dat"]="https://github.com/Loyalsoldier/domain-list-custom/releases/latest/download/geosite.dat"
       )
 
+      local pids=()
       for fname in "${!files_to_download[@]}"; do
         local url="${files_to_download[$fname]}"
         (
-          curl -sL --retry 3 "$url" -o "dist/rules/$fname"
+          # 修复 Bug 1: 严格启用 -f，防止任何 HTTP 404/502 页面写入文件
+          curl -fsSL --retry 3 "$url" -o "dist/rules/$fname"
         ) &
+        pids+=($!)
       done
-      wait
+      for pid in "${pids[@]}"; do
+        wait "$pid"
+      done
 
       local rules_changed=false
       for fname in "${!files_to_download[@]}"; do
         local fpath="dist/rules/$fname"
-        [[ -s "$fpath" ]] || continue  # 避免下载空文件覆盖有效文件
+        [[ -s "$fpath" ]] || continue
         local cur_hash
         cur_hash=$(sha256sum "$fpath" | awk '{print $1}')
         local old_hash
@@ -559,18 +654,22 @@ run_task() {
       ver=$(fetch_latest "nezhahq/nezha")
       if is_up_to_date "dashboard" "$ver"; then return 0; fi
       echo "==> [构建开始] dashboard (${ver})"
+      local pids=()
       for plat in "${PLATFORMS[@]}"; do
         (
           local file="dashboard-${plat}.zip"
-          curl -sL "https://github.com/nezhahq/nezha/releases/download/${ver}/${file}" -o "dist/${plat}/${file}"
+          curl -fsSL --retry 3 "https://github.com/nezhahq/nezha/releases/download/${ver}/${file}" -o "dist/${plat}/${file}"
           unzip -qo -j "dist/${plat}/${file}" "dashboard-${plat}" -d "dist/${plat}"
           mv -f "dist/${plat}/dashboard-${plat}" "dist/${plat}/dashboard"
           chmod +x "dist/${plat}/dashboard"
           rm -f "dist/${plat}/${file}"
           echo "dist/${plat}/dashboard" >> "dist/.upload_${plat#linux-}"
         ) &
+        pids+=($!)
       done
-      wait
+      for pid in "${pids[@]}"; do
+        wait "$pid"
+      done
       echo "$ver" > "dist/.versions/dashboard"
       ;;
 
@@ -664,10 +763,15 @@ main() {
   echo "=========================================================="
 
   if [[ "$TARGET" == "all" ]]; then
+    # 修复 Bug 3: 记录并等待所有顶层任务 PID
+    local main_pids=()
     for t in "${ALL_TASKS[@]}"; do
       run_task "$t" &
+      main_pids+=($!)
     done
-    wait
+    for pid in "${main_pids[@]}"; do
+      wait "$pid"
+    done
   else
     run_task "$TARGET"
   fi
@@ -694,14 +798,12 @@ main() {
 
   if [[ -f dist/.versions/rules ]]; then
     local rules_files=()
-    # 1. 仅收集发生了哈希变更的规则/数据文件
     for flag in dist/.rules_changed/*; do
       [[ -f "$flag" ]] || continue
       local fname
       fname=$(basename "$flag")
       [[ -f "dist/rules/${fname}" ]] && rules_files+=("dist/rules/${fname}")
     done
-    # 2. 加入新生成的 rules.tar.gz 压缩包
     [[ -f "dist/rules/rules.tar.gz" ]] && rules_files+=("dist/rules/rules.tar.gz")
 
     if (( ${#rules_files[@]} > 0 )); then
@@ -724,6 +826,7 @@ main() {
 
   print_webdav_summary
   sync_release_json
+  trigger_nginx_restarts
 
   if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
     echo "updated_count=${UPDATED_COUNT}" >> "$GITHUB_OUTPUT"
