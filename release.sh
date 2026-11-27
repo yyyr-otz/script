@@ -210,8 +210,11 @@ trigger_nginx_restarts() {
     return 0
   fi
 
-  # 建立“更新任务 -> 需重启服务”映射（alist 仅上传文件，不再触发重启）
-  declare -A svcs_to_restart()
+  # 建立“更新任务 -> 需重启服务”映射（安全初始化空关联数组兼容 set -u）
+  declare -A svcs_to_restart
+  svcs_to_restart["__init__"]=1
+  unset 'svcs_to_restart["__init__"]'
+
   for vf in dist/.versions/*; do
     [[ -f "$vf" ]] || continue
     local tname
