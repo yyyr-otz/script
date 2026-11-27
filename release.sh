@@ -168,7 +168,6 @@ queue_task_webdav_uploads() {
     arch=$(jq -r '.arch // "linux-arm64"' <<< "$item")
 
     if [[ "$task" == "rules" ]]; then
-      # 修复 Bug 4: 移除 rules.tar.gz 误匹配，让其进入 else 分支单独上传打包文件
       if [[ "$file" == "*.txt" || "$file" == "*" ]]; then
         for rf in dist/rules/*.txt; do
           local bname
@@ -199,33 +198,30 @@ trigger_nginx_restarts() {
   fi
 
   local nginx_url nginx_key
-  # 兼容 uel 拼写错误以及标准 url 键名
-  nginx_url=$(jq -r '.nginx.url // .nginx.uel // empty' "$LOCAL_CONFIG" 2>/dev/null || echo "")
+  nginx_url=$(jq -r '.nginx.url // empty' "$LOCAL_CONFIG" 2>/dev/null || echo "")
   nginx_key=$(jq -r '.nginx.key // empty' "$LOCAL_CONFIG" 2>/dev/null || echo "")
 
   if [[ -z "$nginx_url" || -z "$nginx_key" ]]; then
     return 0
   fi
 
-  # 读出允许重启的服务列表
   mapfile -t allowed_svcs < <(jq -r '.nginx.services[]? // empty' "$LOCAL_CONFIG" 2>/dev/null)
   if (( ${#allowed_svcs[@]} == 0 )); then
     return 0
   fi
 
-  # 建立“更新任务 -> 需重启服务”映射
+  # 建立“更新任务 -> 需重启服务”映射（alist 仅上传文件，不再触发重启）
   declare -A svcs_to_restart
   for vf in dist/.versions/*; do
     [[ -f "$vf" ]] || continue
     local tname
     tname=$(basename "$vf")
     case "$tname" in
-      xray)    svcs_to_restart["xray"]=1 ;;
-      mosdns5) svcs_to_restart["mosdns5"]=1 ;;
-      alist)   svcs_to_restart["alist"]=1 ;;
-      argo)    svcs_to_restart["argo"]=1 ;;
+      xray)     svcs_to_restart["xray"]=1 ;;
+      mosdns5)  svcs_to_restart["mosdns5"]=1 ;;
+      openlist) svcs_to_restart["openlist"]=1 ;;
+      argo)     svcs_to_restart["argo"]=1 ;;
       rules)
-        # 规则库变动时按需联动重启 mosdns5 与 xray
         svcs_to_restart["mosdns5"]=1
         svcs_to_restart["xray"]=1
         ;;
@@ -236,30 +232,31 @@ trigger_nginx_restarts() {
     return 0
   fi
 
-  echo "=========================================================="
-  echo "阶段 4: 远程通知 NAS Nginx 重启受更新影响的服务..."
-  echo "=========================================================="
-
+  # 过滤出 release.json 白名单中允许的服务，并拼接为逗号分隔列表单次派发
+  local target_list=()
   for svc in "${!svcs_to_restart[@]}"; do
-    # 校验该服务是否在 release.json 配置的服务列表中
-    local in_list=false
     for allowed in "${allowed_svcs[@]}"; do
       if [[ "$allowed" == "$svc" ]]; then
-        in_list=true
+        target_list+=("$svc")
         break
       fi
     done
-
-    if [[ "$in_list" == "true" ]]; then
-      echo -n "==> 正在触发远程重启 [${svc}] ... "
-      local resp
-      if resp=$(curl -fsSL --connect-timeout 10 -H "X-Key: ${nginx_key}" "${nginx_url}?service=${svc}" 2>&1); then
-        echo "成功 ($(jq -r '.message // "OK"' <<< "$resp" 2>/dev/null || echo "$resp"))"
-      else
-        echo "失败 (${resp})"
-      fi
-    fi
   done
+
+  if (( ${#target_list[@]} > 0 )); then
+    local joined_svcs
+    joined_svcs=$(IFS=,; echo "${target_list[*]}")
+    echo "=========================================================="
+    echo "阶段 4: 远程通知 NAS 执行二进制赋权并依次重启 [${joined_svcs}]..."
+    echo "=========================================================="
+
+    local resp
+    if resp=$(curl -fsSL --connect-timeout 10 -H "X-Key: ${nginx_key}" "${nginx_url}?service=${joined_svcs}" 2>&1); then
+      echo "==> 触发成功: $(jq -r '.message // "OK"' <<< "$resp" 2>/dev/null || echo "$resp")"
+    else
+      echo "==> 触发失败: ${resp}"
+    fi
+  fi
 }
 
 # ==================== 初始化与版本管理 ====================
@@ -306,7 +303,7 @@ sync_release_json() {
     return
   fi
 
-  # 1. 汇总所有更新任务计数与版本号 (修复 Bug 6: 合并冗余计数分支)
+  # 1. 汇总所有更新任务计数与版本号
   for vf in dist/.versions/*; do
     [[ -f "$vf" ]] || continue
     local tname
@@ -343,7 +340,7 @@ sync_release_json() {
   jq '{version: .version, sha256_tracked_files: (.sha256 | length)}' "$LOCAL_CONFIG" || cat "$LOCAL_CONFIG"
   echo "=========================================="
 
-  # 修复 Bug 2: 若 WebDAV 推送存在失败文件，阻止覆盖云端 release.json 以便下次补传
+  # 若 WebDAV 推送存在失败文件，阻止覆盖云端 release.json 以便下次补传
   if [[ "$WEBDAV_FAILED" == "true" ]]; then
     echo "⚠️ [中断回写] 检测到 NAS WebDAV 有部分文件推送失败，已跳过更新 release.json，下次运行时将自动补传！" >&2
     return 1
@@ -373,7 +370,6 @@ gh_upload_with_retry() {
     return 0
   fi
 
-  # 修复 Bug 5: 移除与 -I {} 冲突的 -n 1 参数
   printf "%s\n" "${files[@]}" | xargs -P 2 -I {} bash -c '
     tag="$1"
     file="$2"
@@ -390,7 +386,7 @@ gh_upload_with_retry() {
 }
 
 # ==================== 版本比对与并发构建工具 ====================
-VERSIONED_TASKS=("agent" "dashboard" "xray" "argo" "mosdns4" "mosdns5" "alist" "gost" "wireproxy" "aria2" "dpanel")
+VERSIONED_TASKS=("agent" "dashboard" "xray" "argo" "mosdns4" "mosdns5" "alist" "openlist" "gost" "wireproxy" "aria2" "dpanel")
 UNVERSIONED_TASKS=("eooce" "rules")
 ALL_TASKS=("${UNVERSIONED_TASKS[@]}" "${VERSIONED_TASKS[@]}")
 
@@ -468,7 +464,6 @@ process_github_release() {
 
   echo "==> [构建开始] ${target_name} (${version})"
 
-  # 修复 Bug 3: 收集并严格等待子进程退出状态
   local pids=()
   for plat in "${PLATFORMS[@]}"; do
     (
@@ -478,7 +473,6 @@ process_github_release() {
 
       local work_dir="dist/${plat}"
       local url="https://github.com/${repo}/releases/download/${version}/${file}"
-      # 修复 Bug 1: 增加 -f 拦截 404/502 网页
       curl -fsSL --retry 3 "$url" -o "${work_dir}/${file}"
 
       case "$file" in
@@ -605,7 +599,6 @@ run_task() {
       for fname in "${!files_to_download[@]}"; do
         local url="${files_to_download[$fname]}"
         (
-          # 修复 Bug 1: 严格启用 -f，防止任何 HTTP 404/502 页面写入文件
           curl -fsSL --retry 3 "$url" -o "dist/rules/$fname"
         ) &
         pids+=($!)
@@ -718,6 +711,15 @@ run_task() {
         "alist-linux-amd64.tar.gz" "alist-linux-arm64.tar.gz"
       ;;
 
+    openlist)
+      local ver
+      ver=$(fetch_latest "OpenListTeam/OpenList")
+      if is_up_to_date "openlist" "$ver"; then return 0; fi
+      process_github_release "openlist" "OpenListTeam/OpenList" "$ver" \
+        "openlist" "openlist" \
+        "openlist-linux-amd64.tar.gz" "openlist-linux-arm64.tar.gz"
+      ;;
+
     gost)
       local ver
       ver=$(fetch_latest "go-gost/gost")
@@ -763,7 +765,6 @@ main() {
   echo "=========================================================="
 
   if [[ "$TARGET" == "all" ]]; then
-    # 修复 Bug 3: 记录并等待所有顶层任务 PID
     local main_pids=()
     for t in "${ALL_TASKS[@]}"; do
       run_task "$t" &
@@ -833,5 +834,3 @@ main() {
     echo "release_json=$(jq -c .version "$LOCAL_CONFIG" 2>/dev/null || echo '{}')" >> "$GITHUB_OUTPUT"
   fi
 }
-
-main
