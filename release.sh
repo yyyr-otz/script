@@ -834,3 +834,5 @@ main() {
     echo "release_json=$(jq -c .version "$LOCAL_CONFIG" 2>/dev/null || echo '{}')" >> "$GITHUB_OUTPUT"
   fi
 }
+
+main
