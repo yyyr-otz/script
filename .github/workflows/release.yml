@@ -32,7 +32,7 @@ on:
 
 jobs:
   update_release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
