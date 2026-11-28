@@ -141,7 +141,7 @@ print_webdav_summary() {
   fi
 }
 
-# 将任务中的文件排队加入 WebDAV 并发上传池
+# 将任务中的文件排队加入 WebDAV 并发上传池（严格按 SHA256 变动推送）
 queue_task_webdav_uploads() {
   local task="$1"
   if [[ "$WEBDAV_ENABLED" != "true" || ! -f "$LOCAL_CONFIG" ]]; then
@@ -168,8 +168,18 @@ queue_task_webdav_uploads() {
     arch=$(jq -r '.arch // "linux-arm64"' <<< "$item")
 
     if [[ "$task" == "rules" ]]; then
-      if [[ "$file" == "*.txt" || "$file" == "*" ]]; then
+      if [[ "$file" == "*_list.txt" ]]; then
+        for rf in dist/rules/*_list.txt; do
+          [[ -f "$rf" ]] || continue
+          local bname
+          bname=$(basename "$rf")
+          if [[ -f "dist/.rules_changed/${bname}" || "$FORCE_UPDATE" == "true" ]]; then
+            upload_to_webdav_async "$rf" "$dir" "$bname"
+          fi
+        done
+      elif [[ "$file" == "*.txt" || "$file" == "*" ]]; then
         for rf in dist/rules/*.txt; do
+          [[ -f "$rf" ]] || continue
           local bname
           bname=$(basename "$rf")
           if [[ -f "dist/.rules_changed/${bname}" || "$FORCE_UPDATE" == "true" ]]; then
@@ -177,7 +187,7 @@ queue_task_webdav_uploads() {
           fi
         done
       else
-        if [[ -f "dist/.rules_changed/${file}" || "$file" == "rules.tar.gz" || "$FORCE_UPDATE" == "true" ]]; then
+        if [[ -f "dist/.rules_changed/${file}" || "$FORCE_UPDATE" == "true" ]]; then
           upload_to_webdav_async "dist/rules/${file}" "$dir" "$file"
         fi
       fi
@@ -210,7 +220,7 @@ trigger_nginx_restarts() {
     return 0
   fi
 
-  # 建立“更新任务 -> 需重启服务”映射（安全初始化空关联数组兼容 set -u）
+  # 建立“更新任务 -> 需重启/重载服务”精准映射
   declare -A svcs_to_restart
   svcs_to_restart["__init__"]=1
   unset 'svcs_to_restart["__init__"]'
@@ -224,9 +234,18 @@ trigger_nginx_restarts() {
       mosdns5)  svcs_to_restart["mosdns5"]=1 ;;
       openlist) svcs_to_restart["openlist"]=1 ;;
       argo)     svcs_to_restart["argo"]=1 ;;
+      aria2)    svcs_to_restart["aria2"]=1 ;;
       rules)
-        svcs_to_restart["mosdns5"]=1
-        svcs_to_restart["xray"]=1
+        # 按实际变动的规则类型精准触发对应服务
+        if compgen -G "dist/.rules_changed/*_list.txt" >/dev/null; then
+          svcs_to_restart["mosdns5"]=1
+        fi
+        if compgen -G "dist/.rules_changed/*.dat" >/dev/null; then
+          svcs_to_restart["xray"]=1
+        fi
+        if [[ -f "dist/.rules_changed/tracker" ]]; then
+          svcs_to_restart["aria2"]=1
+        fi
         ;;
     esac
   done
@@ -250,7 +269,7 @@ trigger_nginx_restarts() {
     local joined_svcs
     joined_svcs=$(IFS=,; echo "${target_list[*]}")
     echo "=========================================================="
-    echo "阶段 4: 远程通知 NAS 执行二进制赋权并依次重启 [${joined_svcs}]..."
+    echo "阶段 4: 远程通知 NAS 执行二进制赋权并依次处理 [${joined_svcs}]..."
     echo "=========================================================="
 
     local resp
@@ -596,6 +615,7 @@ run_task() {
         ["geoip-only-cn-private.dat"]="https://github.com/Loyalsoldier/geoip/releases/latest/download/geoip-only-cn-private.dat"
         ["geoip.dat"]="https://raw.githubusercontent.com/Loyalsoldier/geoip/release/geoip.dat"
         ["geosite.dat"]="https://github.com/Loyalsoldier/domain-list-custom/releases/latest/download/geosite.dat"
+        ["trackers.txt"]="https://tracker.adysec.com/trackers_best.txt"
       )
 
       local pids=()
@@ -610,8 +630,24 @@ run_task() {
         wait "$pid"
       done
 
+      # 清洗 trackers.txt 並生成单行英文逗号分隔的 tracker 文件（供 WebDAV 推送至 aria2）
+      if [[ -s "dist/rules/trackers.txt" ]]; then
+        tr -d '\r' < "dist/rules/trackers.txt" | grep -E '^(udp|http|https|ws|wss)://' > "dist/rules/trackers.txt.tmp" || true
+        if [[ $(wc -l < "dist/rules/trackers.txt.tmp") -ge 5 ]]; then
+          mv -f "dist/rules/trackers.txt.tmp" "dist/rules/trackers.txt"
+          paste -sd "," "dist/rules/trackers.txt" > "dist/rules/tracker"
+        else
+          echo "==> [警告] trackers_best.txt 有效行数不足，跳过本次 tracker 更新" >&2
+          rm -f "dist/rules/trackers.txt" "dist/rules/trackers.txt.tmp"
+        fi
+      fi
+
+      # 统一对所有产物（含 trackers.txt 与单行 tracker）做 SHA256 严格比对
+      local check_files=("${!files_to_download[@]}")
+      [[ -s "dist/rules/tracker" ]] && check_files+=("tracker")
+
       local rules_changed=false
-      for fname in "${!files_to_download[@]}"; do
+      for fname in "${check_files[@]}"; do
         local fpath="dist/rules/$fname"
         [[ -s "$fpath" ]] || continue
         local cur_hash
@@ -628,8 +664,7 @@ run_task() {
       done
 
       if [[ "$rules_changed" == "true" ]]; then
-        echo "==> [rules] 规则库有变动，正在重新打包 rules.tar.gz"
-        (cd dist/rules && tar -czf rules.tar.gz *.txt)
+        echo "==> [rules] 规则库有变动，准备按需增量推送单文件"
         touch "dist/.versions/rules"
       else
         echo "==> [已是最新] rules 所有规则与数据文件哈希均未变化，跳过上传"
@@ -806,9 +841,11 @@ main() {
       [[ -f "$flag" ]] || continue
       local fname
       fname=$(basename "$flag")
-      [[ -f "dist/rules/${fname}" ]] && rules_files+=("dist/rules/${fname}")
+      # 仅将非单行 tracker 文件（即 *_list.txt, *.dat, trackers.txt 等）上传至 rules tag
+      if [[ "$fname" != "tracker" && -f "dist/rules/${fname}" ]]; then
+        rules_files+=("dist/rules/${fname}")
+      fi
     done
-    [[ -f "dist/rules/rules.tar.gz" ]] && rules_files+=("dist/rules/rules.tar.gz")
 
     if (( ${#rules_files[@]} > 0 )); then
       echo "==> 批量上传 [rules] 变更资产 (${#rules_files[@]} 个): ${rules_files[*]}"
