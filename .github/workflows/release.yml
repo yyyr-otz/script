@@ -1,29 +1,14 @@
 name: 更新自用二进制
-run-name: ${{ github.actor }} 正在更新release文件 (${{ inputs.task || 'all' }})
+run-name: 正在更新(${{ inputs.task || 'all' }})
 
 on:
   workflow_dispatch:
     inputs:
       task:
-        description: '选择需要执行的任务（默认 all 为全量增量更新）'
+        description: '输入任务名称（默认 all，支持空格或逗号分隔多个）'
         required: false
         default: 'all'
-        type: choice
-        options:
-          - all
-          - eooce
-          - rules
-          - agent
-          - dashboard
-          - xray
-          - alist
-          - argo
-          - mosdns4
-          - mosdns5
-          - gost
-          - wireproxy
-          - aria2
-          - dpanel
+        type: string
       force:
         description: '是否强制更新（忽略版本比对）'
         required: false
