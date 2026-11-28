@@ -1,5 +1,5 @@
-name: 更新自用二进制
-run-name: 正在更新(${{ inputs.task || 'all' }})
+name: 定时任务
+run-name: 行定时任务
 
 on:
   workflow_dispatch:
@@ -22,7 +22,7 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 执行更新脚本
+      - name: 更新(${{ inputs.task || 'all' }})
         id: run_update
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
