@@ -196,12 +196,17 @@ queue_task_webdav_uploads() {
         upload_to_webdav_async "dist/${arch}/${file}" "$dir" "$file"
       fi
     else
-      upload_to_webdav_async "dist/${arch}/${file}" "$dir" "$file"
+      # 兼容 release.json 中将 aria2 目标文件名设为 aria2c.new（构建产物名仍为 aria2c）
+      local local_src="dist/${arch}/${file}"
+      if [[ ! -f "$local_src" && "$task" == "aria2" && -f "dist/${arch}/aria2c" ]]; then
+        local_src="dist/${arch}/aria2c"
+      fi
+      upload_to_webdav_async "$local_src" "$dir" "$file"
     fi
   done
 }
 
-# ==================== 联动 Nginx Lua 接口重启受影响的服务 ====================
+# ==================== 联动 Nginx Lua 接口处理受影响的服务 ====================
 trigger_nginx_restarts() {
   if [[ "$WEBDAV_ENABLED" != "true" || "$WEBDAV_FAILED" == "true" || ! -f "$LOCAL_CONFIG" ]]; then
     return 0
@@ -220,7 +225,7 @@ trigger_nginx_restarts() {
     return 0
   fi
 
-  # 建立“更新任务 -> 需重启/重载服务”精准映射
+  # 建立“更新任务 -> 需重启/重载/触发任务”精准映射
   declare -A svcs_to_restart
   svcs_to_restart["__init__"]=1
   unset 'svcs_to_restart["__init__"]'
@@ -235,6 +240,7 @@ trigger_nginx_restarts() {
       openlist) svcs_to_restart["openlist"]=1 ;;
       argo)     svcs_to_restart["argo"]=1 ;;
       aria2)    svcs_to_restart["aria2"]=1 ;;
+      arcaea)   svcs_to_restart["arcaea"]=1 ;;
       rules)
         # 按实际变动的规则类型精准触发对应服务
         if compgen -G "dist/.rules_changed/*_list.txt" >/dev/null; then
@@ -325,7 +331,7 @@ sync_release_json() {
     return
   fi
 
-  # 1. 汇总所有更新任务计数与版本号
+  # 1. 汇总所有更新任务计数与版本号（含 arcaea）
   for vf in dist/.versions/*; do
     [[ -f "$vf" ]] || continue
     local tname
@@ -408,7 +414,7 @@ gh_upload_with_retry() {
 }
 
 # ==================== 版本比对与并发构建工具 ====================
-VERSIONED_TASKS=("agent" "dashboard" "xray" "argo" "mosdns4" "mosdns5" "alist" "openlist" "gost" "wireproxy" "aria2" "dpanel")
+VERSIONED_TASKS=("agent" "dashboard" "xray" "argo" "mosdns4" "mosdns5" "alist" "openlist" "gost" "wireproxy" "aria2" "dpanel" "arcaea")
 UNVERSIONED_TASKS=("eooce" "rules")
 ALL_TASKS=("${UNVERSIONED_TASKS[@]}" "${VERSIONED_TASKS[@]}")
 
@@ -536,6 +542,13 @@ process_github_release() {
 run_task() {
   local task="$1"
   case "$task" in
+    arcaea)
+      local ver
+      ver=$(curl -fsSL --retry 3 --connect-timeout 10 "https://arc.listder.xyz/" | jq -r '.value.version // empty' 2>/dev/null || echo "")
+      if is_up_to_date "arcaea" "$ver"; then return 0; fi
+      echo "$ver" > "dist/.versions/arcaea"
+      ;;
+
     dpanel)
       local ver
       ver=$(fetch_latest "donknap/dpanel")
@@ -630,7 +643,7 @@ run_task() {
         wait "$pid"
       done
 
-      # 清洗 trackers.txt 並生成单行英文逗号分隔的 tracker 文件（供 WebDAV 推送至 aria2）
+      # 清洗 trackers.txt 并生成单行英文逗号分隔的 tracker 文件（供 WebDAV 推送至 aria2）
       if [[ -s "dist/rules/trackers.txt" ]]; then
         tr -d '\r' < "dist/rules/trackers.txt" | grep -E '^(udp|http|https|ws|wss)://' > "dist/rules/trackers.txt.tmp" || true
         if [[ $(wc -l < "dist/rules/trackers.txt.tmp") -ge 5 ]]; then
@@ -841,7 +854,6 @@ main() {
       [[ -f "$flag" ]] || continue
       local fname
       fname=$(basename "$flag")
-      # 仅将非单行 tracker 文件（即 *_list.txt, *.dat, trackers.txt 等）上传至 rules tag
       if [[ "$fname" != "tracker" && -f "dist/rules/${fname}" ]]; then
         rules_files+=("dist/rules/${fname}")
       fi
