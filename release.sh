@@ -815,18 +815,24 @@ main() {
   echo "阶段 1: 并发检测版本/哈希并构建目标资产..."
   echo "=========================================================="
 
-  if [[ "$TARGET" == "all" ]]; then
-    local main_pids=()
-    for t in "${ALL_TASKS[@]}"; do
-      run_task "$t" &
-      main_pids+=($!)
-    done
-    for pid in "${main_pids[@]}"; do
-      wait "$pid"
-    done
+  local clean_target
+  clean_target=$(echo "$TARGET" | tr ',' ' ' | xargs)
+
+  local tasks_to_run=()
+  if [[ -z "$clean_target" || "$clean_target" == "all" ]]; then
+    tasks_to_run=("${ALL_TASKS[@]}")
   else
-    run_task "$TARGET"
+    read -ra tasks_to_run <<< "$clean_target"
   fi
+
+  local main_pids=()
+  for t in "${tasks_to_run[@]}"; do
+    run_task "$t" &
+    main_pids+=($!)
+  done
+  for pid in "${main_pids[@]}"; do
+    wait "$pid"
+  done
 
   echo "=========================================================="
   echo "阶段 2: 批量推送构建产物到 GitHub Release..."
